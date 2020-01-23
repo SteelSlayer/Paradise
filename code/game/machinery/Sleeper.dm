@@ -23,6 +23,7 @@
 	var/initial_bin_rating = 1
 	var/min_health = -25
 	var/controls_inside = FALSE
+	var/processing_timer
 	idle_power_usage = 1250
 	active_power_usage = 2500
 
@@ -80,7 +81,10 @@
 		return 0 //maybe they should be able to get out with cuffs, but whatever
 	go_out()
 
-/obj/machinery/sleeper/process()
+/obj/machinery/sleeper/proc/occupant_processing()
+	processing_timer = addtimer(CALLBACK(src, .proc/occupant_processing), 20, TIMER_STOPPABLE)
+	message_admins("occupant processing")
+
 	if(filtering > 0)
 		if(beaker)
 			// To prevent runtimes from drawing blood from runtime, and to prevent getting IPC blood.
@@ -337,6 +341,7 @@
 			icon_state = "[base_icon]"
 			to_chat(M, "<span class='boldnotice'>You feel cool air surround you. You go numb as your senses turn inward.</span>")
 			add_fingerprint(user)
+			occupant_processing()
 			qdel(G)
 			return
 
@@ -389,6 +394,8 @@
 	occupant.forceMove(loc)
 	occupant = null
 	icon_state = "[base_icon]-open"
+	deltimer(processing_timer)
+	processing_timer = null
 	// eject trash the occupant dropped
 	for(var/atom/movable/A in contents - component_parts - list(beaker))
 		A.forceMove(loc)
@@ -488,6 +495,7 @@
 		icon_state = "[base_icon]"
 		to_chat(L, "<span class='boldnotice'>You feel cool air surround you. You go numb as your senses turn inward.</span>")
 		add_fingerprint(user)
+		occupant_processing()
 		if(user.pulling == L)
 			user.stop_pulling()
 		return
