@@ -153,6 +153,7 @@
 #define COMSIG_LIVING_STATUS_UNCONSCIOUS "living_unconscious"	//from base of mob/living/Unconscious() (amount, update, ignore)
 #define COMSIG_LIVING_STATUS_SLEEP "living_sleeping"			//from base of mob/living/Sleeping() (amount, update, ignore)
 	#define COMPONENT_NO_STUN 1			//For all of them
+#define COMSIG_LIVING_HANDLE_CULTSLUR "living_handle_cultslur"	///from base of /mob/living/proc/handle_status_effects()
 
 // /mob/living/carbon signals
 #define COMSIG_CARBON_SOUNDBANG "carbon_soundbang"					//from base of mob/living/carbon/soundbang_act(): (list(intensity))

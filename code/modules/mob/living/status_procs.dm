@@ -387,14 +387,25 @@
 // CULTSLURRING
 
 /mob/living/CultSlur(amount)
-	SetSlur(max(slurring, amount))
+	return SetCultSlur(max(cultslurring, amount))
 
-/mob/living/SetCultSlur(amount)
-	slurring = max(amount, 0)
+/mob/living/SetCultSlur(amount, updating = TRUE)
+	if((!!amount) == (!!cultslurring)) // We're not changing from + to 0 or vice versa
+		updating = FALSE
+
+	cultslurring = max(amount, 0)
+
+	if(!updating)
+		return
+
+	if(cultslurring) // If the mob now has a cultslur of more than 0, register for the signal.
+		RegisterSignal(src, COMSIG_LIVING_HANDLE_CULTSLUR, .proc/handle_cultslurring)
+	else // otherwise, unregister the signal.
+		UnregisterSignal(src, COMSIG_LIVING_HANDLE_CULTSLUR)
 
 /mob/living/AdjustCultSlur(amount, bound_lower = 0, bound_upper = INFINITY)
 	var/new_value = directional_bounded_sum(cultslurring, amount, bound_lower, bound_upper)
-	SetCultSlur(new_value)
+	return SetCultSlur(new_value)
 
 // STUN
 

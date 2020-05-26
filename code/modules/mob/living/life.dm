@@ -109,7 +109,7 @@
 	handle_sleeping()
 	handle_slowed()
 	handle_drunk()
-	handle_cultslurring()
+	SEND_SIGNAL(src, COMSIG_LIVING_HANDLE_CULTSLUR)
 
 
 /mob/living/proc/handle_stunned()
@@ -147,9 +147,7 @@
 	return slurring
 
 /mob/living/proc/handle_cultslurring()
-	if(cultslurring)
-		AdjustCultSlur(-1)
-	return cultslurring
+	AdjustCultSlur(-1)
 
 /mob/living/proc/handle_paralysed()
 	if(paralysis)
