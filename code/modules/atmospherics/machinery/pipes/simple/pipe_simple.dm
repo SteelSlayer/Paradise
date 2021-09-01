@@ -30,9 +30,9 @@
 	alpha = 255
 
 	switch(dir)
-		if(SOUTH, NORTH)
+		if(SOUTH || NORTH)
 			initialize_directions = SOUTH|NORTH
-		if(EAST, WEST)
+		if(EAST || WEST)
 			initialize_directions = EAST|WEST
 		if(NORTHEAST)
 			initialize_directions = NORTH|EAST
@@ -68,8 +68,7 @@
 							break
 
 		var/turf/T = loc			// hide if turf is not intact
-		if(!T.transparent_floor)
-			hide(T.intact)
+		hide(T.intact)
 		update_icon()
 
 /obj/machinery/atmospherics/pipe/simple/check_pressure(pressure)
@@ -137,13 +136,20 @@
 	if(node2)
 		node2.update_underlays()
 
-/obj/machinery/atmospherics/pipe/simple/update_overlays()
-	. = ..()
+/obj/machinery/atmospherics/pipe/simple/update_icon(safety = 0)
+	..()
+
+	if(!check_icon_cache())
+		return
+
 	alpha = 255
+
+	overlays.Cut()
+
 	if(node1 && node2)
-		. += SSair.icon_manager.get_atmos_icon("pipe", , pipe_color, pipe_icon + "intact" + icon_connect_type)
+		overlays += SSair.icon_manager.get_atmos_icon("pipe", , pipe_color, pipe_icon + "intact" + icon_connect_type)
 	else
-		. += SSair.icon_manager.get_atmos_icon("pipe", , pipe_color, pipe_icon + "exposed[node1?1:0][node2?1:0]" + icon_connect_type)
+		overlays += SSair.icon_manager.get_atmos_icon("pipe", , pipe_color, pipe_icon + "exposed[node1?1:0][node2?1:0]" + icon_connect_type)
 
 // A check to make sure both nodes exist - self-delete if they aren't present
 /obj/machinery/atmospherics/pipe/simple/check_nodes_exist()

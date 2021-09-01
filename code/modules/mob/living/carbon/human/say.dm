@@ -39,6 +39,9 @@
 				winset(client, "input", "text=[null]")
 
 /mob/living/carbon/human/say_understands(mob/other, datum/language/speaking = null)
+	if(has_brain_worms()) //Brain worms translate everything. Even mice and alien speak.
+		return 1
+
 	if(dna.species.can_understand(other))
 		return 1
 
@@ -80,10 +83,8 @@
 	if(has_changer)
 		return has_changer
 
-	if(mind)
-		var/datum/antagonist/changeling/cling = mind.has_antag_datum(/datum/antagonist/changeling)
-		if(cling?.mimicing)
-			return cling.mimicing
+	if(mind && mind.changeling && mind.changeling.mimicing)
+		return mind.changeling.mimicing
 
 	if(GetSpecialVoice())
 		return GetSpecialVoice()
@@ -97,11 +98,9 @@
 	// how do species that don't breathe talk? magic, that's what.
 	var/breathes = (!HAS_TRAIT(src, TRAIT_NOBREATH))
 	var/obj/item/organ/internal/L = get_organ_slot("lungs")
-	if(HAS_TRAIT(src, TRAIT_MUTE))
-		return FALSE
 	if((breathes && !L) || breathes && L && (L.status & ORGAN_DEAD))
 		return FALSE
-	if(getOxyLoss() > 10 || AmountLoseBreath() >= 8 SECONDS)
+	if(getOxyLoss() > 10 || losebreath >= 4)
 		emote("gasp")
 		return FALSE
 	if(mind)
@@ -143,13 +142,14 @@
 		if(S.speaking && S.speaking.flags & NO_STUTTER)
 			continue
 
-		if(HAS_TRAIT(src, TRAIT_MUTE))
+		if(silent || HAS_TRAIT(src, TRAIT_MUTE))
 			S.message = ""
 
 		if(istype(wear_mask, /obj/item/clothing/mask/horsehead))
 			var/obj/item/clothing/mask/horsehead/hoers = wear_mask
 			if(hoers.voicechange)
 				S.message = pick("NEEIIGGGHHHH!", "NEEEIIIIGHH!", "NEIIIGGHH!", "HAAWWWWW!", "HAAAWWW!")
+				verb = pick("whinnies", "neighs", "says")
 
 		if(dna)
 			for(var/mutation_type in active_mutations)
@@ -167,12 +167,6 @@
 
 		if(span)
 			S.message = "<span class='[span]'>[S.message]</span>"
-
-	if(wear_mask)
-		var/speech_verb_when_masked = wear_mask.change_speech_verb()
-		if(speech_verb_when_masked)
-			verb = speech_verb_when_masked
-
 	return list("verb" = verb)
 
 /mob/living/carbon/human/handle_message_mode(message_mode, list/message_pieces, verb, used_radios)
@@ -199,20 +193,20 @@
 
 		if("right ear")
 			var/obj/item/radio/R
-			if(isradio(r_hand))
-				R = r_hand
-			else if(isradio(r_ear))
+			if(isradio(r_ear))
 				R = r_ear
+			else if(isradio(r_hand))
+				R = r_hand
 			if(R)
 				used_radios += R
 				R.talk_into(src, message_pieces, null, verb)
 
 		if("left ear")
 			var/obj/item/radio/R
-			if(isradio(l_hand))
-				R = l_hand
-			else if(isradio(l_ear))
+			if(isradio(l_ear))
 				R = l_ear
+			else if(isradio(l_hand))
+				R = l_hand
 			if(R)
 				used_radios += R
 				R.talk_into(src, message_pieces, null, verb)

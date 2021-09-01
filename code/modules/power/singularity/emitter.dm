@@ -97,11 +97,12 @@
 	QDEL_NULL(sparks)
 	return ..()
 
-/obj/machinery/power/emitter/update_icon_state()
+/obj/machinery/power/emitter/update_icon()
 	if(active && powernet && avail(active_power_usage))
 		icon_state = "emitter_+a"
 	else
 		icon_state = "emitter"
+
 
 /obj/machinery/power/emitter/emag_act(mob/living/user)
 	if(!emagged)

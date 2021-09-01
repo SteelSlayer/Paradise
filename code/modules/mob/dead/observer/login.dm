@@ -6,4 +6,4 @@
 
 	if(GLOB.non_respawnable_keys[ckey])
 		can_reenter_corpse = 0
-		remove_from_respawnable_list()
+		GLOB.respawnable_list -= src

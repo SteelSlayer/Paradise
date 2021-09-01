@@ -44,7 +44,7 @@
 	desc = "Used to control the satellite network."
 	circuit = /obj/item/circuitboard/computer/sat_control
 	icon_screen = "accelerator"
-	icon_keyboard = "rd_key"
+	icon_keyboard = "accelerator_key"
 	var/notice
 
 /obj/machinery/computer/sat_control/attack_hand(mob/user)
@@ -103,13 +103,13 @@
 	icon_state = "sat_inactive"
 	var/mode = "NTPROBEV0.8"
 	var/active = FALSE
-	density = TRUE
+	density = 1
 	use_power = FALSE
 	var/static/gid = 0
 	var/id = 0
 
-/obj/machinery/satellite/Initialize(mapload)
-	. = ..()
+/obj/machinery/satellite/New()
+	..()
 	id = gid++
 
 /obj/machinery/satellite/attack_hand(mob/user)
@@ -130,14 +130,14 @@
 	active = !active
 	if(active)
 		animate(src, pixel_y = 2, time = 10, loop = -1)
-		anchored = TRUE
+		anchored = 1
 	else
 		animate(src, pixel_y = 0, time = 10)
-		anchored = FALSE
-	update_icon(UPDATE_ICON_STATE)
+		anchored = 0
+	update_icon()
 	return TRUE
 
-/obj/machinery/satellite/update_icon_state()
+/obj/machinery/satellite/update_icon()
 	icon_state = active ? "sat_active" : "sat_inactive"
 
 /obj/machinery/satellite/attackby(obj/item/I, mob/user, params)
@@ -162,15 +162,13 @@
 /obj/machinery/satellite/meteor_shield/process()
 	if(!active)
 		return
-	for(var/obj/effect/M in GLOB.meteor_list)
+	for(var/obj/effect/meteor/M in GLOB.meteor_list)
 		if(M.z != z)
 			continue
 		if(get_dist(M, src) > kill_range)
 			continue
 		if(!emagged && space_los(M))
 			Beam(get_turf(M), icon_state = "sat_beam", time = 5, maxdistance = kill_range)
-			if(istype(M, /obj/effect/space_dust/meaty))
-				new /obj/item/reagent_containers/food/snacks/meatsteak(get_turf(M))
 			qdel(M)
 
 /obj/machinery/satellite/meteor_shield/toggle(user)
@@ -196,6 +194,6 @@
 /obj/machinery/satellite/meteor_shield/emag_act(mob/user)
 	if(!emagged)
 		to_chat(user, "<span class='danger'>You override the shield's circuits, causing it to attract meteors instead of destroying them.</span>")
-		emagged = TRUE
+		emagged = 1
 		if(active)
 			change_meteor_chance(2)

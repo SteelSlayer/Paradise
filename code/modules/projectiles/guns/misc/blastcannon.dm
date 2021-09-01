@@ -9,6 +9,7 @@
 	fire_sound = 'sound/weapons/blastcannon.ogg'
 	needs_permit = FALSE
 	clumsy_check = FALSE
+	randomspread = FALSE
 
 	var/obj/item/transfer_valve/bomb
 
@@ -22,28 +23,18 @@
 		user.put_in_hands(bomb)
 		user.visible_message("<span class='warning'>[user] detaches [bomb] from [src].</span>")
 		bomb = null
-	update_appearance(UPDATE_NAME|UPDATE_DESC|UPDATE_ICON_STATE)
+	update_icon()
 	return ..()
 
-/obj/item/gun/blastcannon/update_name()
-	. = ..()
-	if(bomb)
-		name = "blast cannon"
-	else
-		name = initial(name)
-
-/obj/item/gun/blastcannon/update_desc()
-	. = ..()
-	if(bomb)
-		desc = "A makeshift device used to concentrate a bomb's blast energy to a narrow wave."
-	else
-		desc = initial(desc)
-
-/obj/item/gun/blastcannon/update_icon_state()
+/obj/item/gun/blastcannon/update_icon()
 	if(bomb)
 		icon_state = icon_state_loaded
+		name = "blast cannon"
+		desc = "A makeshift device used to concentrate a bomb's blast energy to a narrow wave."
 	else
 		icon_state = initial(icon_state)
+		name = initial(name)
+		desc = initial(desc)
 
 /obj/item/gun/blastcannon/attackby(obj/O, mob/user)
 	if(istype(O, /obj/item/transfer_valve))
@@ -57,7 +48,7 @@
 		user.visible_message("<span class='warning'>[user] attaches [T] to [src]!</span>")
 		T.forceMove(src)
 		bomb = T
-		update_appearance(UPDATE_NAME|UPDATE_DESC|UPDATE_ICON_STATE)
+		update_icon()
 		return TRUE
 	return ..()
 
@@ -81,7 +72,7 @@
 		return ..()
 	var/power = calculate_bomb()
 	QDEL_NULL(bomb)
-	update_appearance(UPDATE_NAME|UPDATE_DESC|UPDATE_ICON_STATE)
+	update_icon()
 	var/heavy = power * 0.2
 	var/medium = power * 0.5
 	var/light = power

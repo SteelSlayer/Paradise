@@ -36,7 +36,7 @@
 	icon_state = "guest"
 	icon_screen = "pass"
 	icon_keyboard = null
-	density = FALSE
+	density = 0
 
 
 	var/obj/item/card/id/scan

@@ -31,7 +31,7 @@
 
 	var/is_electronic = 0
 	gold_core_spawnable = HOSTILE_SPAWN
-	del_on_death = TRUE
+	del_on_death = 1
 
 /mob/living/simple_animal/hostile/mimic/emp_act(severity)
 	if(is_electronic)
@@ -45,9 +45,9 @@
 // Aggro when you try to open them. Will also pickup loot when spawns and drop it when dies.
 /mob/living/simple_animal/hostile/mimic/crate
 	attacktext = "bites"
-	stop_automated_movement = TRUE
-	wander = FALSE
-	var/attempt_open = FALSE
+	stop_automated_movement = 1
+	wander = 0
+	var/attempt_open = 0
 
 // Pickup loot
 /mob/living/simple_animal/hostile/mimic/crate/Initialize(mapload)
@@ -58,7 +58,7 @@
 /mob/living/simple_animal/hostile/mimic/crate/DestroyPathToTarget()
 	..()
 	if(prob(90))
-		icon_state = "[initial(icon_state)]_open"
+		icon_state = "[initial(icon_state)]open"
 	else
 		icon_state = initial(icon_state)
 
@@ -78,13 +78,13 @@
 		icon_state = initial(icon_state)
 		if(prob(15) && iscarbon(target))
 			var/mob/living/carbon/C = target
-			C.Weaken(4 SECONDS)
+			C.Weaken(2)
 			C.visible_message("<span class='danger'>\The [src] knocks down \the [C]!</span>", "<span class='userdanger'>\The [src] knocks you down!</span>")
 
 /mob/living/simple_animal/hostile/mimic/crate/proc/trigger()
 	if(!attempt_open)
 		visible_message("<b>[src]</b> starts to move!")
-		attempt_open = TRUE
+		attempt_open = 1
 
 /mob/living/simple_animal/hostile/mimic/crate/adjustHealth(amount, updating_health = TRUE)
 	trigger()
@@ -108,19 +108,15 @@ GLOBAL_LIST_INIT(protected_objects, list(/obj/structure/table, /obj/structure/ca
 /mob/living/simple_animal/hostile/mimic/copy
 	health = 100
 	maxHealth = 100
-	gold_core_spawnable = NO_SPAWN
 	var/mob/living/creator = null // the creator
 	var/destroy_objects = 0
 	var/knockdown_people = 0
 	var/image/googly_eyes = null
+	gold_core_spawnable = NO_SPAWN
 
-/mob/living/simple_animal/hostile/mimic/copy/Initialize(mapload, obj/copy, mob/living/creator, destroy_original = 0)
-	. = ..()
+/mob/living/simple_animal/hostile/mimic/copy/New(loc, obj/copy, mob/living/creator, destroy_original = 0)
+	..(loc)
 	CopyObject(copy, creator, destroy_original)
-
-/mob/living/simple_animal/hostile/mimic/copy/Destroy()
-	creator = null
-	return ..()
 
 /mob/living/simple_animal/hostile/mimic/copy/Life()
 	..()
@@ -193,7 +189,7 @@ GLOBAL_LIST_INIT(protected_objects, list(/obj/structure/table, /obj/structure/ca
 	. = ..()
 	if(knockdown_people && . && prob(15) && iscarbon(target))
 		var/mob/living/carbon/C = target
-		C.Weaken(4 SECONDS)
+		C.Weaken(2)
 		C.visible_message("<span class='danger'>\The [src] knocks down \the [C]!</span>", "<span class='userdanger'>\The [src] knocks you down!</span>")
 
 /mob/living/simple_animal/hostile/mimic/copy/Aggro()
@@ -225,7 +221,7 @@ GLOBAL_LIST_INIT(protected_objects, list(/obj/structure/table, /obj/structure/ca
 		emote_see = list("aims menacingly")
 		obj_damage = 0
 		environment_smash = 0 //needed? seems weird for them to do so
-		ranged = TRUE
+		ranged = 1
 		retreat_distance = 1 //just enough to shoot
 		minimum_distance = 6
 		var/obj/item/gun/G = O
@@ -281,7 +277,7 @@ GLOBAL_LIST_INIT(protected_objects, list(/obj/structure/table, /obj/structure/ca
 			Pewgun.chambered.loc = Pewgun
 			visible_message("<span class='danger'>The <b>[src]</b> cocks itself!</span>")
 	else
-		ranged = FALSE //BANZAIIII
+		ranged = 0 //BANZAIIII
 		retreat_distance = 0
 		minimum_distance = 1
 		return

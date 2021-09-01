@@ -455,27 +455,27 @@
 			to_chat(C, "<span class='notice'>Whatever that was, it feels great!</span>")
 		else if(C.mind.assigned_role == "Mime")
 			to_chat(C, "<span class='warning'>You feel nauseous.</span>")
-			C.AdjustDizzy(volume STATUS_EFFECT_CONSTANT)
+			C.AdjustDizzy(volume)
 		else
 			to_chat(C, "<span class='warning'>Something doesn't feel right...</span>")
-			C.AdjustDizzy(volume STATUS_EFFECT_CONSTANT)
+			C.AdjustDizzy(volume)
 	ADD_TRAIT(C, TRAIT_COMIC_SANS, id)
 	C.AddComponent(/datum/component/squeak, null, null, null, null, null, TRUE, falloff_exponent = 20)
 	C.AddElement(/datum/element/waddling)
 
 /datum/reagent/jestosterone/on_mob_life(mob/living/carbon/M)
+	if(!istype(M))
+		return ..()
 	var/update_flags = STATUS_UPDATE_NONE
 	if(prob(10))
 		M.emote("giggle")
-	if(!M.mind)
-		return ..() | update_flags
-	if(M.mind.assigned_role == "Clown")
+	if(M?.mind.assigned_role == "Clown")
 		update_flags |= M.adjustBruteLoss(-1.5 * REAGENTS_EFFECT_MULTIPLIER) //Screw those pesky clown beatings!
 	else
-		M.AdjustDizzy(20 SECONDS, 0, 1000 SECONDS)
-		M.Druggy(30 SECONDS)
+		M.AdjustDizzy(10, 0, 500)
+		M.Druggy(15)
 		if(prob(10))
-			M.EyeBlurry(10 SECONDS)
+			M.EyeBlurry(5)
 		if(prob(6))
 			var/list/clown_message = list("You feel light-headed.",
 			"You can't see straight.",
@@ -489,7 +489,7 @@
 			"Your legs feel like jelly.",
 			"You feel like telling a pun.")
 			to_chat(M, "<span class='warning'>[pick(clown_message)]</span>")
-		if(M.mind.assigned_role == "Mime")
+		if(M?.mind.assigned_role == "Mime")
 			update_flags |= M.adjustToxLoss(1.5 * REAGENTS_EFFECT_MULTIPLIER)
 	return ..() | update_flags
 
@@ -500,7 +500,7 @@
 	M.RemoveElement(/datum/element/waddling)
 
 /datum/reagent/royal_bee_jelly
-	name = "Royal bee jelly"
+	name = "royal bee jelly"
 	id = "royal_bee_jelly"
 	description = "Royal Bee Jelly, if injected into a Queen Space Bee said bee will split into two bees."
 	color = "#00ff80"
@@ -692,13 +692,13 @@
 			else
 				M.visible_message("<b>[M]</b> flexes [M.p_their()] arms.")
 	if(prob(10))
-		M.say(pick("Maybe he's born with it, maybe its Tangerine.", "Dude, Toasters are like...tanning beds for bread.", "They said I could become anything so I became beef jerky.", "I can't afford a leather couch so I became one.", "I've entered the bronze age!"))
+		M.say(pick("Shit was SO cash.", "You are everything bad in the world.", "What sports do you play, other than 'jack off to naked drawn Japanese people?'", "Don’t be a stranger. Just hit me with your best shot.", "My name is John and I hate every single one of you."))
 
 	return list(0, STATUS_UPDATE_NONE)
 
 /datum/reagent/spraytan/proc/set_skin_color(mob/living/carbon/human/H)
 	if(H.dna.species.bodyflags & HAS_SKIN_TONE)
-		H.change_skin_tone(max(H.s_tone - 10, -195))
+		H.change_skin_tone(-30)
 
 	if(H.dna.species.bodyflags & HAS_SKIN_COLOR) //take current alien color and darken it slightly
 		H.change_skin_color("#9B7653")

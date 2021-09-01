@@ -53,7 +53,7 @@
 		/obj/item/storage/box/syndie_kit/space, // 4TC
 		/obj/item/encryptionkey/syndicate) // 2TC
 
-	var/static/list/payday = list( // 36TC + four 0TC
+	var/static/list/payday = list( // 35TC + four 0TC
 		/obj/item/gun/projectile/revolver, // 13TC
 		/obj/item/ammo_box/a357, // 3TC
 		/obj/item/ammo_box/a357, // 3TC
@@ -64,7 +64,6 @@
 		/obj/item/clothing/suit/storage/lawyer/blackjacket/armored, //0TC
 		/obj/item/clothing/gloves/color/latex/nitrile, //0 TC
 		/obj/item/clothing/mask/gas/clown_hat, // 0TC
-		/obj/item/grenade/plastic/c4, //1TC
 		/obj/item/thermal_drill/diamond_drill, // 1TC
 		/obj/item/encryptionkey/syndicate) // 2TC
 
@@ -143,8 +142,12 @@
 /obj/item/storage/box/syndie_kit/conversion
 	name = "box (CK)"
 
+/obj/item/storage/box/syndie_kit/conversion/populate_contents()
+	new /obj/item/conversion_kit(src)
+	new /obj/item/ammo_box/a357(src)
+
 /obj/item/storage/box/syndie_kit/boolets
-	name = "shotgun shells"
+	name = "Shotgun shells"
 
 /obj/item/storage/box/syndie_kit/boolets/populate_contents()
 	for(var/I in 1 to 6)
@@ -159,7 +162,7 @@
 	new /obj/item/implanter/emp/(src)
 
 /obj/item/storage/box/syndie_kit/c4
-	name = "pack of C-4 explosives"
+	name = "Pack of C-4 Explosives"
 
 /obj/item/storage/box/syndie_kit/c4/populate_contents()
 	for(var/I in 1 to 5)
@@ -178,7 +181,7 @@
 	new /obj/item/restraints/legcuffs/bola/tactical(src)
 
 /obj/item/storage/box/syndie_kit/sarin
-	name = "sarin gas grenades"
+	name = "Sarin Gas Grenades"
 
 /obj/item/storage/box/syndie_kit/sarin/populate_contents()
 	new /obj/item/grenade/chem_grenade/saringas(src)
@@ -217,7 +220,7 @@
 
 
 /obj/item/storage/box/syndie_kit/atmosn2ogrenades
-	name = "atmos N2O grenades"
+	name = "Atmos N2O Grenades"
 
 /obj/item/storage/box/syndie_kit/atmosn2ogrenades/populate_contents()
 	new /obj/item/grenade/clusterbuster/n2o(src)
@@ -225,7 +228,7 @@
 
 
 /obj/item/storage/box/syndie_kit/atmosfiregrenades
-	name = "plasma fire grenades"
+	name = "Plasma Fire Grenades"
 
 /obj/item/storage/box/syndie_kit/atmosfiregrenades/populate_contents()
 	new /obj/item/grenade/clusterbuster/plasma(src)
@@ -280,7 +283,7 @@ To apply, hold the injector a short distance away from the outer thigh before ap
 	new /obj/item/clothing/gloves/color/latex/nitrile(src)
 	new /obj/item/clothing/mask/balaclava(src)
 	new /obj/item/clothing/accessory/stethoscope(src)
-	new /obj/item/book/manual/wiki/hacking(src)
+	new /obj/item/book/manual/engineering_hacking(src)
 
 /obj/item/storage/box/syndie_kit/chameleon
 	name = "chameleon kit"

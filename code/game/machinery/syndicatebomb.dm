@@ -7,11 +7,10 @@
 	icon_state = "syndicate-bomb"
 	desc = "A large and menacing device. Can be bolted down with a wrench."
 
-	anchored = FALSE
-	density = FALSE
+	anchored = 0
+	density = 0
 	layer = BELOW_MOB_LAYER //so people can't hide it and it's REALLY OBVIOUS
 	resistance_flags = FIRE_PROOF | ACID_PROOF
-	flags_2 = CRITICAL_ATOM_2
 
 	var/datum/wires/syndicatebomb/wires = null
 	var/minimum_timer = 90
@@ -75,7 +74,7 @@
 	if(active && !defused && ((detonation_timer <= world.time) || explode_now))
 		active = FALSE
 		timer_set = initial(timer_set)
-		update_icon(UPDATE_ICON_STATE)
+		update_icon()
 		try_detonate(TRUE)
 	//Counter terrorists win
 	else if(defused)
@@ -83,13 +82,13 @@
 		if(payload in src)
 			payload.defuse()
 
-/obj/machinery/syndicatebomb/Initialize(mapload)
-	. = ..()
-	wires = new(src)
+/obj/machinery/syndicatebomb/New()
+	wires 	= new(src)
 	if(payload)
 		payload = new payload(src)
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 	countdown = new(src)
+	..()
 
 /obj/machinery/syndicatebomb/Destroy()
 	SStgui.close_uis(wires)
@@ -102,7 +101,7 @@
 	. = ..()
 	. += "A digital display on it reads \"[seconds_remaining()]\"."
 
-/obj/machinery/syndicatebomb/update_icon_state()
+/obj/machinery/syndicatebomb/update_icon()
 	icon_state = "[initial(icon_state)][active ? "-active" : "-inactive"][open_panel ? "-wires" : ""]"
 
 /obj/machinery/syndicatebomb/proc/seconds_remaining()
@@ -153,7 +152,7 @@
 	if(!I.use_tool(src, user, 0, volume = I.tool_volume))
 		return
 	open_panel = !open_panel
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 	to_chat(user, "<span class='notice'>You [open_panel ? "open" : "close"] the wire panel.</span>")
 
 /obj/machinery/syndicatebomb/wirecutter_act(mob/user, obj/item/I)
@@ -255,7 +254,7 @@
 		else
 			loc.visible_message("<span class='danger'>[bicon(src)] [timer_set] seconds until detonation, please clear the area.</span>")
 			activate()
-			update_icon(UPDATE_ICON_STATE)
+			update_icon()
 			add_fingerprint(user)
 
 			var/turf/bombturf = get_turf(src)
@@ -300,8 +299,8 @@
 	open_panel = TRUE
 	timer_set = 120
 
-/obj/machinery/syndicatebomb/empty/Initialize(mapload)
-	. = ..()
+/obj/machinery/syndicatebomb/empty/New()
+	..()
 	wires.cut_all()
 
 
@@ -363,7 +362,7 @@
 		holder.delayedbig = FALSE
 		holder.delayedlittle = FALSE
 		holder.explode_now = FALSE
-		holder.update_icon(UPDATE_ICON_STATE)
+		holder.update_icon()
 		holder.updateDialog()
 
 /obj/item/bombcore/training/detonate()
@@ -441,7 +440,7 @@
 	range_flame = 2
 
 /obj/item/bombcore/emp
-	name = "\improper EMP bomb core"
+	name = "EMP bomb core"
 	var/light_emp = 36
 	var/heavy_emp = 18
 	var/pulse_number = 1 //Since one EMP wont destroy anything other then consoles and IPCS, here is an option to have multiple pulses when dentonating. DO NOT USE THIS WITH REALLY LARGE AREAS

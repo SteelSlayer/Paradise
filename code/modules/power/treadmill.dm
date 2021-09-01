@@ -22,7 +22,7 @@
 	if(anchored)
 		connect_to_network()
 
-/obj/machinery/power/treadmill/update_icon_state()
+/obj/machinery/power/treadmill/update_icon()
 	icon_state = speed ? "conveyor-1" : "conveyor0"
 
 /obj/machinery/power/treadmill/Crossed(mob/living/M, oldloc)
@@ -40,7 +40,7 @@
 
 /obj/machinery/power/treadmill/proc/throw_off(atom/movable/A)
 	// if 2fast, throw the person, otherwise they just slide off, if there's reasonable speed at all
-	if(speed && A.move_resist < INFINITY)
+	if(speed)
 		var/dist = max(throw_dist * speed / MAX_SPEED, 1)
 		A.throw_at(get_distant_turf(get_turf(src), reverse_direction(dir), dist), A.throw_range, A.throw_speed, src, 1)
 
@@ -70,7 +70,7 @@
 				var/mob_speed = M.movement_delay()
 				switch(M.m_intent)
 					if(MOVE_INTENT_RUN)
-						if(M.get_drowsiness() > 0)
+						if(M.drowsyness > 0)
 							mob_speed += 6
 						mob_speed += GLOB.configuration.movement.base_run_speed - 1
 					if(MOVE_INTENT_WALK)
@@ -121,20 +121,20 @@
 	icon = 'icons/obj/status_display.dmi'
 	icon_state = "frame"
 	desc = "Monitors treadmill use."
-	anchored = TRUE
-	density = FALSE
+	anchored = 1
+	density = 0
 	maptext_height = 26
 	maptext_width = 32
 	maptext_y = -1
 
-	var/on = FALSE					// if we should be metering or not
+	var/on = 0					// if we should be metering or not
 	var/id = null				// id of treadmill
 	var/obj/machinery/power/treadmill/treadmill = null
 	var/total_joules = 0		// total power from prisoner
 	var/J_per_ticket = 45000	// amt of power charged for a ticket
 	var/line1 = ""
 	var/line2 = ""
-	var/frame = FALSE				// on 0, show labels, on 1 show numbers
+	var/frame = 0				// on 0, show labels, on 1 show numbers
 	var/redeem_immediately = 0	// redeem immediately for holding cell
 
 /obj/machinery/treadmill_monitor/Initialize(mapload)
@@ -171,13 +171,13 @@
 	. = ..()
 	. += "The display reads:<div style='text-align: center'>[line1]<br>[line2]</div>"
 
-/obj/machinery/treadmill_monitor/update_overlays()
-	. = ..()
+/obj/machinery/treadmill_monitor/update_icon()
+	overlays.Cut()
 	if(stat & NOPOWER || !total_joules || !on)
 		line1 = ""
 		line2 = ""
 	else if(stat & BROKEN)
-		. += image('icons/obj/status_display.dmi', icon_state = "ai_bsod")
+		overlays += image('icons/obj/status_display.dmi', icon_state = "ai_bsod")
 		line1 = "A@#$A"
 		line2 = "729%!"
 	else

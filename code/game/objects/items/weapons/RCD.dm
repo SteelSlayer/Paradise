@@ -27,7 +27,7 @@
 	usesound = 'sound/items/deconstruct.ogg'
 	flags_2 = NO_MAT_REDEMPTION_2
 	req_access = list(ACCESS_ENGINE)
-	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 100, ACID = 50)
+	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 50)
 	resistance_flags = FIRE_PROOF
 	/// The spark system used to create sparks when the user interacts with the RCD.
 	var/datum/effect_system/spark_spread/spark_system
@@ -45,9 +45,6 @@
 	var/door_type = /obj/machinery/door/airlock
 	/// The name that newly build airlocks will receive.
 	var/door_name = "Airlock"
-	/// If the glass airlock is polarized.
-	var/electrochromic = FALSE
-	var/airlock_glass = FALSE
 	/// If this is TRUE, any airlocks that gets built will require only ONE of the checked accesses. If FALSE, it will require ALL of them.
 	var/one_access = TRUE
 	/// Which airlock tab the UI is currently set to display.
@@ -86,8 +83,6 @@
 			/obj/machinery/door/airlock/mining/glass = "Mining (Glass)",
 			/obj/machinery/door/airlock/medical = "Medical",
 			/obj/machinery/door/airlock/medical/glass = "Medical (Glass)",
-			/obj/machinery/door/airlock/virology = "Virology",
-			/obj/machinery/door/airlock/virology/glass = "Virology (Glass)",
 			/obj/machinery/door/airlock/research = "Research",
 			/obj/machinery/door/airlock/research/glass = "Research (Glass)",
 			/obj/machinery/door/airlock/science = "Science",
@@ -241,8 +236,6 @@
 		"matter" = matter,
 		"door_type" = door_type,
 		"door_name" = door_name,
-		"electrochromic" = electrochromic,
-		"airlock_glass" = airlock_glass,
 		"one_access" = one_access,
 		"selected_accesses" = selected_accesses,
 		"modal" = ui_modal_data(src)
@@ -288,11 +281,6 @@
 				message_admins("RCD Door HREF exploit attempted by [key_name(usr)]!")
 				return FALSE
 			door_type = new_door_type
-			var/obj/machinery/door/airlock/picked_door = door_type
-			airlock_glass = initial(picked_door.glass)
-
-		if("electrochromic")
-			electrochromic = !electrochromic
 
 		if("set_lock")
 			if(!allowed(usr))
@@ -411,8 +399,6 @@
 					return FALSE
 				playsound(loc, usesound, 50, 1)
 				var/obj/machinery/door/airlock/T = new door_type(A)
-				if(T.glass)
-					T.polarized_glass = electrochromic
 				T.name = door_name
 				T.autoclose = TRUE
 				if(one_access)

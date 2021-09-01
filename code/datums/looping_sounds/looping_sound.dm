@@ -52,17 +52,15 @@
 
 /datum/looping_sound/proc/start(atom/add_thing)
 	if(add_thing)
-		LAZYADD(output_atoms, add_thing)
+		output_atoms |= add_thing
 	if(!muted)
 		return
 	muted = FALSE
 	on_start()
 
-/datum/looping_sound/proc/stop(atom/remove_thing, do_not_mute)
+/datum/looping_sound/proc/stop(atom/remove_thing)
 	if(remove_thing)
-		LAZYREMOVE(output_atoms, remove_thing)
-		if(do_not_mute && length(output_atoms)) //if there are no output_atoms then we mute regardless of your preferance
-			return
+		output_atoms -= remove_thing
 	if(muted)
 		return
 	muted = TRUE
@@ -80,7 +78,8 @@
 	var/sound/S = sound(soundfile)
 	if(direct)
 		S.channel = channel || SSsounds.random_available_channel()
-	for(var/atom/thing in atoms_cache)
+	for(var/i in 1 to atoms_cache.len)
+		var/atom/thing = atoms_cache[i]
 		if(direct)
 			if(ismob(thing))
 				var/mob/M = thing

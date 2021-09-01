@@ -5,15 +5,10 @@
 //trees
 /obj/structure/flora/tree
 	name = "tree"
-	anchored = TRUE
-	density = TRUE
+	anchored = 1
+	density = 1
 	pixel_x = -16
 	layer = 9
-
-//Adds the transparency component, exists to be overridden for different args.
-/obj/structure/flora/tree/Initialize(mapload)
-	. = ..()
-	AddComponent(/datum/component/largetransparency)
 
 /obj/structure/flora/tree/pine
 	name = "pine tree"
@@ -35,10 +30,6 @@
 
 /obj/structure/flora/tree/dead/Initialize(mapload)
 	. = ..()
-	AddComponent(/datum/component/largetransparency, 0, 1, 0, 0)
-
-/obj/structure/flora/tree/dead/Initialize(mapload)
-	. = ..()
 	icon_state = "tree_[rand(1, 6)]"
 
 /obj/structure/flora/tree/palm
@@ -50,33 +41,11 @@
 	icon_state = pick("palm1","palm2")
 	pixel_x = 0
 
-/obj/structure/flora/tree/jungle
-	name = "tree"
-	icon_state = "tree"
-	desc = "It's seriously hampering your view of the jungle."
-	icon = 'icons/obj/flora/jungletrees.dmi'
-	pixel_x = -48
-	pixel_y = -20
-
-/obj/structure/flora/tree/jungle/Initialize(mapload)
-	. = ..()
-	icon_state = "[icon_state][rand(1, 6)]"
-	AddComponent(/datum/component/largetransparency, -1, 1, 2, 2)
-
-/obj/structure/flora/tree/jungle/small
-	pixel_y = 0
-	pixel_x = -32
-	icon = 'icons/obj/flora/jungletreesmall.dmi'
-
-/obj/structure/flora/tree/jungle/small/Initialize(mapload)
-	. = ..()
-	AddComponent(/datum/component/largetransparency)
-
 //grass
 /obj/structure/flora/grass
 	name = "grass"
 	icon = 'icons/obj/flora/snowflora.dmi'
-	anchored = TRUE
+	anchored = 1
 	max_integrity = 15
 
 /obj/structure/flora/grass/brown
@@ -107,7 +76,7 @@
 	name = "bush"
 	icon = 'icons/obj/flora/snowflora.dmi'
 	icon_state = "snowbush1"
-	anchored = TRUE
+	anchored = 1
 	max_integrity = 15
 
 /obj/structure/flora/bush/Initialize(mapload)
@@ -120,7 +89,7 @@
 	name = "bush"
 	icon = 'icons/obj/flora/ausflora.dmi'
 	icon_state = "firstbush_1"
-	anchored = TRUE
+	anchored = 1
 	max_integrity = 15
 
 /obj/structure/flora/ausbushes/Initialize(mapload)
@@ -237,8 +206,8 @@
 	name = "potted plant"
 	icon = 'icons/obj/flora/plants.dmi'
 	icon_state = "plant-1"
-	anchored = FALSE
-	layer = ABOVE_MOB_LAYER
+	anchored = 0
+	layer = 5
 	w_class = WEIGHT_CLASS_HUGE
 	force = 10
 	force_wielded = 10
@@ -276,7 +245,7 @@
 	icon_state = "rock1"
 	icon = 'icons/obj/flora/rocks.dmi'
 	resistance_flags = FIRE_PROOF
-	anchored = TRUE
+	anchored = 1
 
 /obj/structure/flora/rock/Initialize(mapload)
 	. = ..()
@@ -303,7 +272,7 @@
 	name = "corn stalk"
 	icon = 'icons/obj/flora/plants.dmi'
 	icon_state = "cornstalk1"
-	anchored = FALSE
+	anchored = 0
 	layer = 5
 
 /obj/structure/flora/corn_stalk/alt_1
@@ -316,7 +285,7 @@
 	name = "straw bail"
 	icon = 'icons/obj/flora/plants.dmi'
 	icon_state = "strawbail1"
-	density = TRUE
+	density = 1
 	climbable = 1 // you can climb all over them.
 
 /obj/structure/flora/straw_bail/alt_1
@@ -330,8 +299,8 @@
 	desc = "Pretty thick scrub, it'll take something sharp and a lot of determination to clear away."
 	icon = 'icons/obj/flora/plants.dmi'
 	icon_state = "bush1"
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1
 	layer = 3.2
 	var/indestructable = 0
 	var/stump = 0
@@ -339,7 +308,7 @@
 /obj/structure/bush/Initialize(mapload)
 	. = ..()
 	if(prob(20))
-		opacity = TRUE
+		opacity = 1
 
 /*
 /obj/structure/bush/Bumped(M as mob)
@@ -368,7 +337,7 @@
 						icon_state = "stump[rand(1,2)]"
 						name = "cleared foliage"
 						desc = "There used to be dense undergrowth here."
-						density = FALSE
+						density = 0
 						stump = 1
 						pixel_x = rand(-6,6)
 						pixel_y = rand(-6,6)
@@ -376,76 +345,3 @@
 						qdel(src)
 	else
 		return ..()
-
-//Jungle grass
-
-/obj/structure/flora/grass/jungle
-	name = "jungle grass"
-	desc = "Thick alien flora."
-	icon = 'icons/obj/flora/jungleflora.dmi'
-	icon_state = "grassa"
-
-
-/obj/structure/flora/grass/jungle/Initialize(mapload)
-	icon_state = "[icon_state][rand(1, 5)]"
-	. = ..()
-
-/obj/structure/flora/grass/jungle/b
-	icon_state = "grassb"
-
-//Jungle rocks
-
-/obj/structure/flora/rock/jungle
-	icon_state = "rock"
-	desc = "A pile of rocks."
-	icon = 'icons/obj/flora/jungleflora.dmi'
-	density = FALSE
-
-/obj/structure/flora/rock/jungle/Initialize(mapload)
-	. = ..()
-	icon_state = "[initial(icon_state)][rand(1,5)]"
-
-
-//Jungle bushes
-
-/obj/structure/flora/junglebush
-	name = "bush"
-	desc = "A wild plant that is found in jungles."
-	icon = 'icons/obj/flora/jungleflora.dmi'
-	icon_state = "busha"
-	base_icon_state = "busha"
-
-/obj/structure/flora/junglebush/Initialize(mapload)
-	icon_state = "[base_icon_state][rand(1, 3)]"
-	. = ..()
-
-/obj/structure/flora/junglebush/b
-	base_icon_state = "bushb"
-
-/obj/structure/flora/junglebush/c
-	base_icon_state = "bushc"
-
-/obj/structure/flora/junglebush/large
-	icon_state = "bush1"
-	base_icon_state = "bush"
-	icon = 'icons/obj/flora/largejungleflora.dmi'
-	pixel_x = -16
-	pixel_y = -12
-	layer = ABOVE_ALL_MOB_LAYER
-
-/obj/structure/flora/junglebush/large/Initialize(mapload)
-	. = ..()
-	AddComponent(/datum/component/largetransparency, 0, 0, 0, 0)
-
-/obj/structure/flora/rock/pile/largejungle
-	name = "rocks"
-	icon_state = "rocks1"
-	base_icon_state = "rocks"
-	icon = 'icons/obj/flora/largejungleflora.dmi'
-	density = FALSE
-	pixel_x = -16
-	pixel_y = -16
-
-/obj/structure/flora/rock/pile/largejungle/Initialize(mapload)
-	. = ..()
-	icon_state = "[initial(base_icon_state)][rand(1,3)]"

@@ -95,7 +95,7 @@
 
 	if(waypoint_mode)
 		set_waypoint(A)
-		waypoint_mode = FALSE
+		waypoint_mode = 0
 		return
 	/*
 		AI restrained() currently does nothing

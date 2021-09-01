@@ -12,8 +12,7 @@
 	name = "formal closet"
 	desc = "It's a storage unit for formal clothing."
 	icon_state = "black"
-	icon_opened = "generic_open"
-	open_door_sprite = "generic_door"
+	icon_closed = "black"
 
 /obj/structure/closet/gmcloset/populate_contents()
 	new /obj/item/clothing/head/that(src)
@@ -40,8 +39,7 @@
 	name = "chef's closet"
 	desc = "It's a storage unit for foodservice garments."
 	icon_state = "black"
-	icon_opened = "generic_open"
-	open_door_sprite = "generic_door"
+	icon_closed = "black"
 
 /obj/structure/closet/chefcloset/populate_contents()
 	new /obj/item/clothing/under/waiter(src)
@@ -68,8 +66,7 @@
 	name = "custodial closet"
 	desc = "It's a storage unit for janitorial clothes and gear."
 	icon_state = "mixed"
-	icon_opened = "generic_open"
-	open_door_sprite = "generic_door"
+	icon_closed = "mixed"
 
 /obj/structure/closet/jcloset/populate_contents()
 	new /obj/item/flashlight(src)
@@ -89,8 +86,8 @@
 	new /obj/item/storage/bag/trash(src)
 	new /obj/item/lightreplacer(src)
 	new /obj/item/lightreplacer(src)
-	new /obj/item/holosign_creator/janitor(src)
-	new /obj/item/holosign_creator/janitor(src)
+	new /obj/item/holosign_creator(src)
+	new /obj/item/holosign_creator(src)
 	new /obj/item/watertank/janitor(src)
 	new /obj/item/watertank/janitor(src)
 	new /obj/item/storage/belt/janitor(src)
@@ -109,10 +106,11 @@
 	name = "legal closet"
 	desc = "It's a storage unit for courtroom apparel and items."
 	icon_state = "blue"
-	icon_opened = "generic_open"
-	open_door_sprite = "generic_door"
+	icon_closed = "blue"
 
 /obj/structure/closet/lawcloset/populate_contents()
+	new /obj/item/storage/box/tapes(src)
+	new /obj/item/book/manual/faxes(src)
 	new /obj/item/clothing/under/lawyer/female(src)
 	new /obj/item/clothing/under/lawyer/black(src)
 	new /obj/item/clothing/under/lawyer/red(src)
@@ -122,6 +120,10 @@
 	new /obj/item/clothing/suit/storage/lawyer/purpjacket(src)
 	new /obj/item/clothing/shoes/brown(src)
 	new /obj/item/clothing/shoes/black(src)
+	new /obj/item/clothing/glasses/sunglasses/big(src)
+	new /obj/item/clothing/glasses/sunglasses/big(src)
+	new /obj/item/clothing/accessory/lawyers_badge(src)
+	new /obj/item/clothing/accessory/lawyers_badge(src)
 
 //Paramedic
 
@@ -129,8 +131,7 @@
 	name = "paramedic wardrobe"
 	desc = "It's a storage unit for paramedic equipment."
 	icon_state = "blue"
-	icon_opened = "generic_open"
-	open_door_sprite = "generic_door"
+	icon_closed = "blue"
 
 
 /obj/structure/closet/paramedic/populate_contents()

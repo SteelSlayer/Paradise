@@ -3,42 +3,42 @@
 	desc = "Used to implant occupants with mindshield implants."
 	icon = 'icons/obj/machines/implantchair.dmi'
 	icon_state = "implantchair"
-	density = TRUE
-	opacity = FALSE
-	anchored = TRUE
+	density = 1
+	opacity = 0
+	anchored = 1
 
-	var/ready = TRUE
+	var/ready = 1
 	var/malfunction = 0
 	var/list/obj/item/implant/mindshield/implant_list = list()
 	var/max_implants = 5
 	var/injection_cooldown = 600
 	var/replenish_cooldown = 6000
 	var/replenishing = 0
-	var/mob/living/carbon/occupant
-	var/injecting = FALSE
+	var/mob/living/carbon/occupant = null
+	var/injecting = 0
 
-/obj/machinery/implantchair/Initialize(mapload)
-	. = ..()
+/obj/machinery/implantchair/New()
+	..()
 	add_implants()
 
 
 /obj/machinery/implantchair/attack_hand(mob/user)
 	user.set_machine(src)
 	var/health_text = ""
-	if(occupant)
-		if(occupant.health <= -100)
+	if(src.occupant)
+		if(src.occupant.health <= -100)
 			health_text = "<FONT color=red>Dead</FONT>"
-		else if(occupant.health < 0)
-			health_text = "<FONT color=red>[round(occupant.health, 0.1)]</FONT>"
+		else if(src.occupant.health < 0)
+			health_text = "<FONT color=red>[round(src.occupant.health,0.1)]</FONT>"
 		else
-			health_text = "[round(occupant.health,0.1)]"
+			health_text = "[round(src.occupant.health,0.1)]"
 
 	var/dat ="<B>Implanter Status</B><BR>"
 
-	dat +="<B>Current occupant:</B> [occupant ? "<BR>Name: [occupant]<BR>Health: [health_text]<BR>" : "<FONT color=red>None</FONT>"]<BR>"
-	dat += "<B>Implants:</B> [length(implant_list) ? "[length(implant_list)]" : "<A href='?src=[UID()];replenish=1'>Replenish</A>"]<BR>"
-	if(occupant)
-		dat += "[ready ? "<A href='?src=[UID()];implant=1'>Implant</A>" : "Recharging"]<BR>"
+	dat +="<B>Current occupant:</B> [src.occupant ? "<BR>Name: [src.occupant]<BR>Health: [health_text]<BR>" : "<FONT color=red>None</FONT>"]<BR>"
+	dat += "<B>Implants:</B> [src.implant_list.len ? "[implant_list.len]" : "<A href='?src=[UID()];replenish=1'>Replenish</A>"]<BR>"
+	if(src.occupant)
+		dat += "[src.ready ? "<A href='?src=[UID()];implant=1'>Implant</A>" : "Recharging"]<BR>"
 	user.set_machine(src)
 	user << browse(dat, "window=implant")
 	onclose(user, "implant")
@@ -48,20 +48,20 @@
 	if(..())
 		return
 	if(href_list["implant"])
-		if(occupant)
-			injecting = TRUE
+		if(src.occupant)
+			injecting = 1
 			go_out()
-			ready = FALSE
+			ready = 0
 			spawn(injection_cooldown)
-				ready = TRUE
+				ready = 1
 
 	if(href_list["replenish"])
-		ready = FALSE
+		ready = 0
 		spawn(replenish_cooldown)
 			add_implants()
-			ready = TRUE
+			ready = 1
 
-	updateUsrDialog()
+	src.updateUsrDialog()
 	return
 
 
@@ -76,20 +76,20 @@
 			return
 		if(put_mob(M))
 			qdel(G)
-	updateUsrDialog()
+	src.updateUsrDialog()
 	return
 
 
 /obj/machinery/implantchair/proc/go_out(mob/M)
-	if(!(occupant))
+	if(!( src.occupant ))
 		return
 	if(M == occupant) // so that the guy inside can't eject himself -Agouri
 		return
 	occupant.forceMove(loc)
 	if(injecting)
-		implant(occupant)
-		injecting = FALSE
-	occupant = null
+		implant(src.occupant)
+		injecting = 0
+	src.occupant = null
 	icon_state = "implantchair"
 	return
 
@@ -98,15 +98,15 @@
 	if(!iscarbon(M))
 		to_chat(usr, "<span class='warning'>[src] cannot hold this!</span>")
 		return
-	if(occupant)
+	if(src.occupant)
 		to_chat(usr, "<span class='warning'>[src] is already occupied!</span>")
 		return
 	M.stop_pulling()
 	M.forceMove(src)
-	occupant = M
-	add_fingerprint(usr)
+	src.occupant = M
+	src.add_fingerprint(usr)
 	icon_state = "implantchair_on"
-	return TRUE
+	return 1
 
 
 /obj/machinery/implantchair/proc/implant(mob/M)
@@ -126,9 +126,10 @@
 
 
 /obj/machinery/implantchair/proc/add_implants()
-	for(var/i in 1 to max_implants)
-		var/obj/item/implant/mindshield/new_implant = new /obj/item/implant/mindshield(src)
-		implant_list += new_implant
+	for(var/i=0, i<src.max_implants, i++)
+		var/obj/item/implant/mindshield/I = new /obj/item/implant/mindshield(src)
+		implant_list += I
+	return
 
 /obj/machinery/implantchair/verb/get_out()
 	set name = "Eject occupant"
@@ -136,9 +137,10 @@
 	set src in oview(1)
 	if(usr.stat != 0)
 		return
-	go_out(usr)
+	src.go_out(usr)
 	add_fingerprint(usr)
 	return
+
 
 /obj/machinery/implantchair/verb/move_inside()
 	set name = "Move Inside"

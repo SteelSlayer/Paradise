@@ -24,9 +24,6 @@
 	// Parent object this camera is assigned to. Used for camera bugs
 	var/atom/movable/parent
 
-	/// is the console silent when switching cameras?
-	var/silent_console = FALSE
-
 /obj/machinery/computer/security/ui_host()
 	return parent ? parent : src
 
@@ -71,8 +68,7 @@
 			watchers += user_uid
 		// Turn on the console
 		if(length(watchers) == 1 && is_living)
-			if(!silent_console)
-				playsound(src, 'sound/machines/terminal_on.ogg', 25, FALSE)
+			playsound(src, 'sound/machines/terminal_on.ogg', 25, FALSE)
 			use_power(active_power_usage)
 		// Register map objects
 		user.client.register_map_obj(cam_screen)
@@ -82,10 +78,6 @@
 		// Open UI
 		ui = new(user, src, ui_key, "CameraConsole", name, 870, 708, master_ui, state)
 		ui.open()
-
-/obj/machinery/computer/security/ui_close(mob/user)
-	..()
-	watchers -= user.UID()
 
 /obj/machinery/computer/security/ui_data()
 	var/list/data = list()
@@ -120,8 +112,7 @@
 		var/list/cameras = get_available_cameras()
 		var/obj/machinery/camera/C = cameras[c_tag]
 		active_camera = C
-		if(!silent_console)
-			playsound(src, get_sfx("terminal_type"), 25, FALSE)
+		playsound(src, get_sfx("terminal_type"), 25, FALSE)
 
 		// Show static if can't use the camera
 		if(!active_camera?.can_use())
@@ -164,6 +155,7 @@
 
 /obj/machinery/computer/security/attack_hand(mob/user)
 	if(stat || ..())
+		user.unset_machine()
 		return
 
 	ui_interact(user)
@@ -208,7 +200,7 @@
 	icon_screen = "telescreen"
 	icon_keyboard = null
 	light_range_on = 0
-	density = FALSE
+	density = 0
 	circuit = /obj/item/circuitboard/camera/telescreen
 
 /obj/machinery/computer/security/telescreen/entertainment
@@ -221,17 +213,6 @@
 	network = list("news")
 	luminosity = 0
 	circuit = /obj/item/circuitboard/camera/telescreen/entertainment
-
-/obj/machinery/computer/security/telescreen/entertainment/Initialize()
-	. = ..()
-	set_light(1, LIGHTING_MINIMUM_POWER) //so byond doesnt cull, and we get an emissive appearance
-
-/obj/machinery/computer/security/telescreen/entertainment/power_change()
-	..()
-	if(stat & NOPOWER)
-		set_light(0)
-	else
-		set_light(1, LIGHTING_MINIMUM_POWER)
 
 /obj/machinery/computer/security/wooden_tv
 	name = "security camera monitor"
@@ -247,7 +228,7 @@
 /obj/machinery/computer/security/mining
 	name = "outpost camera monitor"
 	desc = "Used to access the various cameras on the outpost."
-	icon_keyboard = "tech_key"
+	icon_keyboard = "mining_key"
 	icon_screen = "mining"
 	light_color = "#F9BBFC"
 	network = list("Mining Outpost")

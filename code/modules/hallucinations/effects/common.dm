@@ -8,16 +8,17 @@
 	/// Chance to trip when crossing.
 	var/trip_chance = 100
 	/// Stun to add when crossed.
-	var/stun = 4 SECONDS
+	var/stun = 4 SECONDS_TO_LIFE_CYCLES
 	/// Weaken to add when crossed.
-	var/weaken = 4 SECONDS
+	var/weaken = 4 SECONDS_TO_LIFE_CYCLES
 
 /obj/effect/hallucination/tripper/CanPass(atom/movable/mover, turf/T)
 	. = TRUE
 	if(isliving(mover) && mover == target)
 		var/mob/living/M = mover
-		if(!(M.mobility_flags & MOBILITY_MOVE) || !prob(trip_chance))
+		if(M.lying || !prob(trip_chance))
 			return
+		M.Stun(stun)
 		M.Weaken(weaken)
 		on_crossed()
 

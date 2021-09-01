@@ -2,27 +2,16 @@
 	var/last_pain_message = ""
 	var/next_pain_time = 0
 
-/**
- * Whether or not a mob can feel pain.
- *
- * Returns TRUE if the mob can feel pain, FALSE otherwise
- */
-/mob/living/carbon/human/proc/can_feel_pain()
-	if(stat >= UNCONSCIOUS)
-		return FALSE
-	if(reagents.has_reagent("morphine"))
-		return FALSE
-	if(reagents.has_reagent("hydrocodone"))
-		return FALSE
-	if(HAS_TRAIT(src, TRAIT_NOPAIN))
-		return FALSE
-
-	return TRUE
-
 // partname is the name of a body part
 // amount is a num from 1 to 100
 /mob/living/carbon/human/proc/pain(partname, amount)
-	if(!can_feel_pain())
+	if(stat >= UNCONSCIOUS)
+		return
+	if(reagents.has_reagent("sal_acid"))
+		return
+	if(reagents.has_reagent("morphine"))
+		return
+	if(reagents.has_reagent("hydrocodone"))
 		return
 	if(world.time < next_pain_time)
 		return
@@ -42,7 +31,14 @@
 
 // message is the custom message to be displayed
 /mob/living/carbon/human/proc/custom_pain(message)
-	if(!can_feel_pain())
+	if(stat >= UNCONSCIOUS)
+		return
+
+	if(HAS_TRAIT(src, TRAIT_NOPAIN))
+		return
+	if(reagents.has_reagent("morphine"))
+		return
+	if(reagents.has_reagent("hydrocodone"))
 		return
 
 	var/msg = "<span class='userdanger'>[message]</span>"
@@ -56,7 +52,13 @@
 /mob/living/carbon/human/proc/handle_pain()
 	// not when sleeping
 
-	if(!can_feel_pain())
+	if(stat >= UNCONSCIOUS)
+		return
+	if(HAS_TRAIT(src, TRAIT_NOPAIN))
+		return
+	if(reagents.has_reagent("morphine"))
+		return
+	if(reagents.has_reagent("hydrocodone"))
 		return
 
 	var/maxdam = 0
@@ -77,16 +79,6 @@
 	for(var/obj/item/organ/internal/I in internal_organs)
 		if(I.hidden_pain)
 			continue
-		if(prob(2) && I.damage > 2)
+		if(I.damage > 2 && prob(2))
 			var/obj/item/organ/external/parent = get_organ(I.parent_organ)
-			var/intensity
-			switch(I.damage)
-				if(0 to 10)
-					intensity = "a dull"
-				if(10 to 30)
-					intensity = "a nagging"
-				if(30 to 50)
-					intensity = "a sharp"
-				else
-					intensity = "a stabbing"
-			custom_pain("You feel [intensity] pain in your [parent.limb_name]!")
+			custom_pain("You feel a sharp pain in your [parent.limb_name]")

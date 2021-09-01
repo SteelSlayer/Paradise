@@ -10,8 +10,6 @@ SUBSYSTEM_DEF(mapping)
 	var/list/teleportlocs
 	/// List of all areas that can be accessed via IC and OOC means
 	var/list/ghostteleportlocs
-	///List of areas that exist on the station this shift
-	var/list/existing_station_areas
 
 // This has to be here because world/New() uses [station_name()], which looks this datum up
 /datum/controller/subsystem/mapping/PreInit()
@@ -48,14 +46,10 @@ SUBSYSTEM_DEF(mapping)
 	// Pick a random away mission.
 	if(GLOB.configuration.gateway.enable_away_mission)
 		load_away_mission()
-	else
-		log_startup_progress("Skipping away mission...")
 
 	// Seed space ruins
 	if(GLOB.configuration.ruins.enable_space_ruins)
 		handleRuins()
-	else
-		log_startup_progress("Skipping space ruins...")
 
 	// Makes a blank space level for the sake of randomness
 	GLOB.space_manager.add_new_zlevel("Empty Area", linkage = CROSSLINKED, traits = list(REACHABLE))
@@ -64,15 +58,12 @@ SUBSYSTEM_DEF(mapping)
 	// Setup the Z-level linkage
 	GLOB.space_manager.do_transition_setup()
 
-	if(GLOB.configuration.ruins.enable_lavaland)
-		// Spawn Lavaland ruins and rivers.
-		log_startup_progress("Populating lavaland...")
-		var/lavaland_setup_timer = start_watch()
-		seedRuins(list(level_name_to_num(MINING)), GLOB.configuration.ruins.lavaland_ruin_budget, /area/lavaland/surface/outdoors/unexplored, GLOB.lava_ruins_templates)
-		spawn_rivers(level_name_to_num(MINING))
-		log_startup_progress("Successfully populated lavaland in [stop_watch(lavaland_setup_timer)]s.")
-	else
-		log_startup_progress("Skipping lavaland ruins...")
+	// Spawn Lavaland ruins and rivers.
+	log_startup_progress("Populating lavaland...")
+	var/lavaland_setup_timer = start_watch()
+	seedRuins(list(level_name_to_num(MINING)), GLOB.configuration.ruins.lavaland_ruin_budget, /area/lavaland/surface/outdoors/unexplored, GLOB.lava_ruins_templates)
+	spawn_rivers(level_name_to_num(MINING))
+	log_startup_progress("Successfully populated lavaland in [stop_watch(lavaland_setup_timer)]s.")
 
 	// Now we make a list of areas for teleport locs
 	teleportlocs = list()
@@ -97,13 +88,6 @@ SUBSYSTEM_DEF(mapping)
 			ghostteleportlocs[AR.name] = AR
 
 	ghostteleportlocs = sortAssoc(ghostteleportlocs)
-
-	// Now we make a list of areas that exist on the station. Good for if you don't want to select areas that exist for one station but not others. Directly references
-	existing_station_areas = list()
-	for(var/area/AR in world)
-		var/turf/picked = safepick(get_area_turfs(AR.type))
-		if(picked && is_station_level(picked.z))
-			existing_station_areas += AR
 
 	// World name
 	if(GLOB.configuration.general.server_name)
@@ -133,14 +117,6 @@ SUBSYSTEM_DEF(mapping)
 
 // Loads in the station
 /datum/controller/subsystem/mapping/proc/loadStation()
-	if(GLOB.configuration.system.override_map)
-		log_startup_progress("Station map overridden by configuration to [GLOB.configuration.system.override_map].")
-		var/map_datum_path = text2path(GLOB.configuration.system.override_map)
-		if(map_datum_path)
-			map_datum = new map_datum_path
-		else
-			to_chat(world, "<span class='narsie'>ERROR: The map datum specified to load is invalid. Falling back to... cyberiad probably?</span>")
-
 	ASSERT(map_datum.map_path)
 	if(!fexists(map_datum.map_path))
 		// Make a VERY OBVIOUS error
@@ -151,7 +127,7 @@ SUBSYSTEM_DEF(mapping)
 	log_startup_progress("Loading [map_datum.fluff_name]...")
 	// This should always be Z2, but you never know
 	var/map_z_level = GLOB.space_manager.add_new_zlevel(MAIN_STATION, linkage = CROSSLINKED, traits = list(STATION_LEVEL, STATION_CONTACT, REACHABLE, AI_OK))
-	GLOB.maploader.load_map(wrap_file(map_datum.map_path), z_offset = map_z_level)
+	GLOB.maploader.load_map(file(map_datum.map_path), z_offset = map_z_level)
 	log_startup_progress("Loaded [map_datum.fluff_name] in [stop_watch(watch)]s")
 
 	// Save station name in the DB
@@ -166,9 +142,6 @@ SUBSYSTEM_DEF(mapping)
 
 // Loads in lavaland
 /datum/controller/subsystem/mapping/proc/loadLavaland()
-	if(!GLOB.configuration.ruins.enable_lavaland)
-		log_startup_progress("Skipping Lavaland...")
-		return
 	var/watch = start_watch()
 	log_startup_progress("Loading Lavaland...")
 	var/lavaland_z_level = GLOB.space_manager.add_new_zlevel(MINING, linkage = SELFLOOPING, traits = list(ORE_LEVEL, REACHABLE, STATION_CONTACT, HAS_WEATHER, AI_OK))
@@ -260,12 +233,15 @@ SUBSYSTEM_DEF(mapping)
 	log_world("Ruin loader finished with [budget] left to spend.")
 
 /datum/controller/subsystem/mapping/proc/load_away_mission()
+	if(length(GLOB.awaydestinations))
+		return
+
 	if(length(GLOB.configuration.gateway.enabled_away_missions))
 		var/watch = start_watch()
 		log_startup_progress("Loading away mission...")
 
 		var/map = pick(GLOB.configuration.gateway.enabled_away_missions)
-		var/file = wrap_file(map)
+		var/file = file(map)
 		if(isfile(file))
 			var/zlev = GLOB.space_manager.add_new_zlevel(AWAY_MISSION, linkage = UNAFFECTED, traits = list(AWAY_LEVEL,BLOCK_TELEPORT))
 			GLOB.space_manager.add_dirt(zlev)
@@ -273,6 +249,12 @@ SUBSYSTEM_DEF(mapping)
 			late_setup_level(block(locate(1, 1, zlev), locate(world.maxx, world.maxy, zlev)))
 			GLOB.space_manager.remove_dirt(zlev)
 			log_world("Away mission loaded: [map]")
+
+		for(var/thing in GLOB.landmarks_list)
+			var/obj/effect/landmark/L = thing
+			if(L.name != "awaystart")
+				continue
+			GLOB.awaydestinations.Add(L)
 
 		log_startup_progress("Away mission loaded in [stop_watch(watch)]s.")
 

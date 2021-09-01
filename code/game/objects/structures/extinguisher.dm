@@ -8,18 +8,17 @@
 	desc = "A small wall mounted cabinet designed to hold a fire extinguisher."
 	icon = 'icons/obj/closet.dmi'
 	icon_state = "extinguisher_closed"
-	anchored = TRUE
-	density = FALSE
+	anchored = 1
+	density = 0
 	max_integrity = 200
 	integrity_failure = 50
 	var/obj/item/extinguisher/has_extinguisher = null
 	var/extinguishertype
-	var/opened = FALSE
+	var/opened = 0
 	var/material_drop = /obj/item/stack/sheet/metal
 
 /obj/structure/extinguisher_cabinet/Initialize(mapload, direction = null)
 	. = ..()
-	name = "extinguisher cabinet"
 	if(direction)
 		setDir(direction)
 		set_pixel_offsets_from_dir(28, -28, 30, -30)
@@ -27,9 +26,9 @@
 		if(NO_EXTINGUISHER)
 			return
 		if(MINI_EXTINGUISHER)
-			has_extinguisher = new /obj/item/extinguisher/mini(src)
+			has_extinguisher = new/obj/item/extinguisher/mini
 		else
-			has_extinguisher = new /obj/item/extinguisher(src)
+			has_extinguisher = new/obj/item/extinguisher
 
 /obj/structure/extinguisher_cabinet/examine(mob/user)
 	. = ..()
@@ -45,7 +44,7 @@
 		return
 	playsound(loc, 'sound/machines/click.ogg', 15, TRUE, -3)
 	opened = !opened
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
 /obj/structure/extinguisher_cabinet/Destroy()
 	QDEL_NULL(has_extinguisher)
@@ -59,7 +58,7 @@
 /obj/structure/extinguisher_cabinet/handle_atom_del(atom/A)
 	if(A == has_extinguisher)
 		has_extinguisher = null
-		update_icon(UPDATE_ICON_STATE)
+		update_icon()
 
 /obj/structure/extinguisher_cabinet/attackby(obj/item/O, mob/user, params)
 	if(isrobot(user) || isalien(user))
@@ -71,17 +70,17 @@
 			user.drop_item(O)
 			contents += O
 			has_extinguisher = O
-			update_icon(UPDATE_ICON_STATE)
+			update_icon()
 			to_chat(user, "<span class='notice'>You place [O] in [src].</span>")
 			return TRUE
 		else
 			playsound(loc, 'sound/machines/click.ogg', 15, TRUE, -3)
 			opened = !opened
-		update_icon(UPDATE_ICON_STATE)
+		update_icon()
 	else if(user.a_intent != INTENT_HARM)
 		playsound(loc, 'sound/machines/click.ogg', 15, TRUE, -3)
 		opened = !opened
-		update_icon(UPDATE_ICON_STATE)
+		update_icon()
 	else
 		return ..()
 
@@ -118,11 +117,11 @@
 		user.put_in_hands(has_extinguisher)
 		to_chat(user, "<span class='notice'>You take [has_extinguisher] from [src].</span>")
 		has_extinguisher = null
-		opened = TRUE
+		opened = 1
 	else
 		playsound(loc, 'sound/machines/click.ogg', 15, TRUE, -3)
 		opened = !opened
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
 /obj/structure/extinguisher_cabinet/attack_tk(mob/user)
 	if(has_extinguisher)
@@ -131,20 +130,20 @@
 		has_extinguisher.loc = loc
 		to_chat(user, "<span class='notice'>You telekinetically remove [has_extinguisher] from [src].</span>")
 		has_extinguisher = null
-		opened = TRUE
+		opened = 1
 	else
 		playsound(loc, 'sound/machines/click.ogg', 15, TRUE, -3)
 		opened = !opened
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
 /obj/structure/extinguisher_cabinet/obj_break(damage_flag)
 	if(!broken && !(flags & NODECONSTRUCT))
-		broken = TRUE
-		opened = TRUE
+		broken = 1
+		opened = 1
 		if(has_extinguisher)
 			has_extinguisher.forceMove(loc)
 			has_extinguisher = null
-		update_icon(UPDATE_ICON_STATE)
+		update_icon()
 
 /obj/structure/extinguisher_cabinet/deconstruct(disassembled = TRUE)
 	if(!(flags & NODECONSTRUCT))
@@ -154,7 +153,7 @@
 			has_extinguisher = null
 	qdel(src)
 
-/obj/structure/extinguisher_cabinet/update_icon_state()
+/obj/structure/extinguisher_cabinet/update_icon()
 	if(!opened)
 		icon_state = "extinguisher_closed"
 		return

@@ -104,7 +104,7 @@
 	desc = "A flask with an almost-holy aura emitting from it. The label on the bottle says: 'erqo'hyy tvi'rf lbh jv'atf'."
 	list_reagents = list("flightpotion" = 5)
 
-/obj/item/reagent_containers/glass/bottle/potion/update_icon_state()
+/obj/item/reagent_containers/glass/bottle/potion/update_icon()
 	if(reagents.total_volume)
 		icon_state = "potionflask"
 	else
@@ -247,7 +247,7 @@
 
 		to_chat(user, "<span class='notice'>You release the wisp. It begins to bob around your head.</span>")
 		icon_state = "lantern"
-		wisp.orbit(user, 20)
+		INVOKE_ASYNC(wisp, /atom/movable/.proc/orbit, user, 20)
 		set_light(0)
 
 		user.update_sight()
@@ -377,11 +377,10 @@
 	icon = 'icons/obj/lavaland/artefacts.dmi'
 	pass_flags = PASSTABLE
 	damage = 25
-	armour_penetration_percentage = 100
+	armour_penetration = 100
 	damage_type = BRUTE
 	hitsound = 'sound/effects/splat.ogg'
-	weaken = 1 SECONDS
-	knockdown = 6 SECONDS
+	weaken = 3
 
 /obj/item/projectile/hook/fire(setAngle)
 	if(firer)
@@ -434,11 +433,11 @@
 		Z.desc = "It's shaped an awful lot like [user.name]."
 		Z.setDir(user.dir)
 		user.forceMove(Z)
-		user.notransform = TRUE
+		user.notransform = 1
 		user.status_flags |= GODMODE
 		spawn(100)
 			user.status_flags &= ~GODMODE
-			user.notransform = FALSE
+			user.notransform = 0
 			user.forceMove(get_turf(Z))
 			user.visible_message("<span class='danger'>[user] pops back into reality!</span>")
 			Z.can_destroy = TRUE

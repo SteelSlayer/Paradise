@@ -9,7 +9,7 @@
 	desc = "A convenable firelock. Equipped with a manual lever for operating in case of emergency."
 	icon = 'icons/obj/doors/doorfireglass.dmi'
 	icon_state = "door_open"
-	opacity = FALSE
+	opacity = 0
 	density = FALSE
 	max_integrity = 300
 	resistance_flags = FIRE_PROOF
@@ -21,8 +21,7 @@
 	closingLayer = CLOSED_FIREDOOR_LAYER
 	auto_close_time = 5 SECONDS
 	assemblytype = /obj/structure/firelock_frame
-	blocks_emissive = EMISSIVE_BLOCK_GENERIC
-	armor = list(MELEE = 30, BULLET = 30, LASER = 20, ENERGY = 20, BOMB = 10, BIO = 100, RAD = 100, FIRE = 95, ACID = 70)
+	armor = list("melee" = 30, "bullet" = 30, "laser" = 20, "energy" = 20, "bomb" = 10, "bio" = 100, "rad" = 100, "fire" = 95, "acid" = 70)
 	/// How long does opening by hand take, in deciseconds.
 	var/manual_open_time = 5 SECONDS
 	var/can_crush = TRUE
@@ -155,18 +154,12 @@
 	. = TRUE
 	if(!I.tool_use_check(user, 0))
 		return
-	if(welded)
-		WELDER_ATTEMPT_UNWELD_MESSAGE
-	else
-		WELDER_ATTEMPT_WELD_MESSAGE
+	WELDER_ATTEMPT_WELD_MESSAGE
 	if(!I.use_tool(src, user, 40, volume = I.tool_volume))
 		return
 	if(!density) //In case someone opens it while it's getting welded
 		return
-	if(welded)
-		WELDER_UNWELD_SUCCESS_MESSAGE
-	else
-		WELDER_WELD_SUCCESS_MESSAGE
+	WELDER_WELD_SUCCESS_MESSAGE
 	welded = !welded
 	update_icon()
 
@@ -201,21 +194,18 @@
 			flick("door_closing", src)
 			playsound(src, 'sound/machines/airlock_ext_close.ogg', 30, 1)
 
-/obj/machinery/door/firedoor/update_icon_state()
+/obj/machinery/door/firedoor/update_icon()
+	overlays.Cut()
+	if(active_alarm && hasPower())
+		overlays += image('icons/obj/doors/doorfire.dmi', "alarmlights")
 	if(density)
 		icon_state = "door_closed"
+		if(welded)
+			overlays += "welded"
 	else
 		icon_state = "door_open"
-
-/obj/machinery/door/firedoor/update_overlays()
-	. = ..()
-	if(active_alarm && hasPower())
-		. += image('icons/obj/doors/doorfire.dmi', "alarmlights")
-	if(density && welded)
-		. += "welded"
-		return
-	if(welded)
-		. += "welded_open"
+		if(welded)
+			overlays += "welded_open"
 
 /obj/machinery/door/firedoor/proc/activate_alarm()
 	active_alarm = TRUE
@@ -308,7 +298,7 @@
 	name = "heavy firelock"
 	icon = 'icons/obj/doors/doorfire.dmi'
 	glass = FALSE
-	opacity = TRUE
+	opacity = 1
 	explosion_block = 2
 	assemblytype = /obj/structure/firelock_frame/heavy
 	max_integrity = 550
@@ -348,7 +338,8 @@
 		if(CONSTRUCTION_NOCIRCUIT)
 			. += "<span class='notice'>There are no <i>firelock electronics</i> in the frame. The frame could be <b>cut</b> apart.</span>"
 
-/obj/structure/firelock_frame/update_icon_state()
+/obj/structure/firelock_frame/update_icon()
+	..()
 	icon_state = "frame[constructionStep]"
 
 /obj/structure/firelock_frame/attackby(obj/item/C, mob/user)

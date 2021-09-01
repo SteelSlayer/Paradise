@@ -22,7 +22,7 @@
 	attack_sound = 'sound/hallucinations/growl1.ogg'
 	atmos_requirements = list("min_oxy" = 0, "max_oxy" = 0, "min_tox" = 0, "max_tox" = 0, "min_co2" = 0, "max_co2" = 0, "min_n2" = 0, "max_n2" = 0)
 	unsuitable_atmos_damage = 10
-	robust_searching = TRUE
+	robust_searching = 1
 	stat_attack = UNCONSCIOUS
 	gold_core_spawnable = HOSTILE_SPAWN
 	faction = list("skeleton")
@@ -32,11 +32,11 @@
 	del_on_death = TRUE
 	loot = list(/obj/effect/decal/remains/human)
 
-/mob/living/simple_animal/hostile/skeleton/arctic
-	name = "undead arctic explorer"
+/mob/living/simple_animal/hostile/skeleton/eskimo
+	name = "undead eskimo"
 	desc = "The reanimated remains of some poor traveler."
-	icon_state = "arctic_skeleton"
-	icon_living = "arctic_skeleton"
+	icon_state = "eskimo"
+	icon_living = "eskimo"
 	maxHealth = 55
 	health = 55
 	weather_immunities = list("snow")

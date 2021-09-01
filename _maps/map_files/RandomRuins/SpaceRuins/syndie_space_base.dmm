@@ -258,7 +258,7 @@
 	dir = 4;
 	initialize_directions = 11
 	},
-/obj/machinery/atmospherics/meter,
+/obj/machinery/meter,
 /turf/simulated/floor/plating,
 /area/ruin/unpowered/syndicate_space_base/engineering)
 "cE" = (
@@ -359,7 +359,7 @@
 /area/ruin/unpowered/syndicate_space_base/testlab)
 "dP" = (
 /obj/effect/decal/warning_stripes/yellow,
-/obj/machinery/atmospherics/portable/canister/sleeping_agent,
+/obj/machinery/portable_atmospherics/canister/sleeping_agent,
 /turf/simulated/floor/plating,
 /area/ruin/unpowered/syndicate_space_base/engineering)
 "dS" = (
@@ -487,7 +487,6 @@
 "fn" = (
 /obj/machinery/vending/syndichem,
 /obj/structure/extinguisher_cabinet{
-	name = "custom placement";
 	pixel_x = -5;
 	pixel_y = 30
 	},
@@ -633,7 +632,7 @@
 /obj/machinery/atmospherics/unary/portables_connector{
 	dir = 1
 	},
-/obj/machinery/atmospherics/portable/canister/toxins,
+/obj/machinery/portable_atmospherics/canister/toxins,
 /turf/simulated/floor/plating,
 /area/ruin/unpowered/syndicate_space_base/engineering)
 "gD" = (
@@ -706,7 +705,7 @@
 /obj/machinery/atmospherics/pipe/manifold/visible{
 	dir = 8
 	},
-/obj/machinery/atmospherics/meter,
+/obj/machinery/meter,
 /turf/simulated/floor/plating,
 /area/ruin/unpowered/syndicate_space_base/engineering)
 "hB" = (
@@ -980,7 +979,7 @@
 	dir = 4;
 	initialize_directions = 11
 	},
-/obj/machinery/atmospherics/meter,
+/obj/machinery/meter,
 /turf/simulated/floor/plasteel{
 	icon_state = "dark"
 	},
@@ -1065,7 +1064,7 @@
 	},
 /area/ruin/unpowered/syndicate_space_base/telecomms)
 "kI" = (
-/obj/machinery/atmospherics/portable/canister/toxins,
+/obj/machinery/portable_atmospherics/canister/toxins,
 /obj/effect/decal/warning_stripes/yellow,
 /turf/simulated/floor/plating,
 /area/ruin/unpowered/syndicate_space_base/engineering)
@@ -1254,7 +1253,7 @@
 	},
 /area/ruin/unpowered/syndicate_space_base/main)
 "nf" = (
-/obj/item/book/manual/wiki/chef_recipes{
+/obj/item/book/manual/chef_recipes{
 	pixel_x = 2;
 	pixel_y = 6
 	},
@@ -1803,7 +1802,7 @@
 /area/ruin/unpowered/syndicate_space_base/chemistry)
 "tW" = (
 /obj/structure/table,
-/obj/machinery/computer/library,
+/obj/machinery/computer/library/checkout,
 /turf/simulated/floor/plasteel{
 	icon_state = "dark"
 	},
@@ -1838,7 +1837,7 @@
 	},
 /area/ruin/unpowered/syndicate_space_base/virology)
 "uz" = (
-/obj/machinery/atmospherics/portable/pump,
+/obj/machinery/portable_atmospherics/pump,
 /turf/simulated/floor/plasteel{
 	dir = 5;
 	icon_state = "yellow"
@@ -1928,7 +1927,7 @@
 	},
 /area/ruin/unpowered/syndicate_space_base/bar)
 "vn" = (
-/obj/machinery/atmospherics/portable/canister/air,
+/obj/machinery/portable_atmospherics/canister/air,
 /turf/simulated/floor/plasteel{
 	icon_state = "dark"
 	},
@@ -2036,7 +2035,7 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 4
 	},
-/obj/machinery/atmospherics/meter,
+/obj/machinery/meter,
 /turf/simulated/floor/plating,
 /area/ruin/unpowered/syndicate_space_base/engineering)
 "wc" = (
@@ -2159,7 +2158,7 @@
 	dir = 4;
 	initialize_directions = 11
 	},
-/obj/machinery/atmospherics/meter,
+/obj/machinery/meter,
 /turf/simulated/floor/plasteel{
 	icon_state = "dark"
 	},
@@ -2244,7 +2243,7 @@
 	},
 /area/ruin/unpowered/syndicate_space_base/bar)
 "xt" = (
-/obj/machinery/atmospherics/portable/canister/air{
+/obj/machinery/portable_atmospherics/canister/air{
 	anchored = 1
 	},
 /turf/simulated/floor/engine/air,
@@ -2616,7 +2615,7 @@
 	},
 /area/ruin/unpowered/syndicate_space_base/bar)
 "Cr" = (
-/obj/machinery/atmospherics/portable/canister/oxygen,
+/obj/machinery/portable_atmospherics/canister/oxygen,
 /obj/effect/decal/warning_stripes/yellow,
 /turf/simulated/floor/plating,
 /area/ruin/unpowered/syndicate_space_base/engineering)
@@ -2681,7 +2680,7 @@
 	},
 /area/ruin/unpowered/syndicate_space_base/main)
 "Dv" = (
-/obj/machinery/atmospherics/portable/pump,
+/obj/machinery/portable_atmospherics/pump,
 /turf/simulated/floor/plasteel{
 	dir = 6;
 	icon_state = "yellow"
@@ -3061,7 +3060,6 @@
 	dir = 4
 	},
 /obj/structure/extinguisher_cabinet{
-	name = "custom placement";
 	pixel_x = -5;
 	pixel_y = 30
 	},
@@ -3122,7 +3120,7 @@
 /turf/space,
 /area/ruin/unpowered/syndicate_space_base/engineering)
 "He" = (
-/obj/machinery/atmospherics/portable/scrubber,
+/obj/machinery/portable_atmospherics/scrubber,
 /obj/effect/decal/warning_stripes/yellow,
 /turf/simulated/floor/plasteel{
 	dir = 8;
@@ -3450,7 +3448,7 @@
 /turf/simulated/floor/grass,
 /area/ruin/unpowered/syndicate_space_base/bar)
 "KH" = (
-/obj/machinery/atmospherics/portable/canister/oxygen,
+/obj/machinery/portable_atmospherics/canister/oxygen,
 /obj/effect/decal/warning_stripes/yellow,
 /obj/machinery/alarm/syndicate{
 	pixel_y = 24
@@ -3800,7 +3798,6 @@
 /area/ruin/unpowered/syndicate_space_base/virology)
 "NT" = (
 /obj/structure/extinguisher_cabinet{
-	name = "custom placement";
 	pixel_x = -5;
 	pixel_y = 30
 	},
@@ -4363,7 +4360,7 @@
 /turf/simulated/floor/plating,
 /area/ruin/unpowered/syndicate_space_base/engineering)
 "Vg" = (
-/obj/machinery/atmospherics/portable/canister/carbon_dioxide,
+/obj/machinery/portable_atmospherics/canister/carbon_dioxide,
 /obj/effect/decal/warning_stripes/yellow,
 /turf/simulated/floor/plating,
 /area/ruin/unpowered/syndicate_space_base/engineering)
@@ -4392,7 +4389,7 @@
 	},
 /area/ruin/unpowered/syndicate_space_base/engineering)
 "VB" = (
-/obj/machinery/atmospherics/meter,
+/obj/machinery/meter,
 /obj/machinery/atmospherics/pipe/simple/insulated{
 	dir = 4
 	},

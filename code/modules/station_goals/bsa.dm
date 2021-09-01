@@ -28,9 +28,9 @@
 	return FALSE
 
 /obj/machinery/bsa
-	icon = 'icons/obj/machines/particle_accelerator.dmi'
-	density = TRUE
-	anchored = TRUE
+	icon = 'icons/obj/machines/particle_accelerator3.dmi'
+	density = 1
+	anchored = 1
 
 /obj/machinery/bsa/back
 	name = "Bluespace Artillery Generator"
@@ -260,7 +260,7 @@
 	var/target
 	use_power = NO_POWER_USE
 	circuit = /obj/item/circuitboard/computer/bsa_control
-	icon = 'icons/obj/machines/particle_accelerator.dmi'
+	icon = 'icons/obj/machines/particle_accelerator3.dmi'
 	icon_state = "control_boxp"
 	var/icon_state_broken = "control_box"
 	var/icon_state_nopower = "control_boxw"
@@ -288,9 +288,9 @@
 
 /obj/machinery/computer/bsa_control/process()
 	..()
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
-/obj/machinery/computer/bsa_control/update_icon_state()
+/obj/machinery/computer/bsa_control/update_icon()
 	if(stat & BROKEN)
 		icon_state = icon_state_broken
 	else if(stat & NOPOWER)
@@ -301,9 +301,6 @@
 		icon_state = icon_state_active
 	else
 		icon_state = initial(icon_state)
-
-/obj/machinery/computer/bsa_control/update_overlays()
-	return list()
 
 /obj/machinery/computer/bsa_control/attack_hand(mob/user)
 	if(..())
@@ -345,7 +342,7 @@
 			fire(usr)
 		if("recalibrate")
 			calibrate(usr)
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 	return TRUE
 
 /obj/machinery/computer/bsa_control/proc/calibrate(mob/user)

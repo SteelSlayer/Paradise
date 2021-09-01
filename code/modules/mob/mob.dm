@@ -2,15 +2,13 @@
 	GLOB.mob_list -= src
 	GLOB.dead_mob_list -= src
 	GLOB.alive_mob_list -= src
-	input_focus = null
+	focus = null
 	QDEL_NULL(hud_used)
 	if(mind && mind.current == src)
 		spellremove(src)
 	mobspellremove(src)
 	QDEL_LIST(viruses)
 	QDEL_LIST(actions)
-	for(var/alert in alerts)
-		clear_alert(alert)
 	ghostize()
 	QDEL_LIST_ASSOC_VAL(tkgrabbed_objects)
 	for(var/I in tkgrabbed_objects)
@@ -32,8 +30,7 @@
 		GLOB.dead_mob_list += src
 	else
 		GLOB.alive_mob_list += src
-	input_focus = src
-	reset_perspective(src)
+	set_focus(src)
 	prepare_huds()
 	update_runechat_msg_location()
 	. = ..()
@@ -73,29 +70,29 @@
 	t+= "<span class='notice'>N2O: [environment.sleeping_agent] \n</span>"
 	t+= "<span class='notice'>Agent B: [environment.agent_b] \n</span>"
 
-	usr.show_message(t, EMOTE_VISIBLE)
+	usr.show_message(t, 1)
 
 /mob/proc/show_message(msg, type, alt, alt_type)//Message, type of message (1 or 2), alternative message, alt message type (1 or 2)
 
 	if(!client)	return
 
 	if(type)
-		if(type & EMOTE_VISIBLE && !has_vision(information_only=TRUE))//Vision related
-			if(!(alt))
-				return
-			else
-				msg = alt
-				type = alt_type
-		if(type & EMOTE_AUDIBLE && !can_hear())//Hearing related
+		if(type & 1 && !has_vision(information_only=TRUE))//Vision related
 			if(!( alt ))
 				return
 			else
 				msg = alt
 				type = alt_type
-				if(type & EMOTE_VISIBLE && !has_vision(information_only=TRUE))
+		if(type & 2 && !can_hear())//Hearing related
+			if(!( alt ))
+				return
+			else
+				msg = alt
+				type = alt_type
+				if(type & 1 && !has_vision(information_only=TRUE))
 					return
 	// Added voice muffling for Issue 41.
-	if(stat == UNCONSCIOUS)
+	if(stat == UNCONSCIOUS || (sleeping > 0 && stat != DEAD))
 		to_chat(src, "<I>... You can almost hear someone talking ...</I>")
 	else
 		to_chat(src, msg)
@@ -108,26 +105,13 @@
 // blind_message (optional) is what blind people will hear e.g. "You hear something!"
 
 /mob/visible_message(message, self_message, blind_message)
-	if(!isturf(loc)) // mobs inside objects (such as lockers) shouldn't have their actions visible to those outside the object
-		for(var/mob/M in get_mobs_in_view(3, src))
-			if(M.see_invisible < invisibility)
-				continue //can't view the invisible
-			var/msg = message
-			if(self_message && M == src)
-				msg = self_message
-			if(M.loc != loc)
-				if(!blind_message) // for some reason VISIBLE action has blind_message param so if we are not in the same object but next to it, lets show it
-					continue
-				msg = blind_message
-			M.show_message(msg, EMOTE_VISIBLE, blind_message, EMOTE_AUDIBLE)
-		return
 	for(var/mob/M in get_mobs_in_view(7, src))
 		if(M.see_invisible < invisibility)
 			continue //can't view the invisible
 		var/msg = message
 		if(self_message && M == src)
 			msg = self_message
-		M.show_message(msg, EMOTE_VISIBLE, blind_message, EMOTE_AUDIBLE)
+		M.show_message(msg, 1, blind_message, 2)
 
 // Show a message to all mobs in sight of this atom
 // Use for objects performing visible actions
@@ -137,7 +121,7 @@
 	for(var/mob/M in get_mobs_in_view(7, src))
 		if(!M.client)
 			continue
-		M.show_message(message, EMOTE_VISIBLE, blind_message, EMOTE_AUDIBLE)
+		M.show_message(message, 1, blind_message, 2)
 
 // Show a message to all mobs in earshot of this one
 // This would be for audible actions by the src mob
@@ -151,7 +135,7 @@
 		range = hearing_distance
 	var/msg = message
 	for(var/mob/M in get_mobs_in_view(range, src))
-		M.show_message(msg, EMOTE_AUDIBLE, deaf_message, EMOTE_VISIBLE)
+		M.show_message(msg, 2, deaf_message, 1)
 
 	// based on say code
 	var/omsg = replacetext(message, "<B>[src]</B> ", "")
@@ -177,7 +161,7 @@
 	if(hearing_distance)
 		range = hearing_distance
 	for(var/mob/M in get_mobs_in_view(range, src))
-		M.show_message(message, EMOTE_AUDIBLE, deaf_message, EMOTE_VISIBLE)
+		M.show_message(message, 2, deaf_message, 1)
 
 /mob/proc/findname(msg)
 	for(var/mob/M in GLOB.mob_list)
@@ -532,12 +516,8 @@ GLOBAL_LIST_INIT(slot_equipment_priority, list( \
 /mob/proc/reset_perspective(atom/A)
 	if(client)
 		if(istype(A, /atom/movable))
-			if(is_ventcrawling(src))
-				client.eye = get_turf(A)
-				client.perspective = MOB_PERSPECTIVE
-			else
-				client.perspective = EYE_PERSPECTIVE
-				client.eye = A
+			client.perspective = EYE_PERSPECTIVE
+			client.eye = A
 		else
 			if(isturf(loc))
 				client.eye = client.mob
@@ -743,18 +723,10 @@ GLOBAL_LIST_INIT(slot_equipment_priority, list( \
 /mob/proc/update_flavor_text()
 	set src in usr
 	if(usr != src)
-		to_chat(usr, "<span class='notice'>You can't change the flavor text of this mob</span>")
-		return
-	if(stat)
-		to_chat(usr, "<span class='notice'>You have to be conscious to change your flavor text</span>")
-		return
-
+		to_chat(usr, "No.")
 	var/msg = input(usr,"Set the flavor text in your 'examine' verb. The flavor text should be a physical descriptor of your character at a glance.","Flavor Text",html_decode(flavor_text)) as message|null
 
 	if(msg != null)
-		if(stat)
-			to_chat(usr, "<span class='notice'>You have to be conscious to change your flavor text</span>")
-			return
 		msg = copytext(msg, 1, MAX_MESSAGE_LEN)
 		msg = html_encode(msg)
 
@@ -938,7 +910,7 @@ GLOBAL_LIST_INIT(slot_equipment_priority, list( \
 	if(isliving(M))
 		var/mob/living/L = M
 		if(L.mob_size <= MOB_SIZE_SMALL)
-			return // Stops pAI drones and small mobs (parrots, crabs) from stripping people. --DZD
+			return // Stops pAI drones and small mobs (borers, parrots, crabs) from stripping people. --DZD
 	if(!M.can_strip)
 		return
 	if(usr == src)
@@ -1009,8 +981,7 @@ GLOBAL_LIST_INIT(slot_equipment_priority, list( \
 		if(statpanel("MC")) //looking at that panel
 			var/turf/T = get_turf(client.eye)
 			stat("Location:", COORD(T))
-			stat("CPU:", "[Master.formatcpu(world.cpu)]")
-			stat("Map CPU:", "[Master.formatcpu(world.map_cpu)]")
+			stat("CPU:", "[Master.formatcpu()]")
 			stat("Instances:", "[num2text(world.contents.len, 10)]")
 			GLOB.stat_entry()
 			stat("Server Time:", time_stamp())
@@ -1040,10 +1011,6 @@ GLOBAL_LIST_INIT(slot_equipment_priority, list( \
 	stat(null, "Server Uptime: [worldtime2text()]")
 	stat(null, "Round Time: [ROUND_TIME ? time2text(ROUND_TIME, "hh:mm:ss") : "N/A"]")
 	stat(null, "Station Time: [station_time_timestamp()]")
-	stat(null, "Time Dilation: [round(SStime_track.time_dilation_current,1)]% " + \
-				"AVG:([round(SStime_track.time_dilation_avg_fast,1)]%, " + \
-				"[round(SStime_track.time_dilation_avg,1)]%, " + \
-				"[round(SStime_track.time_dilation_avg_slow,1)]%)")
 
 // this function displays the shuttles ETA in the status panel if the shuttle has been called
 /mob/proc/show_stat_emergency_shuttle_eta()
@@ -1068,40 +1035,35 @@ GLOBAL_LIST_INIT(slot_equipment_priority, list( \
 			statpanel(listed_turf.name, null, statpanel_things)
 
 /mob/proc/add_spell_to_statpanel(obj/effect/proc_holder/spell/S)
-	statpanel(S.panel,"[S.cooldown_handler.statpanel_info()]", S)
+	switch(S.charge_type)
+		if("recharge")
+			statpanel(S.panel,"[S.charge_counter/10.0]/[S.charge_max/10]",S)
+		if("charges")
+			statpanel(S.panel,"[S.charge_counter]/[S.charge_max]",S)
+		if("holdervar")
+			statpanel(S.panel,"[S.holder_var_type] [S.holder_var_amount]",S)
 
 // facing verbs
 /mob/proc/canface()
-	if(client.moving)
-		return FALSE
-	if(stat == DEAD)
-		return FALSE
-	if(anchored)
-		return FALSE
-	if(notransform)
-		return FALSE
-	if(restrained())
-		return FALSE
-	return TRUE
+	if(!canmove)						return 0
+	if(client.moving)					return 0
+	if(world.time < client.move_delay)	return 0
+	if(stat==2)							return 0
+	if(anchored)						return 0
+	if(notransform)						return 0
+	if(restrained())					return 0
+	return 1
 
-/mob/living/canface()
-	if(!(mobility_flags & MOBILITY_MOVE))
-		return FALSE
-	. = ..()
-
-/mob/proc/fall()
+/mob/proc/fall(forced)
 	drop_l_hand()
 	drop_r_hand()
 
-/mob/living/fall()
-	..()
-	set_body_position(LYING_DOWN)
-
 /mob/proc/facedir(ndir)
 	if(!canface())
-		return FALSE
+		return 0
 	setDir(ndir)
-	return TRUE
+	client.move_delay += movement_delay()
+	return 1
 
 
 /mob/verb/eastface()
@@ -1133,14 +1095,6 @@ GLOBAL_LIST_INIT(slot_equipment_priority, list( \
 /mob/proc/activate_hand(selhand)
 	return
 
-/mob/proc/add_to_respawnable_list()
-	GLOB.respawnable_list += src
-	RegisterSignal(src, COMSIG_PARENT_QDELETING, .proc/remove_from_respawnable_list)
-
-/mob/proc/remove_from_respawnable_list()
-	GLOB.respawnable_list -= src
-	UnregisterSignal(src, COMSIG_PARENT_QDELETING)
-
 /mob/dead/observer/verb/respawn()
 	set name = "Respawn as NPC"
 	set category = "Ghost"
@@ -1153,21 +1107,26 @@ GLOBAL_LIST_INIT(slot_equipment_priority, list( \
 		to_chat(src, "<span class='warning'>You can't respawn as an NPC before the game starts!</span>")
 		return
 
-	if((usr in GLOB.respawnable_list) && (stat == DEAD || isobserver(usr)))
+	if((usr in GLOB.respawnable_list) && (stat==2 || istype(usr,/mob/dead/observer)))
 		var/list/creatures = list("Mouse")
-		for(var/mob/living/simple_animal/L in GLOB.alive_mob_list)
-			if(L.npc_safe(src) && L.stat != DEAD && !L.key)
-				creatures += L
+		for(var/mob/living/L in GLOB.alive_mob_list)
+			if(safe_respawn(L.type) && L.stat!=2)
+				if(!L.key)
+					creatures += L
 		var/picked = input("Please select an NPC to respawn as", "Respawn as NPC")  as null|anything in creatures
 		switch(picked)
 			if("Mouse")
-				remove_from_respawnable_list()
+				GLOB.respawnable_list -= usr
 				become_mouse()
+				spawn(5)
+					GLOB.respawnable_list += usr
 			else
 				var/mob/living/NPC = picked
 				if(istype(NPC) && !NPC.key)
-					remove_from_respawnable_list()
+					GLOB.respawnable_list -= usr
 					NPC.key = key
+					spawn(5)
+						GLOB.respawnable_list += usr
 	else
 		to_chat(usr, "You are not dead or you have given up your right to be respawned!")
 		return
@@ -1182,7 +1141,7 @@ GLOBAL_LIST_INIT(slot_equipment_priority, list( \
 		return
 
 	//find a viable mouse candidate
-	var/list/found_vents = get_valid_vent_spawns(min_network_size = 0)
+	var/list/found_vents = get_valid_vent_spawns(min_network_size = 0, station_levels_only = FALSE, z_level = z)
 	if(length(found_vents))
 		var/obj/vent_found = pick(found_vents)
 		var/mob/living/simple_animal/mouse/host = new(vent_found.loc)
@@ -1392,21 +1351,17 @@ GLOBAL_LIST_INIT(slot_equipment_priority, list( \
 	return FALSE		//overridden in living.dm
 
 /mob/proc/spin(spintime, speed)
-	set waitfor = FALSE
+	set waitfor = 0
 	if(!spintime || !speed || spintime > 100)
 		CRASH("Aborted attempted call of /mob/proc/spin with invalid args ([spintime],[speed]) which could have frozen the server.")
-	while(spintime >= speed)
+	var/end_time = world.time + spintime
+	var/spin_dir = prob(50)
+	while(world.time <= end_time)
 		sleep(speed)
-		switch(dir)
-			if(NORTH)
-				setDir(EAST)
-			if(SOUTH)
-				setDir(WEST)
-			if(EAST)
-				setDir(SOUTH)
-			if(WEST)
-				setDir(NORTH)
-		spintime -= speed
+		if(spin_dir)
+			dir = turn(dir, 90)
+		else
+			dir = turn(dir, -90)
 
 /mob/proc/is_literate()
 	return FALSE
@@ -1492,7 +1447,7 @@ GLOBAL_LIST_INIT(slot_equipment_priority, list( \
 	if(clean_feet)
 		feet_blood_color = null
 		qdel(feet_blood_DNA)
-		bloody_feet = list(BLOOD_STATE_HUMAN = 0, BLOOD_STATE_XENO = 0,  BLOOD_STATE_NOT_BLOODY = 0, BLOOD_BASE_ALPHA = BLOODY_FOOTPRINT_BASE_ALPHA)
+		bloody_feet = list(BLOOD_STATE_HUMAN = 0, BLOOD_STATE_XENO = 0,  BLOOD_STATE_NOT_BLOODY = 0)
 		blood_state = BLOOD_STATE_NOT_BLOODY
 		update_inv_shoes()
 	update_icons()	//apply the now updated overlays to the mob
@@ -1524,7 +1479,7 @@ GLOBAL_LIST_INIT(slot_equipment_priority, list( \
 		MA.plane = GAME_PLANE
 		pic.appearance = MA
 		flick_overlay(pic, list(client), 10)
-
+    
 
 GLOBAL_LIST_INIT(holy_areas, typecacheof(list(
 	/area/chapel
@@ -1535,6 +1490,11 @@ GLOBAL_LIST_INIT(holy_areas, typecacheof(list(
 		return FALSE
 
 	if(!mind)
+		return FALSE
+
+	//Allows fullpower vampires to bypass holy areas
+	var/datum/vampire/vampire = mind.vampire
+	if(vampire && vampire.get_ability(/datum/vampire_passive/full))
 		return FALSE
 
 	//Allows cult to bypass holy areas once they summon
@@ -1548,20 +1508,3 @@ GLOBAL_LIST_INIT(holy_areas, typecacheof(list(
 
 	to_chat(src, "<span class='warning'>Your powers are useless on this holy ground.</span>")
 	return TRUE
-
-/mob/proc/reset_visibility()
-	invisibility = initial(invisibility)
-	alpha = initial(alpha)
-	add_to_all_human_data_huds()
-
-/mob/proc/make_invisible()
-	invisibility = INVISIBILITY_OBSERVER
-	alpha = 128
-	remove_from_all_data_huds()
-
-/mob/proc/set_stat(new_stat)
-	if(new_stat == stat)
-		return
-	. = stat
-	stat = new_stat
-	SEND_SIGNAL(src, COMSIG_MOB_STATCHANGE, new_stat, .)

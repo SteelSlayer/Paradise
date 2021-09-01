@@ -146,6 +146,7 @@
 		trigger.forceMove(src)
 		trigger.master = src
 		trigger.holder = src
+		AddComponent(/datum/component/proximity_monitor)
 		to_chat(user, "<span class='notice'>You attach [W] to [src].</span>")
 		return TRUE
 	else if(istype(W, /obj/item/assembly))
@@ -165,6 +166,7 @@
 	trigger.master = null
 	trigger.holder = null
 	trigger = null
+	qdel(GetComponent(/datum/component/proximity_monitor))
 
 /obj/item/clothing/mask/muzzle/safety/shock/proc/can_shock(obj/item/clothing/C)
 	if(istype(C))
@@ -176,15 +178,19 @@
 
 /obj/item/clothing/mask/muzzle/safety/shock/proc/process_activation(obj/D, normal = 1, special = 1)
 	visible_message("[bicon(src)] *beep* *beep*", "*beep* *beep*")
-	var/mob/living/L = can_shock(loc)
-	if(!L)
-		return
-	to_chat(L, "<span class='danger'>You feel a sharp shock!</span>")
-	do_sparks(3, 1, L)
+	var/mob/M = can_shock(loc)
+	if(M)
+		to_chat(M, "<span class='danger'>You feel a sharp shock!</span>")
+		do_sparks(3, 1, M)
 
-	L.Weaken(10 SECONDS)
-	L.Stuttering(2 SECONDS)
-	L.Jitter(40 SECONDS)
+		M.Weaken(5)
+		M.Stuttering(1)
+		M.Jitter(20)
+	return
+
+/obj/item/clothing/mask/muzzle/safety/shock/HasProximity(atom/movable/AM)
+	if(trigger)
+		trigger.HasProximity(AM)
 
 
 /obj/item/clothing/mask/muzzle/safety/shock/hear_talk(mob/living/M as mob, list/message_pieces)
@@ -206,9 +212,8 @@
 	flags_cover = MASKCOVERSMOUTH
 	gas_transfer_coefficient = 0.90
 	permeability_coefficient = 0.01
-	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 15, RAD = 0, FIRE = 0, ACID = 0)
+	armor = list("melee" = 0, "bullet" = 0, "laser" = 0,"energy" = 0, "bomb" = 0, "bio" = 25, "rad" = 0, "fire" = 0, "acid" = 0)
 	actions_types = list(/datum/action/item_action/adjust)
-	can_toggle = TRUE
 
 	sprite_sheets = list(
 		"Vox" = 'icons/mob/clothing/species/vox/mask.dmi',
@@ -308,7 +313,7 @@
 	flags = BLOCKHAIR
 	flags_inv = HIDEFACE
 	w_class = WEIGHT_CLASS_SMALL
-	var/voicechange = FALSE
+	var/voicechange = 0
 	var/temporaryname = " the Horse"
 	var/originalname = ""
 
@@ -342,10 +347,6 @@
 	if(user.real_name == "[originalname][temporaryname]" || user.real_name == "A Horse With No Name") //if it's somehow changed while the mask is on it doesn't revert
 		user.real_name = originalname
 
-/obj/item/clothing/mask/horsehead/change_speech_verb()
-	if(voicechange)
-		return pick("whinnies", "neighs", "says")
-
 /obj/item/clothing/mask/face
 	flags_inv = HIDEFACE
 	flags_cover = MASKCOVERSMOUTH
@@ -367,7 +368,6 @@
 	desc = "A mask made of soft vinyl and latex, representing the head of a bee."
 	icon_state = "bee"
 	item_state = "bee"
-	sprite_sheets = list("Vox" = 'icons/mob/clothing/species/vox/mask.dmi')
 
 /obj/item/clothing/mask/face/bear
 	name = "bear mask"
@@ -425,8 +425,6 @@
 	slot_flags = SLOT_MASK
 	adjusted_flags = SLOT_HEAD
 	icon_state = "bandbotany"
-	dyeable = TRUE
-	can_toggle = TRUE
 
 	sprite_sheets = list(
 		"Vox" = 'icons/mob/clothing/species/vox/mask.dmi',
@@ -437,7 +435,6 @@
 		"Drask" = 'icons/mob/clothing/species/drask/mask.dmi'
 		)
 	actions_types = list(/datum/action/item_action/adjust)
-	can_toggle = TRUE
 
 /obj/item/clothing/mask/bandana/attack_self(mob/user)
 	adjustmask(user)
@@ -509,7 +506,7 @@
 	icon_override = 'icons/goonstation/mob/clothing/mask.dmi'
 	lefthand_file = 'icons/goonstation/mob/inhands/clothing_lefthand.dmi'
 	righthand_file = 'icons/goonstation/mob/inhands/clothing_righthand.dmi'
-	flags = NODROP | AIRTIGHT | DROPDEL
+	flags = NODROP | AIRTIGHT
 	flags_cover = MASKCOVERSMOUTH
 
 /obj/item/clothing/mask/cursedclown/equipped(mob/user, slot)

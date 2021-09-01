@@ -4,9 +4,9 @@
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | ACID_PROOF
 	var/team = 0
 
-/obj/machinery/abductor/Initialize(mapload)
-	. = ..()
+/obj/machinery/abductor/New()
 	GLOB.abductor_equipment.Add(src)
+	..()
 
 /obj/machinery/abductor/Destroy()
 	GLOB.abductor_equipment.Remove(src)
@@ -30,22 +30,7 @@
 
 /obj/machinery/abductor/console/Initialize()
 	..()
-	return INITIALIZE_HINT_LATELOAD
-
-/obj/machinery/abductor/console/LateInitialize()
-	..()
-	// GLOB.abductor_equipment is populated in Initialize;
-	// delaying linkage until after.
 	Link_Abduction_Equipment()
-
-/obj/machinery/abductor/console/Destroy()
-	gizmo = null
-	vest = null
-	experiment = null
-	pad = null
-	camera = null
-	disguises.Cut()
-	return ..()
 
 /obj/machinery/abductor/console/attack_hand(mob/user)
 	if(..())

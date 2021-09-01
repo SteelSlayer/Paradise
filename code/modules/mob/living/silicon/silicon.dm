@@ -1,55 +1,72 @@
 /mob/living/silicon
 	gender = NEUTER
+	robot_talk_understand = TRUE
 	voice_name = "synthesized voice"
 	bubble_icon = "machine"
 	has_unlimited_silicon_privilege = TRUE
 	weather_immunities = list("ash")
 	mob_biotypes = MOB_ROBOTIC
 	flags_2 = RAD_PROTECT_CONTENTS_2 | RAD_NO_CONTAMINATE_2
-	var/syndicate = FALSE
-	var/const/MAIN_CHANNEL = "Main Frequency"
-	var/lawchannel = MAIN_CHANNEL // Default channel on which to state laws
-	var/list/stating_laws = list()// Channels laws are currently being stated on
-	var/list/alarms_to_show = list()
-	var/list/alarms_to_clear = list()
-	var/list/alarm_types_show = list("Motion" = 0, "Fire" = 0, "Atmosphere" = 0, "Power" = 0)
-	var/list/alarm_types_clear = list("Motion" = 0, "Fire" = 0, "Atmosphere" = 0, "Power" = 0)
-	var/list/alarms_listend_for = list("Motion", "Fire", "Atmosphere", "Power")
-	//var/list/hud_list[10]
-	var/list/speech_synthesizer_langs = list()	//which languages can be vocalized by the speech synthesizer
-	var/designation = ""
-	var/obj/item/camera/siliconcam/aiCamera = null //photography
-	//Used in say.dm, allows for pAIs to have different say flavor text, as well as silicons, although the latter is not implemented.
-	var/speak_statement = "states"
-	var/speak_exclamation = "declares"
-	var/speak_query = "queries"
-	var/pose //Yes, now AIs can pose too.
-	var/death_sound = 'sound/voice/borg_deathsound.ogg'
-
-	//var/sensor_mode = 0 //Determines the current HUD.
-
 	hud_possible = list(SPECIALROLE_HUD, DIAG_STAT_HUD, DIAG_HUD)
+	/// Default channel on which to state laws.
+	var/lawchannel = MAIN_CHANNEL
+	/// Channels laws are currently being stated on.
+	var/list/stating_laws = list()
+	/// Which lawset the silicon currently has.
+	var/datum/ai_laws/laws = null
+	/// Used to to give certain laws to the silicon upon creation.
+	var/law_type_override
+	/// Any additional channels this silicon can state they're laws on.
+	var/list/additional_law_channels
+	/// Does this silicon have a custom sprite.
+	var/custom_sprite = FALSE
+	/// TODO:
+	var/list/alarms_to_show = list()
+	/// TODO:
+	var/list/alarms_to_clear = list()
+	/// TODO:
+	var/list/alarm_types_show = list("Motion" = 0, "Fire" = 0, "Atmosphere" = 0, "Power" = 0)
+	/// TODO:
+	var/list/alarm_types_clear = list("Motion" = 0, "Fire" = 0, "Atmosphere" = 0, "Power" = 0)
+	/// TODO:
+	var/list/alarms_listend_for = list("Motion", "Fire", "Atmosphere", "Power")
+	/// Which languages can be vocalized by the speech synthesizer.
+	var/list/speech_synthesizer_langs = list()
+	/// A camera the silicon can use to take pictures with
+	var/obj/item/camera/siliconcam/aiCamera = null
+	/// The type of camera created for our `aiCamera` var.
+	var/ai_camera_type = /obj/item/camera/siliconcam
+	/// The say verb used when this silicon says something normally (no exclamation or question mark at the end of the message).
+	var/speak_statement = "states"
+	/// The say verb used when this silicon says something with an exclamation mark at the end of their message.
+	var/speak_exclamation = "declares"
+	/// The say verb used when this silicon says something with an question mark at the end of their message.
+	var/speak_query = "queries"
+	// Yes, now AIs can pose too. -Presumably does the same thing as the carbon var, I don't know.
+	var/pose
+	/// The sound played when this silicon dies.
+	var/death_sound = 'sound/voice/borg_deathsound.ogg'
+	/// Determines the medical hud to use.
+	var/med_hud = DATA_HUD_MEDICAL_ADVANCED
+	/// Determines the security hud to use.
+	var/sec_hud = DATA_HUD_SECURITY_ADVANCED
+	/// Determines the diagnostic hud to use.
+	var/d_hud = DATA_HUD_DIAGNOSTIC_ADVANCED
+	var/obj/item/radio/common_radio
 
-
-	var/med_hud = DATA_HUD_MEDICAL_ADVANCED //Determines the med hud to use
-	var/sec_hud = DATA_HUD_SECURITY_ADVANCED //Determines the sec hud to use
-	var/d_hud = DATA_HUD_DIAGNOSTIC_BASIC //There is only one kind of diag hud
-
-/mob/living/silicon/New()
+/mob/living/silicon/Initialize()
+	. = ..()
 	GLOB.silicon_mob_list |= src
-	..()
 	add_language("Galactic Common")
 	init_subsystems()
 	RegisterSignal(SSalarm, COMSIG_TRIGGERED_ALARM, .proc/alarm_triggered)
 	RegisterSignal(SSalarm, COMSIG_CANCELLED_ALARM, .proc/alarm_cancelled)
-
-/mob/living/silicon/Initialize(mapload)
-	. = ..()
-	for(var/datum/atom_hud/data/diagnostic/diag_hud in GLOB.huds)
-		diag_hud.add_to_hud(src)
+	aiCamera = new ai_camera_type(src)
+	additional_law_channels += list("Local" = "") // Allows silicons to state their laws locally.
+	var/datum/atom_hud/data/diagnostic/diag_hud = GLOB.huds[DATA_HUD_DIAGNOSTIC]
+	diag_hud.add_to_hud(src)
 	diag_hud_set_status()
 	diag_hud_set_health()
-
 
 /mob/living/silicon/med_hud_set_health()
 	return //we use a different hud
@@ -63,11 +80,7 @@
 	QDEL_NULL(crew_monitor)
 	QDEL_NULL(law_manager)
 	QDEL_NULL(power_monitor)
-	QDEL_NULL(aiCamera)
 	return ..()
-
-/mob/living/silicon/proc/get_radio()
-	return
 
 /mob/living/silicon/proc/alarm_triggered(src, class, area/A, list/O, obj/alarmsource)
 	return
@@ -169,12 +182,12 @@
 /mob/living/silicon/emp_act(severity)
 	..()
 	switch(severity)
-		if(EMP_HEAVY)
+		if(1)
 			take_organ_damage(20)
-			Stun(16 SECONDS)
-		if(EMP_LIGHT)
+			Stun(8)
+		if(2)
 			take_organ_damage(10)
-			Stun(6 SECONDS)
+			Stun(3)
 	flash_eyes(affect_silicon = 1)
 	to_chat(src, "<span class='danger'>*BZZZT*</span>")
 	to_chat(src, "<span class='warning'>Warning: Electromagnetic pulse detected.</span>")
@@ -226,6 +239,7 @@
 
 /mob/living/silicon/apply_effect(effect = 0, effecttype = STUN, blocked = 0)
 	return FALSE //The only effect that can hit them atm is flashes and they still directly edit so this works for now
+
 
 /proc/islinked(mob/living/silicon/robot/bot, mob/living/silicon/ai/ai)
 	if(!istype(bot) || !istype(ai))
@@ -312,10 +326,10 @@
 /mob/living/silicon/proc/remove_med_sec_hud()
 	var/datum/atom_hud/secsensor = GLOB.huds[sec_hud]
 	var/datum/atom_hud/medsensor = GLOB.huds[med_hud]
-	var/datum/atom_hud/diagsensor = GLOB.huds[d_hud]
+	for(var/datum/atom_hud/data/diagnostic/diagsensor in GLOB.huds)
+		diagsensor.remove_hud_from(src)
 	secsensor.remove_hud_from(src)
 	medsensor.remove_hud_from(src)
-	diagsensor.remove_hud_from(src)
 
 
 /mob/living/silicon/proc/add_sec_hud()
@@ -327,8 +341,8 @@
 	medsensor.add_hud_to(src)
 
 /mob/living/silicon/proc/add_diag_hud()
-	var/datum/atom_hud/diagsensor = GLOB.huds[d_hud]
-	diagsensor.add_hud_to(src)
+	for(var/datum/atom_hud/data/diagnostic/diagsensor in GLOB.huds)
+		diagsensor.add_hud_to(src)
 
 
 /mob/living/silicon/proc/toggle_sensor_mode()
@@ -366,15 +380,3 @@
 /////////////////////////////////// EAR DAMAGE ////////////////////////////////////
 /mob/living/silicon/can_hear()
 	. = TRUE
-
-/mob/living/silicon/on_floored_start()
-	return // Silicons are always standing by default.
-
-/mob/living/silicon/on_floored_end()
-	return // Silicons are always standing by default.
-
-/mob/living/silicon/on_lying_down()
-	return // Silicons are always standing by default.
-
-/mob/living/silicon/on_standing_up()
-	return // Silicons are always standing by default.

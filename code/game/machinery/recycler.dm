@@ -6,29 +6,27 @@
 	icon = 'icons/obj/recycling.dmi'
 	icon_state = "grinder-o0"
 	layer = MOB_LAYER+1 // Overhead
-	anchored = TRUE
-	density = TRUE
+	anchored = 1
+	density = 1
 	damage_deflection = 15
 	var/emergency_mode = FALSE // Temporarily stops machine if it detects a mob
 	var/icon_name = "grinder-o"
-	var/blood = FALSE
+	var/blood = 0
 	var/eat_dir = WEST
 	var/amount_produced = 1
 	var/crush_damage = 1000
-	var/eat_victim_items = TRUE
+	var/eat_victim_items = 1
 	var/item_recycle_sound = 'sound/machines/recycler.ogg'
-	/// For admin fun, var edit always_gib to TRUE (1)
-	var/always_gib = FALSE
 
-/obj/machinery/recycler/Initialize(mapload)
-	. = ..()
+/obj/machinery/recycler/New()
 	AddComponent(/datum/component/material_container, list(MAT_METAL, MAT_GLASS, MAT_PLASMA, MAT_SILVER, MAT_GOLD, MAT_DIAMOND, MAT_URANIUM, MAT_BANANIUM, MAT_TRANQUILLITE, MAT_TITANIUM, MAT_PLASTIC, MAT_BLUESPACE), 0, TRUE, null, null, null, TRUE)
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/recycler(null)
 	component_parts += new /obj/item/stock_parts/matter_bin(null)
 	component_parts += new /obj/item/stock_parts/manipulator(null)
 	RefreshParts()
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
 /obj/machinery/recycler/RefreshParts()
 	var/amt_made = 0
@@ -50,7 +48,7 @@
 
 /obj/machinery/recycler/power_change()
 	..()
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
 /obj/machinery/recycler/attackby(obj/item/I, mob/user, params)
 	add_fingerprint(user)
@@ -74,17 +72,18 @@
 
 /obj/machinery/recycler/emag_act(mob/user)
 	if(!emagged)
-		emagged = TRUE
+		emagged = 1
 		if(emergency_mode)
 			emergency_mode = FALSE
-			update_icon(UPDATE_ICON_STATE)
+			update_icon()
 		playsound(src, "sparks", 75, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
 		to_chat(user, "<span class='notice'>You use the cryptographic sequencer on [src].</span>")
 
-/obj/machinery/recycler/update_icon_state()
+/obj/machinery/recycler/update_icon()
+	..()
 	var/is_powered = !(stat & (BROKEN|NOPOWER))
 	if(emergency_mode)
-		is_powered = FALSE
+		is_powered = 0
 	icon_state = icon_name + "[is_powered]" + "[(blood ? "bld" : "")]" // add the blood tag at the end
 
 // This is purely for admin possession !FUN!.
@@ -147,14 +146,14 @@
 /obj/machinery/recycler/proc/emergency_stop(mob/living/L)
 	playsound(loc, 'sound/machines/buzz-sigh.ogg', 50, 0)
 	emergency_mode = TRUE
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 	L.loc = loc
 	addtimer(CALLBACK(src, .proc/reboot), SAFETY_COOLDOWN)
 
 /obj/machinery/recycler/proc/reboot()
 	playsound(loc, 'sound/machines/ping.ogg', 50, 0)
 	emergency_mode = FALSE
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
 /obj/machinery/recycler/proc/crush_living(mob/living/L)
 
@@ -165,17 +164,17 @@
 	else
 		playsound(loc, 'sound/effects/splat.ogg', 50, 1)
 
-	var/gib = TRUE
+	var/gib = 1
 	// By default, the emagged recycler will gib all non-carbons. (human simple animal mobs don't count)
 	if(iscarbon(L))
-		gib = FALSE
+		gib = 0
 		if(L.stat == CONSCIOUS)
 			L.say("ARRRRRRRRRRRGH!!!")
 		add_mob_blood(L)
 
 	if(!blood && !issilicon(L))
-		blood = TRUE
-		update_icon(UPDATE_ICON_STATE)
+		blood = 1
+		update_icon()
 
 	// Remove and recycle the equipped items
 	if(eat_victim_items)
@@ -184,11 +183,12 @@
 				eat(I, sound = 0)
 
 	// Instantly lie down, also go unconscious from the pain, before you die.
-	L.Paralyse(10 SECONDS)
+	L.Paralyse(5)
 
-	if(gib || always_gib)
+	// For admin fun, var edit emagged to 2.
+	if(gib || emagged == 2)
 		L.gib()
-	else if(emagged)
+	else if(emagged == 1)
 		L.adjustBruteLoss(crush_damage)
 
 
@@ -227,7 +227,7 @@
 
 /obj/machinery/recycler/deathtrap
 	name = "dangerous old crusher"
-	emagged = TRUE
+	emagged = 1
 	crush_damage = 120
 
 

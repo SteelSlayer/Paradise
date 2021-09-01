@@ -40,12 +40,6 @@
 	var/list/starting_items
 	/// The type of the circuitboard dropped on deconstruction. This is how to avoid getting subtypes into the board.
 	var/board_type = /obj/machinery/smartfridge
-	var/fill_level
-	var/icon_addon
-	var/icon_lightmask = "smartfridge"
-
-	var/light_range_on = 1
-	var/light_power_on = 0.5
 
 /obj/machinery/smartfridge/Initialize(mapload)
 	. = ..()
@@ -76,7 +70,7 @@
 			while(amount--)
 				var/obj/item/I = new typekey(src)
 				item_quants[I.name] += 1
-	update_icon(UPDATE_OVERLAYS)
+		update_icon()
 	// Accepted items
 	accepted_items_typecache = typecacheof(list(
 		/obj/item/reagent_containers/food/snacks/grown,
@@ -106,55 +100,35 @@
 /obj/machinery/smartfridge/power_change()
 	var/old_stat = stat
 	..()
-	if((stat & (BROKEN|NOPOWER)))
-		set_light(0)
-	else
-		set_light(light_range_on, light_power_on)
 	if(old_stat != stat)
-		update_icon(UPDATE_OVERLAYS)
+		update_icon()
 
-/obj/machinery/smartfridge/extinguish_light()
-	set_light(0)
-	underlays.Cut()
-
-/obj/machinery/smartfridge/update_overlays()
-	. = ..()
-	underlays.Cut()
-	if(light)
-		underlays += emissive_appearance(icon, "[icon_lightmask]_lightmask")
-	if(panel_open)
-		. += "[icon_state]_panel"
+/obj/machinery/smartfridge/update_icon()
+	var/prefix = initial(icon_state)
 	if(stat & (BROKEN|NOPOWER))
-		. += "[icon_state]_off"
-		if(icon_addon)
-			. += "[icon_addon]"
-		if(stat & BROKEN)
-			. += "[icon_state]_broken"
-		return
-	if(visible_contents)
-		update_fridge_contents()
-		if(fill_level)
-			. += "[icon_state][fill_level]"
-	if(icon_addon)
-		. += "[icon_addon]"
-
-/obj/machinery/smartfridge/proc/update_fridge_contents()
-	switch(length(contents))
-		if(0)
-			fill_level = null
-		if(1 to 25)
-			fill_level = 1
-		if(26 to 75)
-			fill_level = 2
-		if(76 to INFINITY)
-			fill_level = 3
+		icon_state = "[prefix]-off"
+	else if(visible_contents)
+		switch(length(contents))
+			if(0)
+				icon_state = "[prefix]"
+			if(1 to 25)
+				icon_state = "[prefix]1"
+			if(26 to 75)
+				icon_state = "[prefix]2"
+			if(76 to INFINITY)
+				icon_state = "[prefix]3"
+	else
+		icon_state = "[prefix]"
 
 // Interactions
 /obj/machinery/smartfridge/screwdriver_act(mob/living/user, obj/item/I)
 	. = default_deconstruction_screwdriver(user, icon_state, icon_state, I)
 	if(!.)
 		return
-	update_icon(UPDATE_OVERLAYS)
+
+	overlays.Cut()
+	if(panel_open)
+		overlays += image(icon, "[initial(icon_state)]-panel")
 
 /obj/machinery/smartfridge/wrench_act(mob/living/user, obj/item/I)
 	. = default_unfasten_wrench(user, I)
@@ -187,7 +161,7 @@
 	if(load(O, user))
 		user.visible_message("<span class='notice'>[user] has added \the [O] to \the [src].</span>", "<span class='notice'>You add \the [O] to \the [src].</span>")
 		SStgui.update_uis(src)
-		update_icon(UPDATE_OVERLAYS)
+		update_icon()
 	else if(istype(O, /obj/item/storage/bag))
 		var/obj/item/storage/bag/P = O
 		var/items_loaded = 0
@@ -197,7 +171,7 @@
 		if(items_loaded)
 			user.visible_message("<span class='notice'>[user] loads \the [src] with \the [P].</span>", "<span class='notice'>You load \the [src] with \the [P].</span>")
 			SStgui.update_uis(src)
-			update_icon(UPDATE_OVERLAYS)
+			update_icon()
 		var/failed = length(P.contents)
 		if(failed)
 			to_chat(user, "<span class='notice'>[failed] item\s [failed == 1 ? "is" : "are"] refused.</span>")
@@ -237,12 +211,14 @@
 			items_loaded++
 	if(items_loaded)
 		user.visible_message("<span class='notice'>[user] empties \the [P] into \the [src].</span>", "<span class='notice'>You empty \the [P] into \the [src].</span>")
-		update_icon(UPDATE_OVERLAYS)
+		update_icon()
 	var/failed = length(P.contents)
 	if(failed)
 		to_chat(user, "<span class='notice'>[failed] item\s [failed == 1 ? "is" : "are"] refused.</span>")
 
 /obj/machinery/smartfridge/ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = TRUE, datum/tgui/master_ui = null, datum/ui_state/state = GLOB.default_state)
+	user.set_machine(src)
+
 	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
 	if(!ui)
 		ui = new(user, src, ui_key, "Smartfridge", name, 500, 500)
@@ -261,7 +237,7 @@
 		var/K = item_quants[i]
 		var/count = item_quants[K]
 		if(count > 0)
-			items.Add(list(list("display_name" = capitalize(K), "vend" = i, "quantity" = count)))
+			items.Add(list(list("display_name" = html_encode(capitalize(K)), "vend" = i, "quantity" = count)))
 
 	if(length(items))
 		data["contents"] = items
@@ -286,7 +262,7 @@
 
 			var/index = text2num(params["index"])
 			var/amount = text2num(params["amount"])
-			if(isnull(index) || !ISINDEXSAFE(item_quants, index) || !amount)
+			if(isnull(index) || !ISINDEXSAFE(item_quants, index) || isnull(amount))
 				return FALSE
 			var/K = item_quants[index]
 			var/count = item_quants[K]
@@ -302,14 +278,14 @@
 						if(!user.put_in_hands(O))
 							O.forceMove(loc)
 							adjust_item_drop_location(O)
-						update_icon(UPDATE_OVERLAYS)
+						update_icon()
 						break
 			else
 				for(var/obj/O in contents)
 					if(O.name == K)
 						O.forceMove(loc)
 						adjust_item_drop_location(O)
-						update_icon(UPDATE_OVERLAYS)
+						update_icon()
 						i--
 						if(i <= 0)
 							return TRUE
@@ -364,7 +340,7 @@
 			if(I.name == O)
 				I.forceMove(loc)
 				throw_item = I
-				update_icon(UPDATE_OVERLAYS)
+				update_icon()
 				break
 	if(!throw_item)
 		return FALSE
@@ -401,27 +377,6 @@
 		playsound(loc, 'sound/effects/sparks4.ogg', 60, TRUE)
 		emagged = TRUE
 
-/obj/machinery/smartfridge/food
-	name = "\improper Food Storage"
-	desc = "A fridge for storing and keeping your food cold."
-
-/obj/machinery/smartfridge/food/Initialize(mapload)
-	. = ..()
-	accepted_items_typecache = typecacheof(list(
-		/obj/item/kitchen,
-		/obj/item/reagent_containers/food))
-
-// Syndicate Druglab Ruin
-/obj/machinery/smartfridge/food/syndicate_druglab
-	starting_items = list(
-		/obj/item/reagent_containers/food/snacks/boiledrice = 2,
-		/obj/item/reagent_containers/food/snacks/macncheese = 1,
-		/obj/item/reagent_containers/food/snacks/syndicake = 3,
-		/obj/item/reagent_containers/food/snacks/beans = 4,
-		/obj/item/reagent_containers/glass/beaker/waterbottle/large = 7,
-		/obj/item/reagent_containers/food/drinks/bottle/kahlua = 1,
-		/obj/item/reagent_containers/food/drinks/bottle/orangejuice = 2)
-
 /**
   * # Seed Storage
   *
@@ -442,44 +397,6 @@
 	))
 
 /**
-  * # Food and Drink Cart
-  *
-  * Variant of the [Smart Fridge][/obj/machinery/smartfridge] that holds food and drinks in a mobile form
-  */
-/obj/machinery/smartfridge/foodcart
-	name = "\improper Food and Drink Cart"
-	desc = "A portable cart for hawking your food and drink wares around the station"
-	icon = 'icons/obj/foodcart.dmi'
-	icon_state = "cart"
-	anchored = FALSE
-	use_power = NO_POWER_USE
-	visible_contents = FALSE
-	face_while_pulling = FALSE
-
-
-/obj/machinery/smartfridge/foodcart/Initialize(mapload)
-	. = ..()
-	accepted_items_typecache = typecacheof(list(
-		/obj/item/reagent_containers/food/snacks,
-		/obj/item/reagent_containers/food/drinks,
-		/obj/item/reagent_containers/food/condiment,
-	))
-
-/obj/machinery/smartfridge/foodcart/screwdriver_act(mob/living/user, obj/item/I)
-	return
-
-/obj/machinery/smartfridge/foodcart/crowbar_act(mob/living/user, obj/item/I)
-	return
-
-/obj/machinery/smartfridge/foodcart/exchange_parts()
-	return
-
-/obj/machinery/smartfridge/foodcart/deconstruct(disassembled = TRUE)
-	if(!(flags & NODECONSTRUCT))
-		new /obj/item/stack/sheet/metal(loc, 4)
-	qdel(src)
-
-/**
   * # Circuit Boards Storage
   *
   * Circuit variant of the [Smart Fridge][/obj/machinery/smartfridge].
@@ -489,7 +406,6 @@
 	name = "\improper Circuit Board Storage"
 	desc = "A storage unit for circuits."
 	icon_state = "circuits"
-	icon_lightmask = "circuits"
 	visible_contents = TRUE
 	board_type = /obj/machinery/smartfridge/secure/circuits
 
@@ -500,16 +416,22 @@
 		/obj/item/circuitboard
 	))
 
-/obj/machinery/smartfridge/secure/circuits/update_fridge_contents()
-	switch(length(contents))
-		if(0)
-			fill_level = null
-		if(1 to 2)
-			fill_level = 1
-		if(3 to 5)
-			fill_level = 2
-		if(6 to INFINITY)
-			fill_level = 3
+/obj/machinery/smartfridge/secure/circuits/update_icon()
+	var/prefix = initial(icon_state)
+	if(stat & (BROKEN|NOPOWER))
+		icon_state = "[prefix]-off"
+	else if(visible_contents)
+		switch(length(contents))
+			if(0)
+				icon_state = "[prefix]"
+			if(1 to 2)
+				icon_state = "[prefix]1"
+			if(3 to 5)
+				icon_state = "[prefix]2"
+			if(6 to INFINITY)
+				icon_state = "[prefix]3"
+	else
+		icon_state = "[prefix]"
 
 /obj/machinery/smartfridge/secure/circuits/aiupload
 	name = "\improper AI Laws Storage"
@@ -670,7 +592,6 @@
 	name = "disk compartmentalizer"
 	desc = "A machine capable of storing a variety of disks. Denoted by most as the DSU (disk storage unit)."
 	icon_state = "disktoaster"
-	icon_lightmask = "disktoaster"
 	pass_flags = PASSTABLE
 	visible_contents = FALSE
 	board_type = /obj/machinery/smartfridge/disks
@@ -691,7 +612,6 @@
 	name = "\improper Smart Virus Storage"
 	desc = "A refrigerated storage unit for volatile sample storage."
 	board_type = /obj/machinery/smartfridge/secure/chemistry/virology
-	icon_addon = "smartfridge_virology"
 
 /obj/machinery/smartfridge/secure/chemistry/virology/Initialize(mapload)
 	. = ..()
@@ -776,9 +696,6 @@
 	active_power_usage = 200
 	can_dry = TRUE
 	visible_contents = FALSE
-	light_range_on = null
-	light_power_on = null
-
 
 /obj/machinery/smartfridge/drying_rack/Initialize(mapload)
 	. = ..()
@@ -804,7 +721,7 @@
 	else
 		stat |= NOPOWER
 		toggle_drying(TRUE)
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 
 /obj/machinery/smartfridge/drying_rack/screwdriver_act(mob/living/user, obj/item/I)
 	return
@@ -829,21 +746,20 @@
 		if("drying")
 			drying = !drying
 			use_power = drying ? ACTIVE_POWER_USE : IDLE_POWER_USE
-			update_icon(UPDATE_OVERLAYS)
+			update_icon()
 
-/obj/machinery/smartfridge/drying_rack/update_overlays()
-	if(stat & NOPOWER)
-		. += "drying_rack_off"
-		return
+/obj/machinery/smartfridge/drying_rack/update_icon()
+	..()
+	overlays.Cut()
 	if(drying)
-		. += "drying_rack_drying"
+		overlays += "drying_rack_drying"
 	if(length(contents))
-		. += "drying_rack_filled"
+		overlays += "drying_rack_filled"
 
 /obj/machinery/smartfridge/drying_rack/process()
 	..()
 	if(drying && rack_dry())//no need to update unless something got dried
-		update_icon(UPDATE_OVERLAYS)
+		update_icon()
 
 /obj/machinery/smartfridge/drying_rack/accept_check(obj/item/O)
 	. = ..()
@@ -866,7 +782,7 @@
 	else
 		drying = TRUE
 		use_power = ACTIVE_POWER_USE
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 
 /**
   * Called in [/obj/machinery/smartfridge/drying_rack/process] to dry the contents.

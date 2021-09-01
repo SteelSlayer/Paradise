@@ -4,7 +4,7 @@
 	icon = 'icons/obj/cooking_machines.dmi'
 	icon_state = "grill_off"
 	thiscooktype = "grilled"
-	burns = TRUE
+	burns = 1
 	firechance = 20
 	cooktime = 50
 	foodcolor = "#A34719"

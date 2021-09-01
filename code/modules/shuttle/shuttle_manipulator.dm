@@ -21,18 +21,18 @@
 	var/list/templates = list()
 	var/list/shuttle_data = list()
 
-/obj/machinery/shuttle_manipulator/Initialize(mapload)
+/obj/machinery/shuttle_manipulator/New()
 	. = ..()
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 
-/obj/machinery/shuttle_manipulator/update_overlays()
-	. = ..()
+/obj/machinery/shuttle_manipulator/update_icon()
+	overlays.Cut()
 	var/image/hologram_projection = image(icon, "hologram_on")
 	hologram_projection.pixel_y = 22
 	var/image/hologram_ship = image(icon, "hologram_whiteship")
 	hologram_ship.pixel_y = 27
-	. += hologram_projection
-	. += hologram_ship
+	overlays += hologram_projection
+	overlays += hologram_ship
 
 /obj/machinery/shuttle_manipulator/attack_ghost(user as mob)
 	attack_hand(user)
@@ -105,8 +105,6 @@
 	data["shuttles"] = list()
 	for(var/i in SSshuttle.mobile)
 		var/obj/docking_port/mobile/M = i
-		if(!M)
-			continue
 		var/list/L = list()
 		L["name"] = M.name
 		L["id"] = M.id

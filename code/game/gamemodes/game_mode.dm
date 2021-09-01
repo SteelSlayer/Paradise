@@ -1,6 +1,3 @@
-#define NUKE_INTACT 0
-#define NUKE_CORE_MISSING 1
-#define NUKE_MISSING 2
 /*
  * GAMEMODES (by Rastaf0)
  *
@@ -16,11 +13,11 @@
 /datum/game_mode
 	var/name = "invalid"
 	var/config_tag = null
-	var/intercept_hacked = FALSE
-	var/votable = TRUE
+	var/intercept_hacked = 0
+	var/votable = 1
 	var/probability = 0
-	var/station_was_nuked = FALSE //see nuclearbomb.dm and malfunction.dm
-	var/explosion_in_progress = FALSE //sit back and relax
+	var/station_was_nuked = 0 //see nuclearbomb.dm and malfunction.dm
+	var/explosion_in_progress = 0 //sit back and relax
 	var/list/datum/mind/modePlayer = new
 	var/list/restricted_jobs = list()	// Jobs it doesn't make sense to be.  I.E chaplain or AI cultist
 	var/list/secondary_restricted_jobs = list() // Same as above, but for secondary antagonists
@@ -33,7 +30,7 @@
 	var/secondary_enemies = 0
 	var/secondary_enemies_scaling = 0 // Scaling rate of secondary enemies
 	var/newscaster_announcements = null
-	var/ert_disabled = FALSE
+	var/ert_disabled = 0
 	var/uplink_welcome = "Syndicate Uplink Console:"
 	var/uplink_uses = 20
 
@@ -251,10 +248,20 @@
 	// Get a list of all the people who want to be the antagonist for this round, except those with incompatible species
 	for(var/mob/new_player/player in players)
 		if(!player.client.skip_antag)
-			if((role in player.client.prefs.be_special) && !(player.client.prefs.active_character.species in protected_species))
+			if((role in player.client.prefs.be_special) && !(player.client.prefs.species in protected_species))
 				player_draft_log += "[player.key] had [roletext] enabled, so we are drafting them."
 				candidates += player.mind
 				players -= player
+
+	// If we don't have enough antags, draft people who voted for the round.
+	if(candidates.len < recommended_enemies)
+		for(var/key in SSvote.round_voters)
+			for(var/mob/new_player/player in players)
+				if(player.ckey == key)
+					player_draft_log += "[player.key] voted for this round, so we are drafting them."
+					candidates += player.mind
+					players -= player
+					break
 
 	// Remove candidates who want to be antagonist but have a job that precludes it
 	if(restricted_jobs)
@@ -374,7 +381,7 @@
 
 			continue //Happy connected client
 		for(var/mob/dead/observer/D in GLOB.mob_list)
-			if(D.mind && (D.mind.is_original_mob(L) || D.mind.current == L))
+			if(D.mind && (D.mind.original == L || D.mind.current == L))
 				if(L.stat == DEAD)
 					if(L.suiciding)	//Suicider
 						msg += "<b>[L.name]</b> ([ckey(D.mind.key)]), the [L.job] (<font color='red'><b>Suicide</b></font>)\n"
@@ -427,15 +434,6 @@
 			nukecode = bomb.r_code
 	return nukecode
 
-/proc/get_nuke_status()
-	var/nuke_status = NUKE_MISSING
-	for(var/obj/machinery/nuclearbomb/bomb in GLOB.machines)
-		if(is_station_level(bomb.z))
-			nuke_status = NUKE_CORE_MISSING
-			if(bomb.core)
-				nuke_status = NUKE_INTACT
-	return nuke_status
-
 /datum/game_mode/proc/replace_jobbanned_player(mob/living/M, role_type)
 	var/list/mob/dead/observer/candidates = SSghost_spawns.poll_candidates("Do you want to play as a [role_type]?", role_type, FALSE, 10 SECONDS)
 	var/mob/dead/observer/theghost = null
@@ -453,7 +451,7 @@
 	var/jobtext = ""
 	if(ply.assigned_role)
 		jobtext = " the <b>[ply.assigned_role]</b>"
-	var/text = "<b>[ply.get_display_key()]</b> was <b>[ply.name]</b>[jobtext] and"
+	var/text = "<b>[ply.key]</b> was <b>[ply.name]</b>[jobtext] and"
 	if(ply.current)
 		if(ply.current.stat == DEAD)
 			text += " <span class='redtext'>died</span>"
@@ -470,7 +468,7 @@
 	return text
 
 /proc/printeventplayer(datum/mind/ply)
-	var/text = "<b>[ply.get_display_key()]</b> was <b>[ply.name]</b>"
+	var/text = "<b>[ply.key]</b> was <b>[ply.name]</b>"
 	if(ply.special_role != SPECIAL_ROLE_EVENTMISC)
 		text += " the [ply.special_role]"
 	text += " and"
@@ -536,7 +534,3 @@
 	var/datum/atom_hud/antag/antaghud = GLOB.huds[ANTAG_HUD_EVENTMISC]
 	antaghud.leave_hud(mob_mind.current)
 	set_antag_hud(mob_mind.current, null)
-
-#undef NUKE_INTACT
-#undef NUKE_CORE_MISSING
-#undef NUKE_MISSING

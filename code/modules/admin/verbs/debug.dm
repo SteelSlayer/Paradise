@@ -1,3 +1,22 @@
+/client/proc/Debug2()
+	set category = "Debug"
+	set name = "Debug-Game"
+
+	if(!check_rights(R_DEBUG))
+		return
+
+	if(GLOB.debug2)
+		GLOB.debug2 = 0
+		message_admins("[key_name_admin(src)] toggled debugging off.")
+		log_admin("[key_name(src)] toggled debugging off.")
+	else
+		GLOB.debug2 = 1
+		message_admins("[key_name_admin(src)] toggled debugging on.")
+		log_admin("[key_name(src)] toggled debugging on.")
+
+	SSblackbox.record_feedback("tally", "admin_verb", 1, "Debug Game") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+
+
 /* 21st Sept 2010
 Updated by Skie -- Still not perfect but better!
 Stuff you can't do:
@@ -196,11 +215,11 @@ GLOBAL_PROTECT(AdminProcCallSpamPrevention)
 		var/class = null
 		// Make a list with each index containing one variable, to be given to the proc
 		if(src.holder && src.holder.marked_datum)
-			class = input("What kind of variable?","Variable Type") in list("text","num","type","reference","reference in range","reference in view", "mob reference","icon","file","client","mob's area","Marked datum ([holder.marked_datum.type])","CANCEL")
+			class = input("What kind of variable?","Variable Type") in list("text","num","type","reference","mob reference","icon","file","client","mob's area","Marked datum ([holder.marked_datum.type])","CANCEL")
 			if(holder.marked_datum && class == "Marked datum ([holder.marked_datum.type])")
 				class = "Marked datum"
 		else
-			class = input("What kind of variable?","Variable Type") in list("text","num","type","reference","mob reference","reference in range","reference in view","icon","file","client","mob's area","CANCEL")
+			class = input("What kind of variable?","Variable Type") in list("text","num","type","reference","mob reference","icon","file","client","mob's area","CANCEL")
 		switch(class)
 			if("CANCEL")
 				return null
@@ -216,12 +235,6 @@ GLOBAL_PROTECT(AdminProcCallSpamPrevention)
 
 			if("reference")
 				lst += input("Select reference:","Reference",src) as mob|obj|turf|area in world
-
-			if("reference in range")
-				lst += input("Select reference in range:", "Reference in range", src) as mob|obj|turf|area in range(view)
-
-			if("reference in view")
-				lst += input("Select reference in view:", "Reference in view", src) as mob|obj|turf|area in view(view)
 
 			if("mob reference")
 				lst += input("Select reference:","Reference",usr) as mob in world
@@ -344,8 +357,8 @@ GLOBAL_PROTECT(AdminProcCallSpamPrevention)
 	pai.real_name = pai.name
 	pai.key = choice.key
 	card.setPersonality(pai)
-	for(var/datum/pai_save/candidate in GLOB.paiController.pai_candidates)
-		if(candidate.owner.ckey == choice.ckey)
+	for(var/datum/paiCandidate/candidate in GLOB.paiController.pai_candidates)
+		if(candidate.key == choice.key)
 			GLOB.paiController.pai_candidates.Remove(candidate)
 	SSblackbox.record_feedback("tally", "admin_verb", 1, "Make pAI") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
@@ -712,14 +725,14 @@ GLOBAL_PROTECT(AdminProcCallSpamPrevention)
 
 	for(var/obj/machinery/power/emitter/E in GLOB.machines)
 		if(E.anchored)
-			E.active = TRUE
+			E.active = 1
 
 	for(var/obj/machinery/field/generator/F in GLOB.machines)
-		if(!F.active)
-			F.active = TRUE
+		if(F.active == 0)
+			F.active = 1
 			F.state = 2
 			F.power = 250
-			F.anchored = TRUE
+			F.anchored = 1
 			F.warming_up = 3
 			F.start_fields()
 			F.update_icon()

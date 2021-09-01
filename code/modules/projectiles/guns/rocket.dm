@@ -24,6 +24,9 @@
 	rockets = null
 	return ..()
 
+/obj/item/gun/rocketlauncher/update_icon()
+	return
+
 /obj/item/gun/rocketlauncher/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/ammo_casing/rocket))
 		if(rockets.len < max_rockets)

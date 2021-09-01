@@ -22,15 +22,12 @@
 
 /datum/event/alien_infestation/proc/spawn_xenos()
 	var/list/candidates = SSghost_spawns.poll_candidates("Do you want to play as an alien?", ROLE_ALIEN, TRUE, source = /mob/living/carbon/alien/larva)
-	var/list/vents = get_valid_vent_spawns(exclude_mobs_nearby = TRUE)
-	if(!length(vents))
-		message_admins("Warning: No suitable vents detected for spawning xenomorphs. Force picking from station vents regardless of state!")
-		vents = get_valid_vent_spawns(unwelded_only = FALSE, min_network_size = 0)
+	var/list/vents = get_valid_vent_spawns(exclude_mobs_nearby = TRUE, exclude_visible_by_mobs = TRUE)
 	while(spawncount && length(vents) && length(candidates))
 		var/obj/vent = pick_n_take(vents)
 		var/mob/C = pick_n_take(candidates)
 		if(C)
-			C.remove_from_respawnable_list()
+			GLOB.respawnable_list -= C.client
 			var/mob/living/carbon/alien/larva/new_xeno = new(vent.loc)
 			new_xeno.amount_grown += (0.75 * new_xeno.max_grown)	//event spawned larva start off almost ready to evolve.
 			new_xeno.key = C.key

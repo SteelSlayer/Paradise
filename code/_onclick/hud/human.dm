@@ -33,8 +33,8 @@
 	screen_loc = ui_lingstingdisplay
 
 /obj/screen/ling/sting/Click()
-	var/datum/antagonist/changeling/cling = usr.mind.has_antag_datum(/datum/antagonist/changeling)
-	cling?.chosen_sting?.unset_sting()
+	var/mob/living/carbon/U = usr
+	U.unset_sting()
 
 /obj/screen/ling/chems
 	name = "chemical storage"
@@ -333,8 +333,7 @@
 
 	mymob.pullin = new /obj/screen/pull()
 	mymob.pullin.icon = ui_style
-	mymob.pullin.hud = src
-	mymob.pullin.update_icon(UPDATE_ICON_STATE)
+	mymob.pullin.update_icon(mymob)
 	mymob.pullin.screen_loc = ui_pull_resist
 	static_inventory += mymob.pullin
 
@@ -348,8 +347,7 @@
 	zone_select.color = ui_color
 	zone_select.icon = ui_style
 	zone_select.alpha = ui_alpha
-	zone_select.hud = src
-	zone_select.update_icon(UPDATE_OVERLAYS)
+	zone_select.update_icon(mymob)
 	static_inventory += zone_select
 
 	inventory_shown = FALSE

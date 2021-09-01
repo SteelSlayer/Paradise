@@ -25,6 +25,7 @@
 			"Locker Toilets",
 			"Maintenance Bar",
 			"Medical Secondary Storage",
+			"Mechanic Workshop",
 			"Port Emergency Storage",
 			"Psych Room",
 			"Toxins Launch Room",

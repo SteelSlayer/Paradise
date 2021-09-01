@@ -2,7 +2,7 @@
 
 /mob/camera
 	name = "camera mob"
-	density = FALSE
+	density = 0
 	move_force = INFINITY
 	move_resist = INFINITY
 	status_flags = GODMODE  // You can't damage it.
@@ -10,7 +10,7 @@
 	see_in_dark = 8
 	invisibility = 101  // No one can see us
 	sight = SEE_SELF
-	move_on_shuttle = FALSE
+	move_on_shuttle = 0
 
 /mob/camera/experience_pressure_difference()
 	return

@@ -6,7 +6,7 @@
 			death()
 			create_debug_log("died of damage, trigger reason: [reason]")
 			return
-		if(HAS_TRAIT(src, TRAIT_KNOCKEDOUT) || (check_death_method() && getOxyLoss() > 50) || HAS_TRAIT(src, TRAIT_FAKEDEATH) || health <= HEALTH_THRESHOLD_CRIT && check_death_method())
+		if(paralysis || sleeping || (check_death_method() && getOxyLoss() > 50) || HAS_TRAIT(src, TRAIT_FAKEDEATH) || health <= HEALTH_THRESHOLD_CRIT && check_death_method())
 			if(stat == CONSCIOUS)
 				KnockOut()
 				create_debug_log("fell unconscious, trigger reason: [reason]")
@@ -16,7 +16,6 @@
 				create_debug_log("woke up, trigger reason: [reason]")
 	update_damage_hud()
 	update_health_hud()
-	med_hud_set_health()
 	med_hud_set_status()
 
 /mob/living/carbon/update_stamina()
@@ -25,9 +24,7 @@
 		enter_stamcrit()
 	else if(stam_paralyzed)
 		stam_paralyzed = FALSE
-		REMOVE_TRAIT(src, TRAIT_IMMOBILIZED, "stam_crit") // make defines later
-		REMOVE_TRAIT(src, TRAIT_FLOORED, "stam_crit")
-		REMOVE_TRAIT(src, TRAIT_HANDS_BLOCKED, "stam_crit")
+		update_canmove()
 
 /mob/living/carbon/can_hear()
 	. = FALSE

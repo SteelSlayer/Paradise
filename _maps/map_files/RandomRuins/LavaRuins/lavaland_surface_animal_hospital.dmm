@@ -266,9 +266,7 @@
 /turf/simulated/floor/plasteel,
 /area/ruin/powered/animal_hospital)
 "aG" = (
-/obj/structure/extinguisher_cabinet{
-	name = "custom placement"
-	},
+/obj/structure/extinguisher_cabinet,
 /turf/simulated/wall/mineral/titanium/nodiagonal,
 /area/ruin/powered/animal_hospital)
 "aJ" = (
@@ -597,13 +595,13 @@
 /turf/simulated/floor/plasteel/white,
 /area/ruin/powered/animal_hospital)
 "bE" = (
+/obj/structure/closet/crate/critter,
 /obj/effect/turf_decal/tile/blue{
 	dir = 1
 	},
 /obj/effect/turf_decal/tile/blue{
 	dir = 8
 	},
-/obj/structure/closet/critter/random,
 /turf/simulated/floor/plasteel,
 /area/ruin/powered/animal_hospital)
 "bF" = (
@@ -803,7 +801,7 @@
 /obj/machinery/atmospherics/unary/portables_connector{
 	dir = 1
 	},
-/obj/machinery/atmospherics/portable/pump,
+/obj/machinery/portable_atmospherics/pump,
 /turf/simulated/floor/plasteel/white,
 /area/ruin/powered/animal_hospital)
 "cf" = (

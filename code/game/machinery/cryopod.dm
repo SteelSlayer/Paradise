@@ -19,13 +19,13 @@
 	icon = 'icons/obj/cryogenic2.dmi'
 	icon_state = "cellconsole"
 	circuit = /obj/item/circuitboard/cryopodcontrol
-	density = FALSE
-	interact_offline = TRUE
+	density = 0
+	interact_offline = 1
 	req_one_access = list(ACCESS_HEADS, ACCESS_ARMORY) //Heads of staff or the warden can go here to claim recover items from their department that people went were cryodormed with.
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF
 	flags = NODECONSTRUCT
 	var/mode = null
-	icon_screen = "cellconsole_on"
+
 	//Used for logging people entering cryosleep and important items they are carrying.
 	var/list/frozen_crew = list()
 	var/list/frozen_items = list()
@@ -39,11 +39,11 @@
 
 	var/storage_type = "crewmembers"
 	var/storage_name = "Cryogenic Oversight Control"
-	var/allow_items = TRUE
+	var/allow_items = 1
 
 
-/obj/machinery/computer/cryopod/Initialize(mapload)
-	. = ..()
+/obj/machinery/computer/cryopod/New()
+	..()
 	for(var/T in GLOB.potential_theft_objectives)
 		theft_cache += new T
 
@@ -179,19 +179,39 @@
 	build_path = "/obj/machinery/computer/cryopod/robot"
 	origin_tech = "programming=1"
 
+//Decorative structures to go alongside cryopods.
+/obj/structure/cryofeed
+	name = "cryogenic feed"
+	desc = "A bewildering tangle of machinery and pipes."
+	icon = 'icons/obj/cryogenic2.dmi'
+	icon_state = "cryo_rear"
+	anchored = 1
+
+	var/orient_right = null //Flips the sprite.
+
+/obj/structure/cryofeed/right
+	orient_right = 1
+	icon_state = "cryo_rear-r"
+
+/obj/structure/cryofeed/Initialize(mapload)
+	. = ..()
+	if(orient_right)
+		icon_state = "cryo_rear-r"
+	else
+		icon_state = "cryo_rear"
+
 //Cryopods themselves.
 /obj/machinery/cryopod
 	name = "cryogenic freezer"
 	desc = "A man-sized pod for entering suspended animation."
 	icon = 'icons/obj/cryogenic2.dmi'
-	icon_state = "bodyscanner-open"
-	density = TRUE
-	anchored = TRUE
+	icon_state = "body_scanner_0"
+	density = 1
+	anchored = 1
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF
 	flags = NODECONSTRUCT
-	dir = WEST
-	base_icon_state = "bodyscanner-open"
-	var/occupied_icon_state = "bodyscanner"
+	var/base_icon_state = "body_scanner_0"
+	var/occupied_icon_state = "body_scanner_1"
 	var/on_store_message = "has entered long-term storage."
 	var/on_store_name = "Cryogenic Oversight"
 	var/on_enter_occupant_message = "You feel cool air surround you. You go numb as your senses turn inward."
@@ -199,6 +219,7 @@
 	var/disallow_occupant_types = list()
 
 	var/mob/living/occupant = null       // Person waiting to be despawned.
+	var/orient_right = null       // Flips the sprite.
 	// 15 minutes-ish safe period before being despawned.
 	var/time_till_despawn = 9000 // This is reduced by 90% if a player manually enters cryo
 	var/willing_time_divisor = 10
@@ -206,7 +227,6 @@
 	var/obj/item/radio/intercom/announce
 	var/silent = FALSE
 
-	var/console_type = /obj/machinery/computer/cryopod	// The type of control console it should link itself to
 	var/obj/machinery/computer/cryopod/control_computer
 	var/last_no_computer_message = 0
 
@@ -228,6 +248,7 @@
 		/obj/item/reagent_containers/hypospray/CMO,
 		/obj/item/clothing/accessory/medal/gold/captain,
 		/obj/item/clothing/gloves/color/black/krav_maga/sec,
+		/obj/item/spacepod_key,
 		/obj/item/nullrod,
 		/obj/item/key,
 		/obj/item/door_remote,
@@ -243,19 +264,28 @@
 	)
 
 /obj/machinery/cryopod/right
-	dir = EAST
+	orient_right = 1
+	icon_state = "body_scanner_0-r"
 
-/obj/machinery/cryopod/Initialize(mapload)
-	. = ..()
+/obj/machinery/cryopod/New()
 	announce = new /obj/item/radio/intercom(src)
-	icon_state = base_icon_state
+
+	if(orient_right)
+		icon_state = "[base_icon_state]-r"
+	else
+		icon_state = base_icon_state
+
+	..()
+
+/obj/machinery/cryopod/Initialize()
+	..()
+
 	find_control_computer()
 
 /obj/machinery/cryopod/proc/find_control_computer(urgent=0)
 	for(var/obj/machinery/computer/cryopod/C in get_area(src).contents)
-		if(C.type == console_type)
-			control_computer = C
-			break
+		control_computer = C
+		break
 
 	// Don't send messages unless we *need* the computer, and less than five minutes have passed since last time we messaged
 	if(!control_computer && urgent && last_no_computer_message + 5*60*10 < world.time)
@@ -368,8 +398,6 @@
 			if(O.target != occupant.mind)
 				continue
 			O.on_target_cryo()
-		occupant.mind.remove_all_antag_datums()
-
 	if(occupant.mind && occupant.mind.assigned_role)
 		//Handle job slot/tater cleanup.
 		var/job = occupant.mind.assigned_role
@@ -400,7 +428,10 @@
 			announce_rank = G.fields["rank"]
 			qdel(G)
 
-	icon_state = base_icon_state
+	if(orient_right)
+		icon_state = "[base_icon_state]-r"
+	else
+		icon_state = base_icon_state
 
 	//Make an announcement and log the person entering storage.
 	control_computer.frozen_crew += "[occupant.real_name]"
@@ -434,7 +465,6 @@
 			occupant.ghostize(FALSE) // Players despawned too early may not re-enter the game
 		else
 			occupant.ghostize(TRUE)
-
 	QDEL_NULL(occupant)
 	name = initial(name)
 
@@ -487,7 +517,10 @@
 				to_chat(user, "<span class='notice'>You stop putting [M] into the cryopod.</span>")
 				return
 
-			icon_state = occupied_icon_state
+			if(orient_right)
+				icon_state = "[occupied_icon_state]-r"
+			else
+				icon_state = occupied_icon_state
 
 			to_chat(M, "<span class='notice'>[on_enter_occupant_message]</span>")
 			to_chat(M, "<span class='boldnotice'>If you ghost, log out or close your client now, your character will shortly be permanently removed from the round.</span>")
@@ -569,7 +602,10 @@
 		return
 	E.forceMove(src)
 	time_till_despawn = initial(time_till_despawn) / willing_factor
-	icon_state = occupied_icon_state
+	if(orient_right)
+		icon_state = "[occupied_icon_state]-r"
+	else
+		icon_state = occupied_icon_state
 	to_chat(E, "<span class='notice'>[on_enter_occupant_message]</span>")
 	to_chat(E, "<span class='boldnotice'>If you ghost, log out or close your client now, your character will shortly be permanently removed from the round.</span>")
 	occupant = E
@@ -597,7 +633,11 @@
 	if(usr != occupant)
 		to_chat(usr, "The cryopod is in use and locked!")
 		return
-	icon_state = base_icon_state
+
+	if(orient_right)
+		icon_state = "[base_icon_state]-r"
+	else
+		icon_state = base_icon_state
 
 	//Eject any items that aren't meant to be in the pod.
 	var/list/items = contents
@@ -646,7 +686,12 @@
 		usr.forceMove(src)
 		occupant = usr
 		time_till_despawn = initial(time_till_despawn) / willing_time_divisor
-		icon_state = occupied_icon_state
+
+		if(orient_right)
+			icon_state = "[occupied_icon_state]-r"
+		else
+			icon_state = occupied_icon_state
+
 		to_chat(usr, "<span class='notice'>[on_enter_occupant_message]</span>")
 		to_chat(usr, "<span class='boldnotice'>If you ghost, log out or close your client now, your character will shortly be permanently removed from the round.</span>")
 		occupant = usr
@@ -663,7 +708,12 @@
 
 	occupant.forceMove(get_turf(src))
 	occupant = null
-	icon_state = base_icon_state
+
+	if(orient_right)
+		icon_state = "[base_icon_state]-r"
+	else
+		icon_state = base_icon_state
+
 	name = initial(name)
 
 	return
@@ -678,7 +728,8 @@
 	silent = TRUE
 
 /obj/machinery/cryopod/offstation/right
-	dir = EAST
+	orient_right = TRUE
+	icon_state = "body_scanner_0-r"
 
 /obj/machinery/computer/cryopod/robot
 	name = "robotic storage console"
@@ -689,7 +740,7 @@
 
 	storage_type = "cyborgs"
 	storage_name = "Robotic Storage Control"
-	allow_items = FALSE
+	allow_items = 0
 
 /obj/machinery/cryopod/robot
 	name = "robotic storage unit"
@@ -701,13 +752,12 @@
 	on_store_message = "has entered robotic storage."
 	on_store_name = "Robotic Storage Oversight"
 	on_enter_occupant_message = "The storage unit broadcasts a sleep signal to you. Your systems start to shut down, and you enter low-power mode."
-	console_type = /obj/machinery/computer/cryopod/robot
 	allow_occupant_types = list(/mob/living/silicon/robot)
 	disallow_occupant_types = list(/mob/living/silicon/robot/drone)
 
-/obj/machinery/cryopod/robot/offstation
-	//For offstation cyborgs
-	silent = TRUE
+/obj/machinery/cryopod/robot/right
+	orient_right = 1
+	icon_state = "pod_0-r"
 
 /obj/machinery/cryopod/robot/despawn_occupant()
 	var/mob/living/silicon/robot/R = occupant

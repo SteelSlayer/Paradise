@@ -24,16 +24,16 @@
 	. = ..()
 	if(has_latches)
 		if(prob(10))
+			latches = "double_latch"
 			if(prob(1))
 				latches = "triple_latch"
-			else
-				latches = "double_latch"
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 
-/obj/item/storage/toolbox/update_overlays()
-	. = ..()
+/obj/item/storage/toolbox/update_icon()
+	..()
+	cut_overlays()
 	if(has_latches)
-		. += latches
+		add_overlay(latches)
 
 /obj/item/storage/toolbox/emergency
 	name = "emergency toolbox"
@@ -109,7 +109,7 @@
 	new /obj/item/weldingtool/largetank(src)
 	new /obj/item/crowbar/red(src)
 	new /obj/item/wirecutters(src, "red")
-	new /obj/item/multitool/red(src)
+	new /obj/item/multitool(src)
 	new /obj/item/clothing/gloves/combat(src)
 
 /obj/item/storage/toolbox/fakesyndi
@@ -132,24 +132,3 @@
 	new /obj/item/stack/cable_coil(src, 30, paramcolor = pickedcolor)
 	new /obj/item/wirecutters(src)
 	new /obj/item/multitool(src)
-
-/obj/item/storage/toolbox/artistic
-	name = "artistic toolbox"
-	desc = "A toolbox painted bright green. Why anyone would store art supplies in a toolbox is beyond you, but it has plenty of extra space."
-	icon_state = "green"
-	item_state = "artistic_toolbox"
-	w_class = WEIGHT_CLASS_GIGANTIC //Holds more than a regular toolbox!
-	max_combined_w_class = 20
-	storage_slots = 10
-
-/obj/item/storage/toolbox/artistic/populate_contents()
-	new /obj/item/storage/fancy/crayons(src)
-	new /obj/item/crowbar(src)
-	new /obj/item/stack/cable_coil(src)
-	new /obj/item/stack/cable_coil/yellow(src)
-	new /obj/item/stack/cable_coil/blue(src)
-	new /obj/item/stack/cable_coil/green(src)
-	new /obj/item/stack/cable_coil/pink(src)
-	new /obj/item/stack/cable_coil/orange(src)
-	new /obj/item/stack/cable_coil/cyan(src)
-	new /obj/item/stack/cable_coil/white(src)

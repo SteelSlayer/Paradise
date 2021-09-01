@@ -11,7 +11,6 @@
 	icon = 'icons/mob/screen_gen.dmi'
 	layer = HUD_LAYER
 	plane = HUD_PLANE
-	flags = NO_SCREENTIPS
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF
 	var/obj/master = null	//A reference to the object in the slot. Grabs or items, generally.
 	var/datum/hud/hud = null
@@ -22,7 +21,6 @@
 
 /obj/screen/Destroy()
 	master = null
-	hud = null
 	return ..()
 
 /obj/screen/proc/component_click(obj/screen/component_button/component, params)
@@ -121,8 +119,10 @@
 /obj/screen/pull/Click()
 	usr.stop_pulling()
 
-/obj/screen/pull/update_icon_state()
-	if(hud?.mymob?.pulling)
+/obj/screen/pull/update_icon(mob/mymob)
+	if(!mymob)
+		return
+	if(mymob.pulling)
 		icon_state = "pull"
 	else
 		icon_state = "pull0"
@@ -153,7 +153,7 @@
 /obj/screen/storage/Click(location, control, params)
 	if(world.time <= usr.next_move)
 		return TRUE
-	if(usr.incapacitated(ignore_restraints = TRUE))
+	if(usr.incapacitated(ignore_restraints = TRUE, ignore_lying = TRUE))
 		return TRUE
 	if(istype(usr.loc,/obj/mecha)) // stops inventory actions in a mech
 		return TRUE
@@ -163,34 +163,12 @@
 			master.attackby(I, usr, params)
 	return TRUE
 
-/obj/screen/storage/proc/is_item_accessible(obj/item/I, mob/user)
-	if (!user || !I)
-		return FALSE
-
-	var/storage_depth = I.storage_depth(user)
-	if((I in user.loc) || (storage_depth != -1))
-		return TRUE
-
-	if(!isturf(user.loc))
-		return FALSE
-
-	var/storage_depth_turf = I.storage_depth_turf()
-	if(isturf(I.loc) || (storage_depth_turf != -1))
-		if(I.Adjacent(user))
-			return TRUE
-	return FALSE
-
 /obj/screen/storage/MouseDrop_T(obj/item/I, mob/user)
-	if(!user || !istype(I) || user.incapacitated(ignore_restraints = TRUE) || istype(user.loc, /obj/mecha) || !master)
+	if(!user || !istype(I) || user.incapacitated(ignore_restraints = TRUE, ignore_lying = TRUE) || istype(user.loc, /obj/mecha) || !master)
 		return
 
 	var/obj/item/storage/S = master
 	if(!S)
-		return
-
-	if(!is_item_accessible(I, user))
-		log_game("[user.simple_info_line()] tried to abuse storage remote drag&drop with '[I]' at [atom_loc_line(I)] into '[S]' at [atom_loc_line(S)]")
-		message_admins("[user.simple_info_line()] tried to abuse storage remote drag&drop with '[I]' at [atom_loc_line(I)] into '[S]' at [atom_loc_line(S)]")
 		return
 
 	if(I in S.contents) // If the item is already in the storage, move them to the end of the list
@@ -222,7 +200,6 @@
 	name = "damage zone"
 	icon_state = "zone_sel"
 	screen_loc = ui_zonesel
-	var/overlay_file = 'icons/mob/zone_sel.dmi'
 	var/selecting = "chest"
 	var/static/list/hover_overlays_cache = list()
 	var/hovering
@@ -241,7 +218,6 @@
 	return set_selected_zone(choice, usr)
 
 /obj/screen/zone_sel/MouseEntered(location, control, params)
-	. = ..()
 	MouseMove(location, control, params)
 
 /obj/screen/zone_sel/MouseMove(location, control, params)
@@ -323,27 +299,32 @@
 							return "eyes"
 				return "head"
 
-/obj/screen/zone_sel/proc/set_selected_zone(choice)
-	if(!hud)
-		return
-	if(isobserver(hud.mymob))
+/obj/screen/zone_sel/proc/set_selected_zone(choice, mob/user)
+	if(isobserver(user))
 		return
 
 	if(choice != selecting)
 		selecting = choice
-		update_icon(UPDATE_OVERLAYS)
+		update_icon(user)
 	return 1
 
-/obj/screen/zone_sel/update_overlays()
-	. = ..()
-	var/image/sel = image(overlay_file, "[selecting]")
+/obj/screen/zone_sel/update_icon(mob/user)
+	overlays.Cut()
+	var/image/human = image('icons/mob/zone_sel.dmi', "human")
+	human.appearance_flags = RESET_COLOR
+	overlays += human
+	var/image/sel = image('icons/mob/zone_sel.dmi', "[selecting]")
 	sel.appearance_flags = RESET_COLOR
-	. += sel
-	hud.mymob.zone_selected = selecting
+	overlays += sel
+	user.zone_selected = selecting
 
 /obj/screen/zone_sel/alien
 	icon = 'icons/mob/screen_alien.dmi'
-	overlay_file = 'icons/mob/screen_alien.dmi'
+
+/obj/screen/zone_sel/alien/update_icon(mob/user)
+	overlays.Cut()
+	overlays += image('icons/mob/screen_alien.dmi', "[selecting]")
+	user.zone_selected = selecting
 
 /obj/screen/zone_sel/robot
 	icon = 'icons/mob/screen_robot.dmi'
@@ -375,7 +356,7 @@
 	var/list/object_overlays = list()
 
 /obj/screen/inventory/MouseEntered()
-	. = ..()
+	..()
 	add_overlays()
 
 /obj/screen/inventory/MouseExited()
@@ -427,24 +408,26 @@
 	var/image/active_overlay
 	var/image/handcuff_overlay
 
-/obj/screen/inventory/hand/update_overlays()
-	. = ..()
+/obj/screen/inventory/hand/update_icon()
+	..()
 	if(!active_overlay)
 		active_overlay = image("icon"=icon, "icon_state"="hand_active")
 	if(!handcuff_overlay)
 		var/state = (slot_id == slot_r_hand) ? "markus" : "gabrielle"
 		handcuff_overlay = image("icon"='icons/mob/screen_gen.dmi', "icon_state"=state)
 
+	overlays.Cut()
+
 	if(hud && hud.mymob)
 		if(iscarbon(hud.mymob))
 			var/mob/living/carbon/C = hud.mymob
 			if(C.handcuffed)
-				. += handcuff_overlay
+				overlays += handcuff_overlay
 
 		if(slot_id == slot_l_hand && hud.mymob.hand)
-			. += active_overlay
+			overlays += active_overlay
 		else if(slot_id == slot_r_hand && !hud.mymob.hand)
-			. += active_overlay
+			overlays += active_overlay
 
 /obj/screen/inventory/hand/Click()
 	// At this point in client Click() code we have passed the 1/10 sec check and little else

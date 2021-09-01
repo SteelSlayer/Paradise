@@ -46,8 +46,7 @@ SUBSYSTEM_DEF(air)
 	var/list/currentrun = list()
 	var/currentpart = SSAIR_DEFERREDPIPENETS
 
-/datum/controller/subsystem/air/get_stat_details()
-	var/list/msg = list()
+/datum/controller/subsystem/air/stat_entry(msg)
 	msg += "C:{"
 	msg += "AT:[round(cost_turfs,1)]|"
 	msg += "EG:[round(cost_groups,1)]|"
@@ -65,7 +64,7 @@ SUBSYSTEM_DEF(air)
 	msg += "HP:[high_pressure_delta.len]|"
 	msg += "AS:[active_super_conductivity.len]|"
 	msg += "AT/MS:[round((cost ? active_turfs.len/cost : 0),0.1)]"
-	return msg.Join("")
+	..(msg)
 
 /datum/controller/subsystem/air/get_metrics()
 	. = ..()
@@ -77,8 +76,6 @@ SUBSYSTEM_DEF(air)
 /datum/controller/subsystem/air/Initialize(timeofday)
 	setup_overlays() // Assign icons and such for gas-turf-overlays
 	icon_manager = new() // Sets up icon manager for pipes
-	if(length(active_turfs))
-		log_debug("Failed sanity check: active_turfs is not empty before initialization ([length(active_turfs)])")
 	setup_allturfs()
 	setup_atmos_machinery(GLOB.machines)
 	setup_pipenets(GLOB.machines)
@@ -196,7 +193,7 @@ SUBSYSTEM_DEF(air)
 	//cache for sanic speed (lists are references anyways)
 	var/list/currentrun = src.currentrun
 	while(currentrun.len)
-		var/obj/machinery/atmospherics/M = currentrun[currentrun.len]
+		var/obj/machinery/M = currentrun[currentrun.len]
 		currentrun.len--
 		if(!M || (M.process_atmos(seconds) == PROCESS_KILL))
 			atmos_machinery.Remove(M)
@@ -281,14 +278,6 @@ SUBSYSTEM_DEF(air)
 			T.excited_group.garbage_collect()
 
 /datum/controller/subsystem/air/proc/add_to_active(turf/simulated/T, blockchanges = 1)
-	if(!initialized)
-		/* it makes no sense to "activate" turfs before setup_allturfs is
-		   called, as setup_allturfs would simply cull the list incorrectly.
-		   only /turf/simulated/Initialize_Atmos() is blessed enough to
-		   activate turfs during this phase of initialization, as it happens
-		   post-cull and inlines the logic (perhaps incorrectly) */
-		return
-
 	if(istype(T) && T.air)
 		T.excited = 1
 		active_turfs |= T
@@ -301,6 +290,12 @@ SUBSYSTEM_DEF(air)
 			add_to_active(S)
 
 /datum/controller/subsystem/air/proc/setup_allturfs(list/turfs_to_init = block(locate(1, 1, 1), locate(world.maxx, world.maxy, world.maxz)))
+	var/list/active_turfs = src.active_turfs
+
+	// Clear active turfs - faster than removing every single turf in the world
+	// one-by-one, and Initalize_Atmos only ever adds `src` back in.
+	active_turfs.Cut()
+
 	for(var/thing in turfs_to_init)
 		var/turf/T = thing
 		if(T.blocks_air)
@@ -371,22 +366,22 @@ SUBSYSTEM_DEF(air)
 		count++
 	return count
 
-/obj/effect/overlay/turf
-	icon = 'icons/effects/tile_effects.dmi'
-	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
-	anchored = TRUE  // should only appear in vis_contents, but to be safe
-	layer = FLY_LAYER
-	appearance_flags = TILE_BOUND | RESET_TRANSFORM
-
-/obj/effect/overlay/turf/plasma
-	icon_state = "plasma"
-
-/obj/effect/overlay/turf/sleeping_agent
-	icon_state = "sleeping_agent"
-
 /datum/controller/subsystem/air/proc/setup_overlays()
-	GLOB.plmaster = new /obj/effect/overlay/turf/plasma
-	GLOB.slmaster = new /obj/effect/overlay/turf/sleeping_agent
+	GLOB.plmaster = new /obj/effect/overlay()
+	GLOB.plmaster.icon = 'icons/effects/tile_effects.dmi'
+	GLOB.plmaster.icon_state = "plasma"
+	GLOB.plmaster.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+	GLOB.plmaster.anchored = TRUE  // should only appear in vis_contents, but to be safe
+	GLOB.plmaster.layer = FLY_LAYER
+	GLOB.plmaster.appearance_flags = TILE_BOUND
+
+	GLOB.slmaster = new /obj/effect/overlay()
+	GLOB.slmaster.icon = 'icons/effects/tile_effects.dmi'
+	GLOB.slmaster.icon_state = "sleeping_agent"
+	GLOB.slmaster.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+	GLOB.slmaster.anchored = TRUE  // should only appear in vis_contents, but to be safe
+	GLOB.slmaster.layer = FLY_LAYER
+	GLOB.slmaster.appearance_flags = TILE_BOUND
 
 #undef SSAIR_PIPENETS
 #undef SSAIR_ATMOSMACHINERY

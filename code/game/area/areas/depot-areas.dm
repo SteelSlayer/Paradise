@@ -2,7 +2,7 @@
 /area/syndicate_depot
 	name = "Suspicious Supply Depot"
 	icon_state = "dark"
-	tele_proof = TRUE
+	tele_proof = 1
 
 /area/syndicate_depot/core
 	icon_state = "red"
@@ -36,33 +36,25 @@
 	var/obj/machinery/computer/syndicate_depot/syndiecomms/comms_computer = null
 	var/obj/structure/fusionreactor/reactor
 
-/area/syndicate_depot/core/proc/update_state()
+/area/syndicate_depot/core/updateicon()
 	if(destroyed)
-		invisibility = INVISIBILITY_MAXIMUM
-	else if(on_peaceful)
-		invisibility = INVISIBILITY_LIGHTING
-	else if(used_self_destruct)
-		invisibility = INVISIBILITY_LIGHTING
-	else if(called_backup)
-		invisibility = INVISIBILITY_LIGHTING
-	else if(local_alarm)
-		invisibility = INVISIBILITY_LIGHTING
-	else
-		invisibility = INVISIBILITY_MAXIMUM
-	update_icon(UPDATE_ICON_STATE)
-
-/area/syndicate_depot/core/update_icon_state()
-	if(invisibility == INVISIBILITY_MAXIMUM)
 		icon_state = null
-		return
+		invisibility = INVISIBILITY_MAXIMUM
 	else if(on_peaceful)
 		icon_state = "green"
+		invisibility = INVISIBILITY_LIGHTING
 	else if(used_self_destruct)
 		icon_state = "radiation"
+		invisibility = INVISIBILITY_LIGHTING
 	else if(called_backup)
 		icon_state = "red"
+		invisibility = INVISIBILITY_LIGHTING
 	else if(local_alarm)
 		icon_state = "bluenew"
+		invisibility = INVISIBILITY_LIGHTING
+	else
+		icon_state = null
+		invisibility = INVISIBILITY_MAXIMUM
 
 /area/syndicate_depot/core/proc/reset_alert()
 
@@ -92,7 +84,7 @@
 	detected_pod = FALSE
 	detected_double_agent = FALSE
 	mine_trigger_count = 0
-	update_icon(UPDATE_ICON_STATE)
+	updateicon()
 
 	if(!istype(reactor))
 		for(var/obj/structure/fusionreactor/R in src)
@@ -120,7 +112,7 @@
 		return
 	if(!used_self_destruct)
 		activate_self_destruct(reason, FALSE, null)
-	update_icon(UPDATE_ICON_STATE)
+	updateicon()
 
 /area/syndicate_depot/core/proc/locker_looted()
 	if(!something_looted)
@@ -154,6 +146,13 @@
 		return
 	detected_mech = TRUE
 	increase_alert("Hostile mecha detected: [E]")
+
+/area/syndicate_depot/core/proc/saw_pod(obj/spacepod/P)
+	if(detected_pod)
+		return
+	detected_pod = TRUE
+	if(!called_backup)
+		increase_alert("Hostile spacepod detected: [P]")
 
 /area/syndicate_depot/core/proc/saw_double_agent(mob/living/M)
 	if(detected_double_agent)
@@ -205,7 +204,7 @@
 				message_admins("- SYNDI DEPOT VISITOR: [ADMIN_FULLMONTY(M)]")
 				list_add(M, hostile_list)
 		peaceful_list = list()
-	update_icon(UPDATE_ICON_STATE)
+	updateicon()
 
 /area/syndicate_depot/core/proc/local_alarm(reason, silent)
 	if(local_alarm)
@@ -227,7 +226,7 @@
 			var/mob/living/simple_animal/bot/ed209/syndicate/B = new /mob/living/simple_animal/bot/ed209/syndicate(get_turf(S))
 			list_add(B, guard_list)
 			B.depotarea = src
-	update_icon(UPDATE_ICON_STATE)
+	updateicon()
 
 /area/syndicate_depot/core/proc/call_backup(reason, silent)
 	if(called_backup || used_self_destruct)
@@ -260,7 +259,7 @@
 						list_add(S, guard_list)
 	else if(!silent)
 		announce_here("Depot Communications Offline", "Comms computer is damaged, destroyed or depowered. Unable to call in backup from Syndicate HQ.")
-	update_icon(UPDATE_ICON_STATE)
+	updateicon()
 
 /area/syndicate_depot/core/proc/activate_self_destruct(reason, containment_failure, mob/user)
 	if(used_self_destruct)
@@ -273,7 +272,7 @@
 	called_backup = TRUE
 	activate_lockdown(TRUE)
 	lockout_computers()
-	update_icon(UPDATE_ICON_STATE)
+	updateicon()
 	despawn_guards()
 	if(containment_failure)
 		announce_here("Depot Code DELTA", reason)
@@ -295,7 +294,7 @@
 	else
 		log_debug("Depot: [src] called activate_self_destruct with no reactor.")
 		message_admins("<span class='adminnotice'>Syndicate Depot lacks reactor to initiate self-destruct. Must be destroyed manually.</span>")
-	update_icon(UPDATE_ICON_STATE)
+	updateicon()
 
 /area/syndicate_depot/core/proc/activate_lockdown()
 	if(used_lockdown)
@@ -474,7 +473,6 @@
 			continue
 		moblist += M
 	return moblist
-
 /area/syndicate_depot/outer
 	name = "Suspicious Asteroid"
 	icon_state = "green"

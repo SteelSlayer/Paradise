@@ -1,8 +1,9 @@
+
 /obj/structure/closet/secure_closet/syndicate/depot
 	name = "depot supply closet"
 	desc = ""
-	locked = FALSE
-	anchored = TRUE
+	locked = 0
+	anchored = 1
 	req_access = list()
 	layer = 2.9 // ensures the loot they drop always appears on top of them.
 	var/is_armory = FALSE

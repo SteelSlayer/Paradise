@@ -79,7 +79,7 @@
 			if(SSholiday.holidays && SSholiday.holidays[APRIL_FOOLS])
 				if(prob(30))
 					P.info = "<font face=\"[P.crayonfont]\" color=\"red\"><b>HONK HONK HONK HONK HONK HONK HONK<br>HOOOOOOOOOOOOOOOOOOOOOONK<br>APRIL FOOLS</b></font>"
-					P.rigged = TRUE
+					P.rigged = 1
 					P.updateinfolinks()
 
 		P.loc = user.loc
@@ -113,11 +113,12 @@
 			. += "<span class='notice'>There are no papers in the bin.</span>"
 
 
-/obj/item/paper_bin/update_icon_state()
+/obj/item/paper_bin/update_icon()
 	if(amount < 1)
 		icon_state = "paper_bin0"
 	else
 		icon_state = "paper_bin1"
+	..()
 
 /obj/item/paper_bin/carbon
 	name = "carbonless paper bin"

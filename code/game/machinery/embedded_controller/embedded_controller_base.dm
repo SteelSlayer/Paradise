@@ -2,19 +2,15 @@
 	var/datum/computer/file/embedded_program/program	//the currently executing program
 
 	name = "Embedded Controller"
-	anchored = TRUE
+	anchored = 1
 
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 10
 
-	var/on = TRUE
-
-/obj/machinery/embedded_controller/Destroy()
-	program = null  // we probably should qdel it here, but that would break shared programs. Not that we should have those..
-	return ..()
+	var/on = 1
 
 /obj/machinery/embedded_controller/proc/post_signal(datum/signal/signal, comm_line)
-	return FALSE
+	return 0
 
 /obj/machinery/embedded_controller/receive_signal(datum/signal/signal, receive_method, receive_param)
 	if(!signal || signal.encryption) return
@@ -27,7 +23,7 @@
 	if(program)
 		program.process()
 
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 	src.updateDialog()
 
 /obj/machinery/embedded_controller/attack_ghost(mob/user as mob)
@@ -45,7 +41,7 @@
 	icon = 'icons/obj/airlock_machines.dmi'
 	icon_state = "airlock_control_standby"
 	power_channel = ENVIRON
-	density = FALSE
+	density = 0
 
 	var/id_tag
 	//var/radio_power_use = 50 //power used to xmit signals
@@ -54,8 +50,8 @@
 	var/radio_filter = null
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 
-/obj/machinery/embedded_controller/radio/Initialize(mapload)
-	. = ..()
+/obj/machinery/embedded_controller/radio/Initialize()
+	..()
 	set_frequency(frequency)
 
 /obj/machinery/embedded_controller/radio/Destroy()
@@ -64,7 +60,7 @@
 	radio_connection = null
 	return ..()
 
-/obj/machinery/embedded_controller/radio/update_icon_state()
+/obj/machinery/embedded_controller/radio/update_icon()
 	if(on && program)
 		if(program.memory["processing"])
 			icon_state = "airlock_control_process"

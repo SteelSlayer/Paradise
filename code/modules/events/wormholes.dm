@@ -44,7 +44,7 @@
 /obj/effect/portal/wormhole/can_teleport(atom/movable/M)
 	. = ..()
 
-	if(istype(M, /obj/singularity) || istype(M, /obj/structure/transit_tube_pod))
+	if(istype(M, /obj/singularity))
 		. = FALSE
 
 /obj/effect/portal/wormhole/teleport(atom/movable/M)

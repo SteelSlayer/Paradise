@@ -56,10 +56,16 @@
 	if(node)
 		node.update_underlays()
 
-/obj/machinery/atmospherics/pipe/cap/update_overlays()
-	. = ..()
+/obj/machinery/atmospherics/pipe/cap/update_icon(safety = 0)
+	..()
+
+	if(!check_icon_cache())
+		return
+
 	alpha = 255
-	. += SSair.icon_manager.get_atmos_icon("pipe", , pipe_color, "cap" + icon_connect_type)
+
+	overlays.Cut()
+	overlays += SSair.icon_manager.get_atmos_icon("pipe", , pipe_color, "cap" + icon_connect_type)
 
 /obj/machinery/atmospherics/pipe/cap/atmos_init()
 	..()
@@ -73,8 +79,7 @@
 				break
 
 	var/turf/T = get_turf(src)			// hide if turf is not intact
-	if(!istype(T) || T.transparent_floor)
-		return
+	if(!istype(T)) return
 	hide(T.intact)
 	update_icon()
 
@@ -86,7 +91,7 @@
 	name = "scrubbers pipe endcap"
 	desc = "An endcap for scrubbers pipes"
 	icon_state = "cap-scrubbers"
-	connect_types = list(CONNECT_TYPE_SCRUBBER)
+	connect_types = list(3)
 	layer = 2.38
 	icon_connect_type = "-scrubbers"
 	color = PIPE_COLOR_RED
@@ -95,7 +100,7 @@
 	name = "supply pipe endcap"
 	desc = "An endcap for supply pipes"
 	icon_state = "cap-supply"
-	connect_types = list(CONNECT_TYPE_SUPPLY)
+	connect_types = list(2)
 	layer = 2.39
 	icon_connect_type = "-supply"
 	color = PIPE_COLOR_BLUE
@@ -109,7 +114,7 @@
 	name = "scrubbers pipe endcap"
 	desc = "An endcap for scrubbers pipes"
 	icon_state = "cap-scrubbers"
-	connect_types = list(CONNECT_TYPE_SCRUBBER)
+	connect_types = list(3)
 	layer = 2.38
 	icon_connect_type = "-scrubbers"
 	color = PIPE_COLOR_RED
@@ -118,7 +123,7 @@
 	name = "supply pipe endcap"
 	desc = "An endcap for supply pipes"
 	icon_state = "cap-supply"
-	connect_types = list(CONNECT_TYPE_SUPPLY)
+	connect_types = list(2)
 	layer = 2.39
 	icon_connect_type = "-supply"
 	color = PIPE_COLOR_BLUE

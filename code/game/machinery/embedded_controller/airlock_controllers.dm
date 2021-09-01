@@ -13,13 +13,9 @@
 	var/tag_shuttle_mech_sensor
 	var/tag_secure = 0
 
-/obj/machinery/embedded_controller/radio/airlock/Initialize(mapload)
-	. = ..()
+/obj/machinery/embedded_controller/radio/airlock/Initialize()
+	..()
 	program = new/datum/computer/file/embedded_program/airlock(src)
-
-/obj/machinery/embedded_controller/radio/airlock/Destroy()
-	QDEL_NULL(program)
-	return ..()
 
 //Airlock controller for airlock control - most airlocks on the station use this
 /obj/machinery/embedded_controller/radio/airlock/airlock_controller
@@ -79,7 +75,7 @@
 	name = "Access Controller"
 	tag_secure = 1
 
-/obj/machinery/embedded_controller/radio/airlock/access_controller/update_icon_state()
+/obj/machinery/embedded_controller/radio/airlock/access_controller/update_icon()
 	if(on && program)
 		if(program.memory["processing"])
 			icon_state = "access_control_process"

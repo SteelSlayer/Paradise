@@ -5,24 +5,22 @@
 	materials = list(MAT_METAL = 800, MAT_GLASS = 200)
 	origin_tech = "magnets=1;engineering=1"
 
-	secured = FALSE
+	secured = 0
 
 	bomb_name = "proximity mine"
 
-	var/scanning = FALSE
-	var/timing = FALSE
+	var/scanning = 0
+	var/timing = 0
 	var/time = 10
 
-/obj/item/assembly/prox_sensor/Initialize(mapload)
+/obj/item/assembly/prox_sensor/ComponentInitialize()
 	. = ..()
-	AddComponent(/datum/component/proximity_monitor, _always_active = TRUE)
+	AddComponent(/datum/component/proximity_monitor)
 
-/obj/item/assembly/prox_sensor/examine(mob/user)
-	. = ..()
+/obj/item/assembly/prox_sensor/describe()
 	if(timing)
-		. += "<span class='notice'>The proximity sensor is arming.</span>"
-	else
-		. += "The proximity sensor is [scanning ? "armed" : "disarmed"]."
+		return "<span class='notice'>The proximity sensor is arming.</span>"
+	return "The proximity sensor is [scanning ? "armed" : "disarmed"]."
 
 /obj/item/assembly/prox_sensor/activate()
 	if(!..())
@@ -36,8 +34,8 @@
 	if(secured)
 		START_PROCESSING(SSobj, src)
 	else
-		scanning = FALSE
-		timing = FALSE
+		scanning = 0
+		timing = 0
 		STOP_PROCESSING(SSobj, src)
 	update_icon()
 	return secured
@@ -62,7 +60,7 @@
 	if(timing && (time >= 0))
 		time--
 	if(timing && time <= 0)
-		timing = FALSE
+		timing = 0
 		toggle_scan()
 		time = 10
 
@@ -78,14 +76,14 @@
 	scanning = !scanning
 	update_icon()
 
-/obj/item/assembly/prox_sensor/update_overlays()
-	. = ..()
+/obj/item/assembly/prox_sensor/update_icon()
+	overlays.Cut()
 	attached_overlays = list()
 	if(timing)
-		. += "prox_timing"
+		overlays += "prox_timing"
 		attached_overlays += "prox_timing"
 	if(scanning)
-		. += "prox_scanning"
+		overlays += "prox_scanning"
 		attached_overlays += "prox_scanning"
 	if(holder)
 		holder.update_icon()
@@ -114,7 +112,7 @@
 
 /obj/item/assembly/prox_sensor/Topic(href, href_list)
 	..()
-	if(HAS_TRAIT(usr, TRAIT_HANDS_BLOCKED) || usr.stat || usr.restrained() || !in_range(loc, usr))
+	if(!usr.canmove || usr.stat || usr.restrained() || !in_range(loc, usr))
 		usr << browse(null, "window=prox")
 		onclose(usr, "prox")
 		return

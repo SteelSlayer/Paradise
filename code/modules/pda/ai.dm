@@ -1,7 +1,7 @@
 // Special AI/pAI PDAs that cannot explode.
 /obj/item/pda/silicon
 	icon_state = "NONE"
-	detonate = FALSE
+	detonate = 0
 	ttone = "data"
 
 /obj/item/pda/silicon/proc/set_name_and_job(newname as text, newjob as text, newrank as null|text)

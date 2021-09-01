@@ -2,7 +2,7 @@
 	name = "null rod"
 	desc = "A rod of pure obsidian, its very presence disrupts and dampens the powers of dark magic."
 	icon_state = "nullrod"
-	item_state = "tele_baton"
+	item_state = "nullrod"
 	force = 15
 	throw_speed = 3
 	throw_range = 4
@@ -36,11 +36,10 @@
 
 /obj/item/nullrod/attack(mob/M, mob/living/carbon/user)
 	..()
-	var/datum/antagonist/vampire/V = M.mind?.has_antag_datum(/datum/antagonist/vampire)
-	if(ishuman(M) && V && user.mind.isholy)
-		if(!V.get_ability(/datum/vampire_passive/full))
+	if(ishuman(M) && M.mind?.vampire)
+		if(!M.mind.vampire.get_ability(/datum/vampire_passive/full))
 			to_chat(M, "<span class='warning'>The nullrod's power interferes with your own!</span>")
-			V.adjust_nullification(30 + sanctify_force, 15 + sanctify_force)
+			M.mind.vampire.adjust_nullification(5, 2)
 
 /obj/item/nullrod/pickup(mob/living/user)
 	. = ..()
@@ -48,7 +47,7 @@
 		if(!user.mind || !user.mind.isholy)
 			user.adjustBruteLoss(force)
 			user.adjustFireLoss(sanctify_force)
-			user.Weaken(10 SECONDS)
+			user.Weaken(5)
 			user.unEquip(src, 1)
 			user.visible_message("<span class='warning'>[src] slips out of the grip of [user] as they try to pick it up, bouncing upwards and smacking [user.p_them()] in the face!</span>", \
 			"<span class='warning'>[src] slips out of your grip as you pick it up, bouncing upwards and smacking you in the face!</span>")
@@ -157,7 +156,7 @@
 /obj/item/nullrod/claymore/darkblade
 	name = "dark blade"
 	icon_state = "cultblade"
-	item_state = "darkbalde"
+	item_state = "cultblade"
 	desc = "Spread the glory of the dark gods!"
 	slot_flags = SLOT_BELT
 	hitsound = 'sound/hallucinations/growl1.ogg'
@@ -229,7 +228,7 @@
 	item_state = "scythe0"
 	desc = "Ask not for whom the bell tolls..."
 	w_class = WEIGHT_CLASS_BULKY
-	armour_penetration_flat = 30
+	armour_penetration = 35
 	slot_flags = SLOT_BACK
 	sharp = TRUE
 	attack_verb = list("chopped", "sliced", "cut", "reaped")
@@ -237,7 +236,7 @@
 
 /obj/item/nullrod/scythe/vibro
 	name = "high frequency blade"
-	icon_state = "hfrequency1"
+	icon_state = "hfrequency0"
 	item_state = "hfrequency1"
 	desc = "Bad references are the DNA of the soul."
 	attack_verb = list("chopped", "sliced", "cut", "zandatsu'd")
@@ -267,11 +266,9 @@
 
 	possessed = TRUE
 
-	var/list/mob/dead/observer/candidates = SSghost_spawns.poll_candidates("Do you want to play as the spirit of [user.real_name]'s blade?", ROLE_PAI, FALSE, 10 SECONDS, source = src, role_cleanname = "possessed blade")
+	var/list/mob/dead/observer/candidates = SSghost_spawns.poll_candidates("Do you want to play as the spirit of [user.real_name]'s blade?", ROLE_PAI, FALSE, 10 SECONDS, source = src)
 	var/mob/dead/observer/theghost = null
 
-	if(QDELETED(src))
-		return
 	if(length(candidates))
 		theghost = pick(candidates)
 		var/mob/living/simple_animal/shade/sword/S = new(src)
@@ -325,6 +322,28 @@
 	sharp = TRUE
 	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut", "honked")
 
+/obj/item/nullrod/whip
+	name = "holy whip"
+	desc = "A whip, blessed with the power to banish evil shadowy creatures. What a terrible night to be in spess."
+	icon_state = "chain"
+	item_state = "chain"
+	slot_flags = SLOT_BELT
+	attack_verb = list("whipped", "lashed")
+	hitsound = 'sound/weapons/slash.ogg'
+
+/obj/item/nullrod/whip/New()
+	..()
+	desc = "What a terrible night to be on the [station_name()]."
+
+/obj/item/nullrod/whip/afterattack(atom/movable/AM, mob/user, proximity)
+	if(!proximity)
+		return
+	if(ishuman(AM))
+		var/mob/living/carbon/human/H = AM
+		if(is_shadow(H))
+			var/phrase = pick("Die monster! You don't belong in this world!!!", "You steal men's souls and make them your slaves!!!", "Your words are as empty as your soul!!!", "Mankind ill needs a savior such as you!!!")
+			user.say("[phrase]")
+			H.adjustBruteLoss(12) //Bonus damage
 
 /obj/item/nullrod/fedora
 	name = "binary fedora"
@@ -431,6 +450,14 @@
 	throwforce = 0
 	var/praying = FALSE
 
+/obj/item/nullrod/rosary/New()
+	..()
+	START_PROCESSING(SSobj, src)
+
+/obj/item/nullrod/rosary/Destroy()
+	STOP_PROCESSING(SSobj, src)
+	return ..()
+
 /obj/item/nullrod/rosary/attack(mob/living/carbon/M, mob/living/carbon/user)
 	if(!iscarbon(M))
 		return ..()
@@ -456,9 +483,9 @@
 					SSticker.mode.remove_cultist(target.mind, TRUE, TRUE) // This proc will handle message generation.
 					praying = FALSE
 					return
-				var/datum/antagonist/vampire/V = M.mind?.has_antag_datum(/datum/antagonist/vampire)
-				if(V?.get_ability(/datum/vampire_passive/full)) // Getting a full prayer off on a vampire will interrupt their powers for a large duration.
-					V.adjust_nullification(120, 50)
+
+				if(target.mind.vampire && !target.mind.vampire.get_ability(/datum/vampire_passive/full)) // Getting a full prayer off on a vampire will interrupt their powers for a large duration.
+					target.mind.vampire.adjust_nullification(120, 50)
 					to_chat(target, "<span class='userdanger'>[user]'s prayer to [SSticker.Bible_deity_name] has interfered with your power!</span>")
 					praying = FALSE
 					return
@@ -475,6 +502,16 @@
 	else
 		to_chat(user, "<span class='notice'>Your prayer to [SSticker.Bible_deity_name] was interrupted.</span>")
 		praying = FALSE
+
+/obj/item/nullrod/rosary/process()
+	if(ishuman(loc))
+		var/mob/living/carbon/human/holder = loc
+		if(holder.l_hand == src || holder.r_hand == src) // Holding this in your hand will
+			for(var/mob/living/carbon/human/H in range(5, loc))
+				if(H.mind && H.mind.vampire && !H.mind.vampire.get_ability(/datum/vampire_passive/full))
+					H.mind.vampire.adjust_nullification(5, 2)
+					if(prob(10))
+						to_chat(H, "<span class='userdanger'>Being in the presence of [holder]'s [src] is interfering with your powers!</span>")
 
 /obj/item/nullrod/salt
 	name = "Holy Salt"
@@ -515,7 +552,7 @@
 		if(src == holder.l_hand || src == holder.r_hand)
 			for(var/mob/living/carbon/human/H in range(5, loc))
 				if(H.mind.assigned_role == "Clown")
-					H.Silence(20 SECONDS)
+					H.Silence(10)
 					animate_fade_grayscale(H,20)
 					if(prob(10))
 						to_chat(H, "<span class='userdanger'>Being in the presence of [holder]'s [src] is interfering with your honk!</span>")
@@ -625,8 +662,8 @@
 		else
 			to_chat(missionary, "<span class='notice'>You successfully convert [target] to your cause. The following grows because of your faith!</span>")
 			faith -= 100
-	else if(target.mind.assigned_role == "Assistant")
-		if(prob(55))	//55% chance to take LESS faith than normal, because assistants are stupid and easily manipulated
+	else if(target.mind.assigned_role == "Civilian")
+		if(prob(55))	//55% chance to take LESS faith than normal, because civies are stupid and easily manipulated
 			to_chat(missionary, "<span class='notice'>Your message seems to resound well with [target]; converting [target.p_them()] was much easier than expected.</span>")
 			faith -= 50
 		else		//45% chance to take the normal 100 faith cost

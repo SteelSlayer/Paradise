@@ -14,19 +14,22 @@ Note: Must be placed west/left of and R&D console to function.
 	container_type = OPENCONTAINER
 
 	categories = list(
-		"Bluespace",
-		"Equipment",
-		"Janitorial",
-		"Medical",
-		"Mining",
-		"Miscellaneous",
-		"Power",
-		"Stock Parts",
-		"Weapons"
-	)
+								"Bluespace",
+								"Equipment",
+								"Janitorial",
+								"Medical",
+								"Mining",
+								"Miscellaneous",
+								"Power",
+								"Stock Parts",
+								"Weapons"
+								)
 
-/obj/machinery/r_n_d/protolathe/Initialize(mapload)
-	. = ..()
+	reagents = new()
+
+
+/obj/machinery/r_n_d/protolathe/New()
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/protolathe(null)
 	component_parts += new /obj/item/stock_parts/matter_bin(null)
@@ -35,11 +38,12 @@ Note: Must be placed west/left of and R&D console to function.
 	component_parts += new /obj/item/stock_parts/manipulator(null)
 	component_parts += new /obj/item/reagent_containers/glass/beaker/large(null)
 	component_parts += new /obj/item/reagent_containers/glass/beaker/large(null)
-	create_reagents()
 	RefreshParts()
 
-/obj/machinery/r_n_d/protolathe/upgraded/Initialize(mapload)
-	. = ..()
+	reagents.my_atom = src
+
+/obj/machinery/r_n_d/protolathe/upgraded/New()
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/protolathe(null)
 	component_parts += new /obj/item/stock_parts/matter_bin/super(null)
@@ -50,10 +54,7 @@ Note: Must be placed west/left of and R&D console to function.
 	component_parts += new /obj/item/reagent_containers/glass/beaker/large(null)
 	RefreshParts()
 
-/obj/machinery/r_n_d/protolathe/Destroy()
-	if(linked_console)
-		linked_console.linked_lathe = null
-	return ..()
+	reagents.my_atom = src
 
 /obj/machinery/r_n_d/protolathe/RefreshParts()
 	var/T = 0
@@ -77,14 +78,17 @@ Note: Must be placed west/left of and R&D console to function.
 	return A
 
 /obj/machinery/r_n_d/protolathe/attackby(obj/item/O as obj, mob/user as mob, params)
+	if(shocked)
+		if(shock(user,50))
+			return TRUE
 	if(default_deconstruction_screwdriver(user, "protolathe_t", "protolathe", O))
 		if(linked_console)
 			linked_console.linked_lathe = null
 			linked_console = null
-		return FALSE
+		return
 
 	if(exchange_parts(user, O))
-		return FALSE
+		return
 
 	if(panel_open)
 		if(istype(O, /obj/item/crowbar))
@@ -96,11 +100,10 @@ Note: Must be placed west/left of and R&D console to function.
 				reagents.trans_to(G, G.reagents.maximum_volume)
 			materials.retrieve_all()
 			default_deconstruction_crowbar(user, O)
-			return TRUE
+			return 1
 		else
 			to_chat(user, "<span class='warning'>You can't load [src] while it's opened.</span>")
-			return TRUE
-
+			return 1
 	if(O.is_open_container())
 		return FALSE
 	else

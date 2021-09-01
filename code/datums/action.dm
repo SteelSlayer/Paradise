@@ -2,7 +2,6 @@
 #define AB_CHECK_STUNNED 2
 #define AB_CHECK_LYING 4
 #define AB_CHECK_CONSCIOUS 8
-#define AB_CHECK_TURF 16
 
 
 /datum/action
@@ -76,20 +75,13 @@
 		if(owner.restrained())
 			return FALSE
 	if(check_flags & AB_CHECK_STUNNED)
-		if(isliving(owner))
-			var/mob/living/L = owner
-			if(L.IsStunned() || L.IsWeakened())
-				return FALSE
+		if(owner.stunned || owner.IsWeakened())
+			return FALSE
 	if(check_flags & AB_CHECK_LYING)
-		if(isliving(owner))
-			var/mob/living/L = owner
-			if(IS_HORIZONTAL(L))
-				return FALSE
+		if(owner.lying)
+			return FALSE
 	if(check_flags & AB_CHECK_CONSCIOUS)
 		if(owner.stat)
-			return FALSE
-	if(check_flags & AB_CHECK_TURF)
-		if(!isturf(owner.loc))
 			return FALSE
 	return TRUE
 
@@ -225,9 +217,6 @@
 
 /datum/action/item_action/toggle_mister
 	name = "Toggle Mister"
-
-/datum/action/item_action/toggle_music_notes
-	name = "Toggle Music Notes"
 
 /datum/action/item_action/toggle_helmet_light
 	name = "Toggle Helmet Light"
@@ -409,7 +398,7 @@
 
 /datum/action/item_action/toggle_research_scanner/Remove(mob/living/L)
 	if(owner)
-		owner.research_scanner = FALSE
+		owner.research_scanner = 0
 	..()
 
 /datum/action/item_action/toggle_research_scanner/ApplyIcon(obj/screen/movable/action_button/current_button)
@@ -434,13 +423,6 @@
 /datum/action/item_action/remove_badge
 	name = "Remove Holobadge"
 
-
-// Clown Acrobat Shoes
-/datum/action/item_action/slipping
-	name = "Tactical Slip"
-	desc = "Activates the clown shoes' ankle-stimulating module, allowing the user to do a short slip forward going under anyone."
-	button_icon_state = "clown"
-
 // Jump boots
 /datum/action/item_action/bhop
 	name = "Activate Jump Boots"
@@ -448,19 +430,6 @@
 	icon_icon = 'icons/mob/actions/actions.dmi'
 	button_icon_state = "jetboot"
 	use_itemicon = FALSE
-
-
-/datum/action/item_action/gravity_jump
-	name = "Gravity jump"
-	desc = "Directs a pulse of gravity in front of the user, pulling them foward rapidly."
-
-/datum/action/item_action/gravity_jump/Trigger()
-	if(!IsAvailable())
-		return FALSE
-
-	var/obj/item/clothing/shoes/magboots/gravity/G = target
-	G.dash(usr)
-
 
 ///prset for organ actions
 /datum/action/item_action/organ_action
@@ -518,10 +487,6 @@
 	name = "View Storage"
 
 
-/datum/action/item_action/accessory/herald
-	name = "Mirror Walk"
-	desc = "Use near a mirror to enter it"
-
 //Preset for spells
 /datum/action/spell_action
 	check_flags = 0
@@ -557,6 +522,9 @@
 		return FALSE
 	var/obj/effect/proc_holder/spell/spell = target
 
+	if(spell.special_availability_check)
+		return TRUE
+
 	if(owner)
 		return spell.can_cast(owner)
 	return FALSE
@@ -565,7 +533,7 @@
 	var/obj/effect/proc_holder/spell/S = target
 	if(!istype(S))
 		return ..()
-	var/progress = S.cooldown_handler.get_availability_percentage()
+	var/progress = S.get_availability_percentage()
 	if(progress == 1)
 		return ..() // This means that the spell is charged but unavailable due to something else
 

@@ -1,3 +1,7 @@
+#define CHARS_PER_LINE 5
+#define FONT_SIZE "5pt"
+#define FONT_COLOR "#09f"
+#define FONT_STYLE "Small Fonts"
 #define CELL_NONE "None"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -14,12 +18,12 @@
 	icon_state = "frame"
 	desc = "A remote control for a door."
 	req_access = list(ACCESS_BRIG)
-	anchored = TRUE    		// can't pick it up
-	density = FALSE       		// can walk through it.
+	anchored = 1    		// can't pick it up
+	density = 0       		// can walk through it.
 	layer = WALL_OBJ_LAYER
 	var/id = null     		// id of door it controls.
 	var/releasetime = 0		// when world.timeofday reaches it - release the prisoner
-	var/timing = FALSE    	// boolean, true/1 timer is on, false/0 means it's not timing
+	var/timing = 0    		// boolean, true/1 timer is on, false/0 means it's not timing
 	var/picture_state		// icon_state of alert picture, if not displaying text/numbers
 	var/list/obj/machinery/targets = list()
 	var/timetoset = 0		// Used to set releasetime upon starting the timer
@@ -38,12 +42,13 @@
 	var/prisoner_time
 	var/prisoner_hasrecord = FALSE
 
+/obj/machinery/door_timer/New()
+ 	GLOB.celltimers_list += src
+ 	return ..()
+
 /obj/machinery/door_timer/Destroy()
-	targets.Cut()
-	prisoner = null
-	qdel(Radio)
-	GLOB.celltimers_list -= src
-	return ..()
+ 	GLOB.celltimers_list -= src
+ 	return ..()
 
 /obj/machinery/door_timer/proc/print_report()
 	if(occupant == CELL_NONE || crimes == CELL_NONE)
@@ -88,7 +93,7 @@
 	// Announcing it on radio isn't enough, as they're unlikely to have sec radio.
 	notify_prisoner("You have been incarcerated for [timetext] for the crime of: '[crimes]'.")
 
-	if(prisoner_trank != "unknown" && prisoner_trank != "Assistant")
+	if(prisoner_trank != "unknown" && prisoner_trank != "Civilian")
 		SSjobs.notify_dept_head(prisoner_trank, announcetext)
 
 	if(R)
@@ -113,50 +118,40 @@
 			return
 	atom_say("[src] beeps, \"[occupant]: [notifytext]\"")
 
-/obj/machinery/door_timer/Initialize(mapload)
+/obj/machinery/door_timer/Initialize()
 	..()
 
-	GLOB.celltimers_list += src
 	Radio = new /obj/item/radio(src)
-	Radio.listening = FALSE
+	Radio.listening = 0
 	Radio.config(list("Security" = 0))
 	Radio.follow_target = src
-	return INITIALIZE_HINT_LATELOAD
 
-/obj/machinery/door_timer/LateInitialize()
-	..()
-	for(var/obj/machinery/door/window/brigdoor/M in GLOB.airlocks)
-		if(M.id == id)
-			targets += M
-			RegisterSignal(M, COMSIG_PARENT_QDELETING, .proc/on_target_qdel)
+	spawn(20)
+		for(var/obj/machinery/door/window/brigdoor/M in GLOB.airlocks)
+			if(M.id == id)
+				targets += M
 
-	for(var/obj/machinery/flasher/F in GLOB.machines)
-		if(F.id == id)
-			targets += F
-			RegisterSignal(F, COMSIG_PARENT_QDELETING, .proc/on_target_qdel)
+		for(var/obj/machinery/flasher/F in GLOB.machines)
+			if(F.id == id)
+				targets += F
 
-	for(var/obj/structure/closet/secure_closet/brig/C in world)
-		if(C.id == id)
-			targets += C
-			RegisterSignal(C, COMSIG_PARENT_QDELETING, .proc/on_target_qdel)
+		for(var/obj/structure/closet/secure_closet/brig/C in world)
+			if(C.id == id)
+				targets += C
 
-	for(var/obj/machinery/treadmill_monitor/T in GLOB.machines)
-		if(T.id == id)
-			targets += T
-			RegisterSignal(T, COMSIG_PARENT_QDELETING, .proc/on_target_qdel)
+		for(var/obj/machinery/treadmill_monitor/T in GLOB.machines)
+			if(T.id == id)
+				targets += T
 
-	if(!length(targets))
-		stat |= BROKEN
-	update_icon(UPDATE_ICON_STATE)
+		if(targets.len==0)
+			stat |= BROKEN
+		update_icon()
 
 /obj/machinery/door_timer/Destroy()
 	QDEL_NULL(Radio)
 	targets.Cut()
 	prisoner = null
 	return ..()
-
-/obj/machinery/door_timer/proc/on_target_qdel(atom/target)
-	targets -= target
 
 //Main door timer loop, if it's timing and time is >0 reduce time by 1.
 // if it's less than 0, open door, reset timer
@@ -169,9 +164,9 @@
 			Radio.autosay("Timer has expired. Releasing prisoner.", name, "Security", list(z))
 			occupant = CELL_NONE
 			timer_end() // open doors, reset timer, clear status screen
-			timing = FALSE
+			timing = 0
 			. = PROCESS_KILL
-		update_icon(UPDATE_ICON_STATE)
+		update_icon()
 	else
 		timer_end()
 		return PROCESS_KILL
@@ -179,7 +174,7 @@
 // has the door power situation changed, if so update icon.
 /obj/machinery/door_timer/power_change()
 	..()
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
 
 // open/closedoor checks if door_timer has power, if so it checks if the
@@ -211,15 +206,14 @@
 			continue
 		if(C.opened && !C.close())
 			continue
-		C.locked = TRUE
-		C.close()
-		C.update_icon()
+		C.locked = 1
+		C.icon_state = C.icon_locked
 
 	for(var/obj/machinery/treadmill_monitor/T in targets)
 		T.total_joules = 0
-		T.on = TRUE
+		T.on = 1
 
-	return TRUE
+	return 1
 
 
 // Opens and unlocks doors, power check
@@ -250,15 +244,15 @@
 			continue
 		if(C.opened)
 			continue
-		C.locked = FALSE
+		C.locked = 0
 		C.icon_state = C.icon_closed
 
 	for(var/obj/machinery/treadmill_monitor/T in targets)
 		if(!T.stat)
 			T.redeem()
-		T.on = FALSE
+		T.on = 0
 
-	return TRUE
+	return 1
 
 
 // Check for releasetime timeleft
@@ -364,7 +358,7 @@
 			prisoner_time = null
 			timing = TRUE
 			timer_start()
-			update_icon(UPDATE_ICON_STATE)
+			update_icon()
 		if("restart_timer")
 			if(timing)
 				var/reset_reason = sanitize(copytext(input(usr, "Reason for resetting timer:", name, "") as text|null, 1, MAX_MESSAGE_LEN))
@@ -401,7 +395,7 @@
 // if NOPOWER, display blank
 // if BROKEN, display blue screen of death icon AI uses
 // if timing=true, run update display function
-/obj/machinery/door_timer/update_icon_state()
+/obj/machinery/door_timer/update_icon()
 	if(stat & (NOPOWER))
 		icon_state = "frame"
 		return
@@ -412,7 +406,7 @@
 		var/disp1 = id
 		var/timeleft = timeleft()
 		var/disp2 = "[add_zero(num2text((timeleft / 60) % 60),2)]:[add_zero(num2text(timeleft % 60), 2)]"
-		if(length(disp2) > DISPLAY_CHARS_PER_LINE)
+		if(length(disp2) > CHARS_PER_LINE)
 			disp2 = "Error"
 		update_display(disp1, disp2)
 	else
@@ -436,7 +430,7 @@
 /obj/machinery/door_timer/proc/update_display(line1, line2)
 	line1 = uppertext(line1)
 	line2 = uppertext(line2)
-	var/new_text = {"<div style="font-size:[DISPLAY_FONT_SIZE];color:[DISPLAY_FONT_COLOR];font:'[DISPLAY_FONT_STYLE]';text-align:center;" valign="top">[line1]<br>[line2]</div>"}
+	var/new_text = {"<div style="font-size:[FONT_SIZE];color:[FONT_COLOR];font:'[FONT_STYLE]';text-align:center;" valign="top">[line1]<br>[line2]</div>"}
 	if(maptext != new_text)
 		maptext = new_text
 
@@ -481,4 +475,8 @@
 	name = "Cell 6"
 	id = "Cell 6"
 
+#undef FONT_SIZE
+#undef FONT_COLOR
+#undef FONT_STYLE
+#undef CHARS_PER_LINE
 #undef CELL_NONE

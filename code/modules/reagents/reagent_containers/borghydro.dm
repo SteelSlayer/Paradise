@@ -34,8 +34,8 @@
 	reagent_ids = list("syndicate_nanites", "potass_iodide", "hydrocodone")
 	bypass_protection = 1
 
-/obj/item/reagent_containers/borghypo/Initialize(mapload)
-	. = ..()
+/obj/item/reagent_containers/borghypo/New()
+	..()
 	for(var/R in reagent_ids)
 		add_reagent(R)
 

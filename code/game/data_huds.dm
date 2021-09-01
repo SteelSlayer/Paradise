@@ -20,11 +20,11 @@
 /datum/atom_hud/data/human/medical/basic
 
 /datum/atom_hud/data/human/medical/basic/proc/check_sensors(mob/living/carbon/human/H)
-	if(!istype(H)) return
+	if(!istype(H)) return 0
 	var/obj/item/clothing/under/U = H.w_uniform
-	if(!istype(U)) return
-	if(U.sensor_mode <= SENSOR_VITALS) return
-	return TRUE
+	if(!istype(U)) return 0
+	if(U.sensor_mode <= 2) return 0
+	return 1
 
 /datum/atom_hud/data/human/medical/basic/add_to_single_hud(mob/M, mob/living/carbon/H)
 	if(check_sensors(H) || istype(M,/mob/dead/observer) )
@@ -44,12 +44,10 @@
 	hud_icons = list(ID_HUD, IMPTRACK_HUD, IMPMINDSHIELD_HUD, IMPCHEM_HUD, WANTED_HUD)
 
 /datum/atom_hud/data/diagnostic
-
-/datum/atom_hud/data/diagnostic/basic
-	hud_icons = list(DIAG_HUD, DIAG_STAT_HUD, DIAG_BATT_HUD, DIAG_MECH_HUD, DIAG_BOT_HUD, DIAG_TRACK_HUD, DIAG_AIRLOCK_HUD)
+	hud_icons = list (DIAG_HUD, DIAG_STAT_HUD, DIAG_BATT_HUD, DIAG_MECH_HUD, DIAG_BOT_HUD, DIAG_TRACK_HUD)
 
 /datum/atom_hud/data/diagnostic/advanced
-	hud_icons = list(DIAG_HUD, DIAG_STAT_HUD, DIAG_BATT_HUD, DIAG_MECH_HUD, DIAG_BOT_HUD, DIAG_TRACK_HUD, DIAG_AIRLOCK_HUD, DIAG_PATH_HUD)
+	hud_icons = list (DIAG_HUD, DIAG_STAT_HUD, DIAG_BATT_HUD, DIAG_MECH_HUD, DIAG_BOT_HUD, DIAG_TRACK_HUD, DIAG_PATH_HUD)
 
 /datum/atom_hud/data/bot_path
 	hud_icons = list(DIAG_PATH_HUD)
@@ -85,8 +83,6 @@
 	if(..())
 		return TRUE
 	if(undergoing_cardiac_arrest())
-		return TRUE
-	if(ismachineperson(src) && health < 0)
 		return TRUE
 	return FALSE
 
@@ -169,9 +165,8 @@
 //called when a living mob changes health
 /mob/living/proc/med_hud_set_health()
 	var/image/holder = hud_list[HEALTH_HUD]
-	if(ismachineperson(src))
-		holder = hud_list[DIAG_HUD]
 	holder.icon_state = "hud[RoundHealth(src)]"
+
 
 //called when a carbon changes stat, virus or XENO_HOST
 /mob/living/proc/med_hud_set_status()
@@ -184,16 +179,12 @@
 //called when a carbon changes stat, virus or XENO_HOST
 /mob/living/carbon/med_hud_set_status()
 	var/image/holder = hud_list[STATUS_HUD]
-	if(ismachineperson(src))
-		holder = hud_list[DIAG_STAT_HUD]
-
+	var/mob/living/simple_animal/borer/B = has_brain_worms()
 	// To the right of health bar
 	if(stat == DEAD || HAS_TRAIT(src, TRAIT_FAKEDEATH))
 		var/revivable
 		if(!ghost_can_reenter()) // DNR or AntagHUD
 			revivable = FALSE
-		else if(ismachineperson(src))
-			revivable = TRUE
 		else if(timeofdeath && (round(world.time - timeofdeath) < DEFIB_TIME_LIMIT))
 			revivable = TRUE
 
@@ -204,6 +195,8 @@
 
 	else if(HAS_TRAIT(src, TRAIT_XENO_HOST))
 		holder.icon_state = "hudxeno"
+	else if(B && B.controlling)
+		holder.icon_state = "hudbrainworm"
 	else if(is_in_crit())
 		holder.icon_state = "huddefib"
 	else if(has_virus())
@@ -479,16 +472,6 @@
 		holder.icon_state = ""
 		return
 	holder.icon_state = "hudweed[RoundPlantBar(weedlevel/10)]"
-
-/*~~~~~~~~~~~~
-	Airlocks!
-~~~~~~~~~~~~~*/
-/obj/machinery/door/airlock/proc/diag_hud_set_electrified()
-	var/image/holder = hud_list[DIAG_AIRLOCK_HUD]
-	if(isElectrified())
-		holder.icon_state = "electrified"
-	else
-		holder.icon_state = ""
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	I'll just put this somewhere near the end...

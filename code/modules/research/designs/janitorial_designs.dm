@@ -32,13 +32,13 @@
 	category = list("Janitorial")
 
 /datum/design/holosign
-	name = "Janitorial Holographic Sign Projector"
-	desc = "A holograpic projector used to project wet warning signs."
+	name = "Holographic Sign Projector"
+	desc = "A holograpic projector used to project various warning signs."
 	id = "holosign"
 	req_tech = list("programming" = 3)
 	build_type = PROTOLATHE
 	materials = list(MAT_METAL = 2000, MAT_GLASS = 1000)
-	build_path = /obj/item/holosign_creator/janitor
+	build_path = /obj/item/holosign_creator
 	category = list("Janitorial")
 
 /datum/design/light_replacer

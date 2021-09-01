@@ -44,7 +44,7 @@
 		return FALSE
 	if(istype(R, /mob/living/silicon/robot/drone))
 		return FALSE
-	if(R.scrambledcodes)
+	if(R.visible_on_console)
 		return FALSE
 	if(!atoms_share_level(get_turf(src), get_turf(R)))
 		return FALSE
@@ -92,7 +92,7 @@
 		return TRUE
 	if(!isAI(user))
 		return FALSE
-	return (user.mind.special_role && user.mind.is_original_mob(user))
+	return (user.mind.special_role && user.mind.original == user)
 
 /**
   * Check if the user is allowed to hack a specific borg
@@ -134,7 +134,7 @@
 		var/list/cyborg_data = list(
 			name = R.name,
 			uid = R.UID(),
-			locked_down = R.lockcharge,
+			locked_down = R.locked_down,
 			locstring = "[A.name] ([T.x], [T.y])",
 			status = R.stat,
 			health = round(R.health * 100 / R.maxHealth, 0.1),
@@ -177,7 +177,7 @@
 				if(istype(R, /mob/living/silicon/robot/drone))
 					continue
 				// Ignore antagonistic cyborgs
-				if(R.scrambledcodes)
+				if(R.visible_on_console)
 					continue
 				to_chat(R, "<span class='danger'>Self-destruct command received.</span>")
 				if(R.connected_ai)
@@ -190,7 +190,7 @@
 				return
 			if(R.mind && R.mind.special_role && R.emagged)
 				to_chat(R, "<span class='userdanger'>Extreme danger!  Termination codes detected.  Scrambling security codes and automatic AI unlink triggered.</span>")
-				R.ResetSecurityCodes()
+				R.UnlinkSelf()
 				. = TRUE
 				return
 			var/turf/T = get_turf(R)
@@ -208,12 +208,12 @@
 			var/mob/living/silicon/robot/R = locateUID(params["uid"])
 			if(!can_control(usr, R, TRUE))
 				return
-			message_admins("<span class='notice'>[ADMIN_LOOKUPFLW(usr)] [!R.lockcharge ? "locked down" : "released"] [ADMIN_LOOKUPFLW(R)]!</span>")
-			log_game("[key_name(usr)] [!R.lockcharge ? "locked down" : "released"] [key_name(R)]!")
-			R.SetLockdown(!R.lockcharge)
-			to_chat(R, "[!R.lockcharge ? "<span class='notice'>Your lockdown has been lifted!" : "<span class='alert'>You have been locked down!"]</span>")
+			message_admins("<span class='notice'>[ADMIN_LOOKUPFLW(usr)] [!R.locked_down ? "locked down" : "released"] [ADMIN_LOOKUPFLW(R)]!</span>")
+			log_game("[key_name(usr)] [!R.locked_down ? "locked down" : "released"] [key_name(R)]!")
+			R.SetLockdown(!R.locked_down)
+			to_chat(R, "[!R.locked_down ? "<span class='notice'>Your lockdown has been lifted!" : "<span class='alert'>You have been locked down!"]</span>")
 			if(R.connected_ai)
-				to_chat(R.connected_ai, "[!R.lockcharge ? "<span class='notice'>NOTICE - Cyborg lockdown lifted</span>" : "<span class='alert'>ALERT - Cyborg lockdown detected</span>"]: <a href='?src=[R.connected_ai.UID()];track=[html_encode(R.name)]'>[R.name]</a></span><br>")
+				to_chat(R.connected_ai, "[!R.locked_down ? "<span class='notice'>NOTICE - Cyborg lockdown lifted</span>" : "<span class='alert'>ALERT - Cyborg lockdown detected</span>"]: <a href='?src=[R.connected_ai.UID()];track=[html_encode(R.name)]'>[R.name]</a></span><br>")
 			. = TRUE
 		if("hackbot") // AIs hacking/emagging a borg
 			var/mob/living/silicon/robot/R = locateUID(params["uid"])

@@ -86,24 +86,14 @@
 		to_chat(user, "<span class='cultitalic'>The magic in [src] is weak, it will be ready to use again in [get_ETA()].</span>")
 		return
 
-
-	var/list/pickable_items = get_choosable_items()
-	var/choice = show_radial_menu(user, src, pickable_items, require_near = TRUE)
-	var/picked_type = pickable_items[choice]
+	var/choice = show_radial_menu(user, src, choosable_items, require_near = TRUE)
+	var/picked_type = choosable_items[choice]
 	if(!QDELETED(src) && picked_type && Adjacent(user) && !user.incapacitated() && cooldowntime <= world.time)
 		cooldowntime = world.time + creation_delay
 		var/obj/O = new picked_type
 		if(istype(O, /obj/structure) || !user.put_in_hands(O))
 			O.forceMove(get_turf(src))
 		to_chat(user, replacetext("[creation_message]", "%ITEM%", "[O.name]"))
-
-/**
-  * Returns the items the cult can craft from this forge.
-  *
-  * Override on children for logic regarding game state.
-  */
-/obj/structure/cult/functional/proc/get_choosable_items()
-	return choosable_items.Copy() // Copied incase its modified on children
 
 /**
   * Returns the cooldown time in minutes and seconds
@@ -169,15 +159,8 @@
 	selection_prompt = "You study the schematics etched on the forge..."
 	selection_title = "Forge"
 	creation_message = "<span class='cultitalic'>You work the forge as dark knowledge guides your hands, creating a %ITEM%!</span>"
-	choosable_items = list("Shielded Robe" = /obj/item/clothing/suit/hooded/cultrobes/cult_shield, "Flagellant's Robe" = /obj/item/clothing/suit/hooded/cultrobes/flagellant_robe)
-
-/obj/structure/cult/functional/forge/get_choosable_items()
-	. = ..()
-	if(SSticker.cultdat.mirror_shields_active)
-		// Both lines here are needed. If you do it without, youll get issues.
-		. += "Mirror Shield"
-		.["Mirror Shield"] = /obj/item/shield/mirror
-
+	choosable_items = list("Shielded Robe" = /obj/item/clothing/suit/hooded/cultrobes/cult_shield, "Flagellant's Robe" = /obj/item/clothing/suit/hooded/cultrobes/flagellant_robe,
+							"Mirror Shield" = /obj/item/shield/mirror)
 
 /obj/structure/cult/functional/forge/Initialize(mapload)
 	. = ..()
@@ -265,7 +248,7 @@ GLOBAL_LIST_INIT(blacklisted_pylon_turfs, typecacheof(list(
 		for(var/mob/living/L in range(5, src))
 			if(iscultist(L) || iswizard(L) || isshade(L) || isconstruct(L))
 				if(L.health != L.maxHealth)
-					new /obj/effect/temp_visual/heal(get_turf(src), COLOR_HEALING_GREEN)
+					new /obj/effect/temp_visual/heal(get_turf(src), "#960000")
 
 					if(ishuman(L))
 						L.heal_overall_damage(1, 1, TRUE, FALSE, TRUE)
@@ -321,7 +304,7 @@ GLOBAL_LIST_INIT(blacklisted_pylon_turfs, typecacheof(list(
 	selection_title = "Archives"
 	creation_message = "<span class='cultitalic'>You invoke the dark magic of the tomes creating a %ITEM%!</span>"
 	choosable_items = list("Shuttle Curse" = /obj/item/shuttle_curse, "Zealot's Blindfold" = /obj/item/clothing/glasses/hud/health/night/cultblind,
-							"Veil Shifter" = /obj/item/cult_shift, "Reality sunderer" = /obj/item/portal_amulet) //Add void torch to veil shifter spawn
+							"Veil Shifter" = /obj/item/cult_shift) //Add void torch to veil shifter spawn
 
 /obj/structure/cult/functional/archives/Initialize(mapload)
 	. = ..()

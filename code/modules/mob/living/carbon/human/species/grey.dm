@@ -16,9 +16,11 @@
 		"eyes" =     /obj/item/organ/internal/eyes/grey //5 darksight.
 		)
 
+	brute_mod = 1.25 //greys are fragile
+
 	species_traits = list(LIPS, IS_WHITELISTED, CAN_WINGDINGS, NO_HAIR)
 	clothing_flags = HAS_UNDERWEAR | HAS_UNDERSHIRT | HAS_SOCKS
-	bodyflags =  HAS_BODY_MARKINGS | HAS_BODYACC_COLOR
+	bodyflags =  HAS_BODY_MARKINGS
 	dietflags = DIET_HERB
 	has_gender = FALSE
 	reagent_tag = PROCESS_ORG
@@ -38,8 +40,14 @@
 	. = ..()
 
 	if(method == REAGENT_TOUCH)
-		if((H.head?.flags & THICKMATERIAL) && (H.wear_suit?.flags & THICKMATERIAL)) // fully pierce proof clothing is also water proof!
+		if(H.wear_mask)
+			to_chat(H, "<span class='danger'>Your [H.wear_mask] protects you from the acid!</span>")
 			return
+
+		if(H.head)
+			to_chat(H, "<span class='danger'>Your [H.wear_mask] protects you from the acid!</span>")
+			return
+
 		if(volume > 25)
 			if(prob(75))
 				H.take_organ_damage(5, 10)
@@ -59,7 +67,7 @@
 			to_chat(H, "<span class='warning'>The water stings[volume < 10 ? " you, but isn't concentrated enough to harm you" : null]!</span>")
 
 /datum/species/grey/after_equip_job(datum/job/J, mob/living/carbon/human/H)
-	var/translator_pref = H.client.prefs.active_character.speciesprefs
+	var/translator_pref = H.client.prefs.speciesprefs
 	if(translator_pref || ((ismindshielded(H) || J.is_command || J.supervisors == "the captain") && HAS_TRAIT(H, TRAIT_WINGDINGS)))
 		if(J.title == "Mime")
 			return
@@ -83,6 +91,4 @@
 
 /datum/species/grey/get_species_runechat_color(mob/living/carbon/human/H)
 	var/obj/item/organ/internal/eyes/E = H.get_int_organ(/obj/item/organ/internal/eyes)
-	if(E)
-		return E.eye_color
-	return flesh_color
+	return E.eye_color

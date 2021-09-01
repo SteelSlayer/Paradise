@@ -7,7 +7,7 @@
 			visible_message("<span class='danger'>[M] has kicked [src]!</span>", \
 					"<span class='userdanger'>[M] has kicked [src]!</span>")
 			if((stat != DEAD) && (damage > 4.9))
-				Paralyse(rand(10 SECONDS, 20 SECONDS))
+				Paralyse(rand(5,10))
 
 			adjustBruteLoss(damage)
 			updatehealth()
@@ -25,7 +25,7 @@
 		..(user, TRUE)
 		adjustBruteLoss(5 + rand(1, 9))
 		spawn(0)
-			Paralyse(2 SECONDS)
+			Paralyse(1)
 			step_away(src, user, 15)
 			sleep(3)
 			step_away(src, user, 15)

@@ -79,7 +79,7 @@ GLOBAL_LIST_INIT(diseases, subtypesof(/datum/disease))
 	var/cure = has_cure()
 
 	if(carrier && !cure)
-		return FALSE
+		return TRUE
 
 	stage = min(stage, max_stages)
 

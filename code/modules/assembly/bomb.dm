@@ -7,25 +7,26 @@
 	throw_speed = 2
 	throw_range = 4
 	flags = CONDUCT //Copied this from old code, so this may or may not be necessary
-	var/status = FALSE   //FALSE - not readied //TRUE - bomb finished with welder
+	var/status = 0   //0 - not readied //1 - bomb finished with welder
 	var/obj/item/assembly_holder/bombassembly = null   //The first part of the bomb is an assembly holder, holding an igniter+some device
 	var/obj/item/tank/bombtank = null //the second part of the bomb is a plasma tank
 	origin_tech = "materials=1;engineering=1"
+
+/obj/item/onetankbomb/ComponentInitialize()
+	. = ..()
+	AddComponent(/datum/component/proximity_monitor)
 
 /obj/item/onetankbomb/examine(mob/user)
 	. = ..()
 	. += bombtank.examine(user)
 
-/obj/item/onetankbomb/update_icon_state()
+/obj/item/onetankbomb/update_icon()
 	if(bombtank)
 		icon_state = bombtank.icon_state
-
-/obj/item/onetankbomb/update_overlays()
-	. = ..()
 	if(bombassembly)
-		. += bombassembly.icon_state
-		. += bombassembly.overlays
-		. += "bomb_assembly"
+		overlays += bombassembly.icon_state
+		overlays += bombassembly.overlays
+		overlays += "bomb_assembly"
 
 /obj/item/onetankbomb/attackby(obj/item/W, mob/user, params)
 	if(istype(W, /obj/item/analyzer))
@@ -40,10 +41,10 @@
 	if(!I.use_tool(src, user, 0, volume = I.tool_volume))
 		return
 	to_chat(user, "<span class='notice'>You disassemble [src].</span>")
-	bombassembly.forceMove(user.loc)
+	bombassembly.loc = user.loc
 	bombassembly.master = null
 	bombassembly = null
-	bombtank.forceMove(user.loc)
+	bombtank.loc = user.loc
 	bombtank.master = null
 	bombtank = null
 	qdel(src)
@@ -118,11 +119,11 @@
 
 	R.bombassembly = S	//Tell the bomb about its assembly part
 	S.master = R		//Tell the assembly about its new owner
-	S.forceMove(R)			//Move the assembly out of the fucking way
+	S.loc = R			//Move the assembly out of the fucking way
 
 	R.bombtank = src	//Same for tank
 	master = R
-	forceMove(R)
+	loc = R
 	R.update_icon()
 	return
 

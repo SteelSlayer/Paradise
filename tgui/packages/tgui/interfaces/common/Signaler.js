@@ -1,10 +1,15 @@
 import { toFixed } from 'common/math';
-import { useBackend } from '../../backend';
-import { Button, LabeledList, NumberInput, Section } from '../../components';
+import { useBackend } from "../../backend";
+import { Button, LabeledList, NumberInput, Section } from "../../components";
 
 export const Signaler = (props, context) => {
   const { act } = useBackend(context);
-  const { code, frequency, minFrequency, maxFrequency } = props.data;
+  const {
+    code,
+    frequency,
+    minFrequency,
+    maxFrequency,
+  } = props.data;
   return (
     <Section>
       <LabeledList>
@@ -16,14 +21,11 @@ export const Signaler = (props, context) => {
             minValue={minFrequency / 10}
             maxValue={maxFrequency / 10}
             value={frequency / 10}
-            format={(value) => toFixed(value, 1)}
+            format={value => toFixed(value, 1)}
             width="80px"
-            onDrag={(e, value) =>
-              act('freq', {
-                freq: value,
-              })
-            }
-          />
+            onDrag={(e, value) => act('freq', {
+              freq: value,
+            })} />
         </LabeledList.Item>
         <LabeledList.Item label="Code">
           <NumberInput
@@ -34,12 +36,9 @@ export const Signaler = (props, context) => {
             maxValue={100}
             value={code}
             width="80px"
-            onDrag={(e, value) =>
-              act('code', {
-                code: value,
-              })
-            }
-          />
+            onDrag={(e, value) => act('code', {
+              code: value,
+            })} />
         </LabeledList.Item>
       </LabeledList>
       <Button
@@ -48,8 +47,7 @@ export const Signaler = (props, context) => {
         icon="arrow-up"
         content="Send Signal"
         textAlign="center"
-        onClick={() => act('signal')}
-      />
+        onClick={() => act('signal')} />
     </Section>
   );
 };

@@ -100,7 +100,7 @@
 		if(4.0) return EAST
 		if(8.0) return WEST
 		else
-			stack_trace("UNKNOWN DIRECTION: [direction]")
+			log_runtime(EXCEPTION("UNKNOWN DIRECTION: [direction]"))
 
 /proc/dir2text(direction)
 	switch(direction)
@@ -213,7 +213,6 @@
 	if(rights & R_MOD)			. += "[seperator]+MODERATOR"
 	if(rights & R_MENTOR)		. += "[seperator]+MENTOR"
 	if(rights & R_VIEWRUNTIMES)	. += "[seperator]+VIEWRUNTIMES"
-	if(rights & R_MAINTAINER)	. += "[seperator]+MAINTAINER"
 	return .
 
 /proc/ui_style2icon(ui_style)
@@ -386,9 +385,9 @@
 		switch(child)
 			if(/datum)
 				return null
-			if(/obj, /mob)
+			if(/obj || /mob)
 				return /atom/movable
-			if(/area, /turf)
+			if(/area || /turf)
 				return /atom
 			else
 				return /datum

@@ -77,7 +77,6 @@
 		spells += new_spell
 		new_spell.Grant(owner, src)
 		to_chat(owner, "<span class='cult'>Your wounds glow with power, you have prepared a [new_spell.name] invocation!</span>")
-		SSblackbox.record_feedback("tally", "cult_spells_prepared", 1, "[new_spell.name]")
 	channeling = FALSE
 
 /datum/action/innate/cult/blood_magic/proc/remove_spell(message = "Pick a spell to remove.")
@@ -144,7 +143,7 @@
 
 /datum/action/innate/cult/blood_spell/stun
 	name = "Stun"
-	desc = "Will knock down and mute a victim on contact. Strike them with a cult blade to complete the invocation, stunning them and extending the mute."
+	desc = "Empowers your hand to stun and mute a victim on contact."
 	button_icon_state = "stun"
 	magic_path = /obj/item/melee/blood_magic/stun
 	health_cost = 10
@@ -158,7 +157,7 @@
 
 /datum/action/innate/cult/blood_spell/emp
 	name = "Electromagnetic Pulse"
-	desc = "Releases an Electromagnetic Pulse, affecting nearby non-cultists. <b>The pulse will still affect you.</b>"
+	desc = "Channel an electromagnetic pulse inside your body, then release it, affecting nearby non-cultists. <b>The pulse will still affect you.</b>"
 	button_icon_state = "emp"
 	health_cost = 10
 	invocation = "Ta'gh fara'qha fel d'amar det!"
@@ -235,7 +234,7 @@
 
 /datum/action/innate/cult/blood_spell/equipment
 	name = "Summon Equipment"
-	desc = "Empowers your hand to summon combat gear onto a cultist you touch, including cult armor into open slots, a cult bola, and a cult sword."
+	desc = "Allows you to empower your hand to summon combat gear onto a cultist you touch, including cult armor, a cult bola, and a cult sword."
 	button_icon_state = "equip"
 	magic_path = /obj/item/melee/blood_magic/armor
 
@@ -293,7 +292,7 @@
 		if(!ishuman(target) || iscultist(target))
 			return
 		var/mob/living/carbon/human/H = target
-		H.Hallucinate(120 SECONDS)
+		H.hallucination = max(H.hallucination, 120)
 		attached_action.charges--
 		attached_action.desc = attached_action.base_desc
 		attached_action.desc += "<br><b><u>Has [attached_action.charges] use\s remaining</u></b>."
@@ -339,7 +338,7 @@
 		button_icon_state = "veiling"
 	if(charges <= 0)
 		qdel(src)
-	desc = "[revealing ? "Reveals" : "Conceals"] nearby cult structures, airlocks, and runes."
+	desc = base_desc
 	desc += "<br><b><u>Has [charges] use\s remaining</u></b>."
 	UpdateButtonIcon()
 
@@ -424,7 +423,7 @@
 //stun
 /obj/item/melee/blood_magic/stun
 	name = "Stunning Aura"
-	desc = "Will knock down and mute a victim on contact. Strike them with a cult blade to complete the invocation, stunning them and extending the mute."
+	desc = "Will stun and mute a victim on contact."
 	color = RUNE_COLOR_RED
 	invocation = "Fuu ma'jin!"
 
@@ -447,22 +446,19 @@
 							   "<span class='userdanger'>Your holy weapon absorbs the blinding light!</span>")
 	else
 		to_chat(user, "<span class='cultitalic'>In a brilliant flash of red, [L] falls to the ground!</span>")
-
-		L.KnockDown(10 SECONDS)
-		L.adjustStaminaLoss(60)
-		L.apply_status_effect(STATUS_EFFECT_CULT_STUN)
+		// These are in life cycles, so double the time that's stated.
+		L.Weaken(5)
+		L.Stun(5)
 		L.flash_eyes(1, TRUE)
 		if(issilicon(target))
 			var/mob/living/silicon/S = L
 			S.emp_act(EMP_HEAVY)
 		else if(iscarbon(target))
 			var/mob/living/carbon/C = L
-			C.Silence(6 SECONDS)
-			C.Stuttering(16 SECONDS)
-			C.CultSlur(20 SECONDS)
-			C.Jitter(16 SECONDS)
-			to_chat(user, "<span class='boldnotice'>Stun mark applied! Stab them with a dagger, sword or blood spear to stun them fully!</span>")
-	user.do_attack_animation(target)
+			C.Silence(3)
+			C.Stuttering(8)
+			C.CultSlur(10)
+			C.Jitter(8)
 	uses--
 	..()
 
@@ -505,7 +501,7 @@
 		log_game("Teleport spell failed - no other teleport runes")
 		return
 	if(!is_level_reachable(user.z))
-		to_chat(user, "<span class='cultitalic'>You are too far away from the station to teleport!</span>")
+		to_chat(user, "<span class='cultitalic'>You are not in the right dimension!</span>")
 		log_game("Teleport spell failed - user in away mission")
 		return
 
@@ -562,7 +558,7 @@
 			if(!C.handcuffed)
 				C.handcuffed = new /obj/item/restraints/handcuffs/energy/cult/used(C)
 				C.update_handcuffed()
-				C.Silence(12 SECONDS)
+				C.Silence(6)
 				to_chat(user, "<span class='notice'>You shackle [C].</span>")
 				add_attack_logs(user, C, "shackled")
 				uses--
@@ -800,7 +796,7 @@
 				if(H.stat == DEAD)
 					to_chat(user, "<span class='warning'>[H.p_their(TRUE)] blood has stopped flowing, you'll have to find another way to extract it.</span>")
 					return
-				if(H.AmountCultSlurring())
+				if(H.cultslurring)
 					to_chat(user, "<span class='danger'>[H.p_their(TRUE)] blood has been tainted by an even stronger form of blood magic, it's no use to us like this!</span>")
 					return
 				if(H.dna && !(NO_BLOOD in H.dna.species.species_traits) && H.dna.species.exotic_blood == null)

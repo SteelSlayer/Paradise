@@ -124,7 +124,7 @@
 	icon_living = "holocarp"
 	maxbodytemp = INFINITY
 	gold_core_spawnable = NO_SPAWN
-	del_on_death = TRUE
+	del_on_death = 1
 	random_color = FALSE
 
 /mob/living/simple_animal/hostile/carp/megacarp

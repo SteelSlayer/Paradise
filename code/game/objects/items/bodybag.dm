@@ -35,7 +35,7 @@
 			return
 		cut_overlays()
 		if(t)
-			add_overlay("bodybag_label")
+			add_overlay(image(icon, "bodybag_label"))
 		return
 	if(istype(I, /obj/item/wirecutters))
 		to_chat(user, "<span class='notice'>You cut the tag off the bodybag.</span>")
@@ -49,14 +49,10 @@
 
 /obj/structure/closet/body_bag/close()
 	if(..())
-		density = FALSE
+		density = 0
 		return TRUE
 	return FALSE
 
-/obj/structure/closet/body_bag/update_overlays()
-	..()
-	if(name != initial(name))
-		. += "bodybag_label"
 
 /obj/structure/closet/body_bag/MouseDrop(over_object, src_location, over_location)
 	. = ..()

@@ -28,7 +28,7 @@
 		if(!isturf(ai.loc))
 			return
 		T = get_turf(T)
-		..(T)
+		loc = T
 		if(use_static)
 			ai.camera_visibility(src)
 		if(ai.client)

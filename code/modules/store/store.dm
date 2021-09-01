@@ -52,16 +52,14 @@ GLOBAL_DATUM_INIT(centcomm_store, /datum/store, new())
 			linked_db = DB
 			break
 
-/datum/store/proc/PlaceOrder(mob/living/user, itemID)
+/datum/store/proc/PlaceOrder(mob/living/usr, itemID)
 	// Get our item, first.
 	var/datum/storeitem/item = items[itemID]
 	if(!item)
-		return FALSE
-
+		return 0
 	// Try to deduct funds.
-	if(!charge(user.mind,item.cost,item))
-		return FALSE
-
+	if(!charge(usr.mind,item.cost,item))
+		return 0
 	// Give them the item.
-	item.deliver(user)
-	return TRUE
+	item.deliver(usr)
+	return 1

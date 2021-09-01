@@ -15,8 +15,8 @@
 	desc = "A modified version of the basic laser gun, this one fires less concentrated energy bolts designed for target practice."
 	origin_tech = "combat=2;magnets=2"
 	ammo_type = list(/obj/item/ammo_casing/energy/laser/practice)
-	clumsy_check = FALSE
-	needs_permit = FALSE
+	clumsy_check = 0
+	needs_permit = 0
 
 /obj/item/gun/energy/laser/retro
 	name ="retro laser gun"
@@ -27,12 +27,12 @@
 /obj/item/gun/energy/laser/captain
 	name = "antique laser gun"
 	icon_state = "caplaser"
-	item_state = null
+	item_state = "caplaser"
 	desc = "This is an antique laser gun. All craftsmanship is of the highest quality. It is decorated with assistant leather and chrome. The object menaces with spikes of energy. On the item is an image of Space Station 13. The station is exploding."
 	force = 10
 	origin_tech = null
 	ammo_x_offset = 3
-	selfcharge = TRUE
+	selfcharge = 1
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | ACID_PROOF
 
 /obj/item/gun/energy/laser/captain/detailed_examine()
@@ -45,10 +45,10 @@
 	desc = "An industrial-grade heavy-duty laser rifle with a modified laser lense to scatter its shot into multiple smaller lasers. The inner-core can self-charge for theorically infinite use."
 	origin_tech = "combat=5;materials=4;powerstorage=4"
 	ammo_type = list(/obj/item/ammo_casing/energy/laser/scatter, /obj/item/ammo_casing/energy/laser)
-	shaded_charge = FALSE
+	shaded_charge = 0
 
 /obj/item/gun/energy/laser/cyborg
-	can_charge = FALSE
+	can_charge = 0
 	desc = "An energy-based laser gun that draws power from the cyborg's internal energy cell directly. So this is what freedom looks like?"
 	ammo_type = list(/obj/item/ammo_casing/energy/laser/cyborg)
 	origin_tech = null
@@ -71,7 +71,7 @@
 	name = "accelerator laser cannon"
 	desc = "An advanced laser cannon that does more damage the farther away the target is."
 	icon_state = "lasercannon"
-	item_state = null
+	item_state = "laser"
 	w_class = WEIGHT_CLASS_BULKY
 	force = 10
 	flags =  CONDUCT
@@ -115,13 +115,13 @@
 	ammo_type = list(/obj/item/ammo_casing/energy/xray)
 
 /obj/item/gun/energy/immolator
-	name = "immolator laser gun"
+	name = "Immolator laser gun"
 	desc = "A modified laser gun, shooting highly concetrated beams with higher intensity that ignites the target, for the cost of draining more power per shot"
 	icon_state = "immolator"
 	item_state = "laser"
 	ammo_type = list(/obj/item/ammo_casing/energy/immolator)
 	origin_tech = "combat=4;magnets=4;powerstorage=3"
-	shaded_charge = TRUE
+	shaded_charge = 1
 
 /obj/item/gun/energy/immolator/multi
 	name = "multi lens immolator cannon"
@@ -130,39 +130,17 @@
 	ammo_type = list(/obj/item/ammo_casing/energy/immolator/strong, /obj/item/ammo_casing/energy/immolator/scatter)
 	origin_tech = "combat=5;magnets=5;powerstorage=4"
 
-/obj/item/gun/energy/immolator/multi/update_overlays()
-	. = ..()
+/obj/item/gun/energy/immolator/multi/update_icon()
+	..()
 	var/obj/item/ammo_casing/energy/shot = ammo_type[select]
 	var/append = shot.select_name
-	. += image(icon = icon, icon_state = "multilensimmolator-[append]")
+	overlays += image(icon = icon, icon_state = "multilensimmolator-[append]")
+
 
 /obj/item/gun/energy/immolator/multi/cyborg
 	name = "cyborg immolator cannon"
 	ammo_type = list(/obj/item/ammo_casing/energy/immolator/scatter/cyborg, /obj/item/ammo_casing/energy/immolator/strong/cyborg) // scatter is default, because it is more useful
 
-/obj/item/gun/energy/emitter
-	name = "mobile emitter"
-	desc = "An emitter removed from its base, and attached to a laser cannon frame."
-	icon_state = "emittercannon"
-	item_state = "laser"
-	w_class = WEIGHT_CLASS_BULKY
-	shaded_charge = TRUE
-	can_holster = FALSE
-	origin_tech = "combat=4;magnets=4;powerstorage=3"
-	ammo_type = list(/obj/item/ammo_casing/energy/emitter)
-	ammo_x_offset = 3
-
-/obj/item/gun/energy/emitter/cyborg
-	name = "mounted emitter"
-	desc = "An emitter built into to your cyborg frame, draining charge from your cell."
-	ammo_type = list(/obj/item/ammo_casing/energy/emitter/cyborg)
-
-/obj/item/gun/energy/emitter/cyborg/newshot()
-	..()
-	robocharge()
-
-/obj/item/gun/energy/emitter/cyborg/emp_act()
-	return
 
 ////////Laser Tag////////////////////
 
@@ -170,10 +148,10 @@
 	name = "laser tag gun"
 	desc = "Standard issue weapon of the Imperial Guard"
 	origin_tech = "combat=2;magnets=2"
-	clumsy_check = FALSE
-	needs_permit = FALSE
+	clumsy_check = 0
+	needs_permit = 0
 	ammo_x_offset = 2
-	selfcharge = TRUE
+	selfcharge = 1
 
 /obj/item/gun/energy/laser/tag/blue
 	icon_state = "bluetag"

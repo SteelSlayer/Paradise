@@ -10,6 +10,8 @@
 	var/list/votable_modes = list()
 	/// Should antags be restricted based on account age?
 	var/antag_account_age_restriction = FALSE
+	/// Max age (in SSmobs cycles, [2 seconds]) before a shadowling starts to take damage if they have not hatched
+	var/shadowling_max_age = 600 // 20 mins
 	/// Scale amount of traitors with population
 	var/traitor_scaling = TRUE
 	/// Prevent mindshield roles getting antagonist status
@@ -53,6 +55,7 @@
 	CONFIG_LOAD_BOOL(enable_gamemode_player_limit, data["enable_gamemode_player_limit"])
 
 	CONFIG_LOAD_NUM(traitor_objectives_amount, data["traitor_objective_amount"])
+	CONFIG_LOAD_NUM(shadowling_max_age, data["shadowling_max_age"])
 
 	// Load gamemode probabilities
 	if(islist(data["gamemode_probabilities"]))

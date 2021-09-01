@@ -4,9 +4,9 @@
 	name = "Mecha"
 	desc = "Exosuit"
 	icon = 'icons/mecha/mecha.dmi'
-	density = TRUE //Dense. To raise the heat.
-	opacity = TRUE ///opaque. Menacing.
-	anchored = TRUE //no pulling around.
+	density = 1 //Dense. To raise the heat.
+	opacity = 1 ///opaque. Menacing.
+	anchored = 1 //no pulling around.
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 	layer = MOB_LAYER //icon draw layer
 	infra_luminosity = 15 //byond implementation is bugged.
@@ -39,12 +39,11 @@
 	var/lights_power = 6
 	var/frozen = FALSE
 	var/repairing = FALSE
-	var/emp_proof = FALSE //If it is immune to emps
 
 	//inner atmos
 	var/use_internal_tank = 0
 	var/internal_tank_valve = ONE_ATMOSPHERE
-	var/obj/machinery/atmospherics/portable/canister/internal_tank
+	var/obj/machinery/portable_atmospherics/canister/internal_tank
 	var/datum/gas_mixture/cabin_air
 	var/obj/machinery/atmospherics/unary/portables_connector/connected_port = null
 
@@ -58,7 +57,7 @@
 	var/list/operation_req_access = list()//required access level for mecha operation
 	var/list/internals_req_access = list(ACCESS_ENGINE,ACCESS_ROBOTICS)//required access level to open cell compartment
 
-	var/obj/structure/mecha_wreckage/wreckage = null  // type that the mecha becomes when destroyed
+	var/wreckage
 
 	var/list/equipment = new
 	var/obj/item/mecha_parts/mecha_equipment/selected
@@ -78,7 +77,7 @@
 	var/activated = FALSE
 	var/power_warned = FALSE
 
-	var/destruction_sleep_duration = 2 SECONDS //Time that mech pilot is put to sleep for if mech is destroyed
+	var/destruction_sleep_duration = 1 //Time that mech pilot is put to sleep for if mech is destroyed
 
 	var/melee_cooldown = 10
 	var/melee_can_hit = 1
@@ -134,7 +133,7 @@
 	return cell
 
 /obj/mecha/proc/add_airtank()
-	internal_tank = new /obj/machinery/atmospherics/portable/canister/air(src)
+	internal_tank = new /obj/machinery/portable_atmospherics/canister/air(src)
 	return internal_tank
 
 /obj/mecha/proc/add_cell(obj/item/stock_parts/cell/C=null)
@@ -211,9 +210,6 @@
 		if(selected && selected.is_ranged())
 			if(HAS_TRAIT(L, TRAIT_PACIFISM) && selected.harmful)
 				to_chat(L, "<span class='warning'>You don't want to harm other living beings!</span>")
-				return
-			if(user.mind?.martial_art?.no_guns)
-				to_chat(L, "<span class='warning'>[L.mind.martial_art.no_guns_message]</span>")
 				return
 			selected.action(target, params)
 	else if(selected && selected.is_melee())
@@ -391,8 +387,9 @@
 			L.take_overall_damage(5,0)
 			if(L.buckled)
 				L.buckled = 0
-			L.Weaken(10 SECONDS)
-			L.apply_effect(STUTTER, 10 SECONDS)
+			L.Stun(5)
+			L.Weaken(5)
+			L.apply_effect(STUTTER, 5)
 			playsound(src, pick(hit_sound), 50, 0, 0)
 			breakthrough = 1
 
@@ -484,9 +481,9 @@
 	if(. && obj_integrity > 0)
 		spark_system.start()
 		switch(damage_flag)
-			if(FIRE)
+			if("fire")
 				check_for_internal_damage(list(MECHA_INT_FIRE,MECHA_INT_TEMP_CONTROL))
-			if(MELEE)
+			if("melee")
 				check_for_internal_damage(list(MECHA_INT_TEMP_CONTROL,MECHA_INT_TANK_BREACH,MECHA_INT_CONTROL_LOST))
 			else
 				check_for_internal_damage(list(MECHA_INT_FIRE,MECHA_INT_TEMP_CONTROL,MECHA_INT_TANK_BREACH,MECHA_INT_CONTROL_LOST,MECHA_INT_SHORT_CIRCUIT))
@@ -500,13 +497,13 @@
 		return 0
 	var/booster_deflection_modifier = 1
 	var/booster_damage_modifier = 1
-	if(damage_flag == BULLET || damage_flag == LASER || damage_flag == ENERGY)
+	if(damage_flag == "bullet" || damage_flag == "laser" || damage_flag == "energy")
 		for(var/obj/item/mecha_parts/mecha_equipment/antiproj_armor_booster/B in equipment)
 			if(B.projectile_react())
 				booster_deflection_modifier = B.deflect_coeff
 				booster_damage_modifier = B.damage_coeff
 				break
-	else if(damage_flag == MELEE)
+	else if(damage_flag == "melee")
 		for(var/obj/item/mecha_parts/mecha_equipment/anticcw_armor_booster/B in equipment)
 			if(B.attack_react())
 				booster_deflection_modifier *= B.deflect_coeff
@@ -536,25 +533,25 @@
 	log_message("Attack by alien. Attacker - [user].", TRUE)
 	add_attack_logs(user, OCCUPANT_LOGGING, "Alien attacked mech [src]")
 	playsound(src.loc, 'sound/weapons/slash.ogg', 100, TRUE)
-	attack_generic(user, 15, BRUTE, MELEE, 0)
+	attack_generic(user, 15, BRUTE, "melee", 0)
 
 /obj/mecha/attack_animal(mob/living/simple_animal/user)
 	log_message("Attack by simple animal. Attacker - [user].")
 	if(!user.melee_damage_upper && !user.obj_damage)
-		user.custom_emote(EMOTE_VISIBLE, "[user.friendly] [src].")
+		user.custom_emote(1, "[user.friendly] [src].")
 		return FALSE
 	else
-		var/play_soundeffect = TRUE
+		var/play_soundeffect = 1
+		if(user.environment_smash)
+			play_soundeffect = 0
+			playsound(src, 'sound/effects/bang.ogg', 50, TRUE)
 		var/animal_damage = rand(user.melee_damage_lower,user.melee_damage_upper)
 		if(user.obj_damage)
-			animal_damage = max(animal_damage, user.obj_damage)
-		animal_damage = max(animal_damage, min(20 * user.environment_smash, 40))
+			animal_damage = user.obj_damage
+		animal_damage = min(animal_damage, 20*user.environment_smash)
 		if(animal_damage)
 			add_attack_logs(user, OCCUPANT_LOGGING, "Animal attacked mech [src]")
-		if(user.environment_smash)
-			play_soundeffect = FALSE
-			playsound(src, 'sound/effects/bang.ogg', 50, TRUE)
-		attack_generic(user, animal_damage, user.melee_damage_type, MELEE, play_soundeffect)
+		attack_generic(user, animal_damage, user.melee_damage_type, "melee", play_soundeffect)
 		return TRUE
 
 /obj/mecha/hulk_damage()
@@ -568,7 +565,7 @@
 
 /obj/mecha/blob_act(obj/structure/blob/B)
 	log_message("Attack by blob. Attacker - [B].")
-	take_damage(30, BRUTE, MELEE, 0, get_dir(src, B))
+	take_damage(30, BRUTE, "melee", 0, get_dir(src, B))
 
 /obj/mecha/attack_tk()
 	return
@@ -577,7 +574,7 @@
 	log_message("Hit by [AM].")
 	if(isitem(AM))
 		var/obj/item/I = AM
-		add_attack_logs(locateUID(I.thrownby), OCCUPANT_LOGGING, "threw [AM] at mech [src]")
+		add_attack_logs(I.thrownby, OCCUPANT_LOGGING, "threw [AM] at mech [src]")
 	. = ..()
 
 /obj/mecha/bullet_act(obj/item/projectile/Proj) //wrapper
@@ -610,25 +607,25 @@
 		trackers -= A
 
 /obj/mecha/Destroy()
-	STOP_PROCESSING(SSobj, src)
 	if(occupant)
 		occupant.SetSleeping(destruction_sleep_duration)
 	go_out()
+	var/mob/living/silicon/ai/AI
 	for(var/mob/M in src) //Let's just be ultra sure
 		if(isAI(M))
-			var/mob/living/silicon/ai/AI = M //AIs are loaded into the mech computer itself. When the mech dies, so does the AI. They can be recovered with an AI card from the wreck.
-			AI.gib() //No wreck, no AI to recover
+			occupant = null
+			AI = M //AIs are loaded into the mech computer itself. When the mech dies, so does the AI. They can be recovered with an AI card from the wreck.
 		else
 			M.forceMove(loc)
-	occupant = null
-	selected = null
 	for(var/obj/item/mecha_parts/mecha_equipment/E in equipment)
 		E.detach(loc)
 		qdel(E)
 	equipment.Cut()
 	QDEL_NULL(cell)
 	QDEL_NULL(internal_tank)
-	QDEL_NULL(radio)
+	if(AI)
+		AI.gib() //No wreck, no AI to recover
+	STOP_PROCESSING(SSobj, src)
 	GLOB.poi_list.Remove(src)
 	if(loc)
 		loc.assume_air(cabin_air)
@@ -636,21 +633,17 @@
 	else
 		qdel(cabin_air)
 	cabin_air = null
-	connected_port = null
 	QDEL_NULL(spark_system)
 	QDEL_NULL(smoke_system)
 	QDEL_LIST(trackers)
-	remove_from_all_data_huds()
 	GLOB.mechas_list -= src //global mech list
 	return ..()
 
 //TODO
 /obj/mecha/emp_act(severity)
-	if(emp_proof)
-		return
 	if(get_charge())
 		use_power((cell.charge/3)/(severity*2))
-		take_damage(30 / severity, BURN, ENERGY, 1)
+		take_damage(30 / severity, BURN, "energy", 1)
 	log_message("EMP detected", 1)
 	check_for_internal_damage(list(MECHA_INT_FIRE, MECHA_INT_TEMP_CONTROL, MECHA_INT_CONTROL_LOST, MECHA_INT_SHORT_CIRCUIT), 1)
 
@@ -729,18 +722,9 @@
 		if(!user.unEquip(W))
 			to_chat(user, "<span class='notice'>\the [W] is stuck to your hand, you cannot put it in \the [src]</span>")
 			return
-
-		// Check if a tracker exists
-		var/obj/item/mecha_parts/mecha_tracking/new_tracker = W
-		for(var/obj/item/mecha_parts/mecha_tracking/current_tracker in trackers)
-			if(new_tracker.ai_beacon == current_tracker.ai_beacon)
-				to_chat(user, "<span class='warning'>This exosuit already has \a [new_tracker.ai_beacon ? "AI" : "tracking"] beacon.</span>")
-				user.put_in_hands(new_tracker)
-				return
-
-		new_tracker.forceMove(src)
+		W.forceMove(src)
 		trackers += W
-		user.visible_message("[user] attaches [new_tracker] to [src].", "<span class='notice'>You attach [new_tracker] to [src].</span>")
+		user.visible_message("[user] attaches [W] to [src].", "<span class='notice'>You attach [W] to [src].</span>")
 		diag_hud_set_mechtracking()
 		return
 
@@ -932,8 +916,8 @@
 				to_chat(user, "<span class='boldannounce'>ACCESS DENIED.</span>")
 				return
 			AI.aiRestorePowerRoutine = 0//So the AI initially has power.
-			AI.control_disabled = TRUE
-			AI.aiRadio.disabledAi = TRUE
+			AI.control_disabled = 1
+			AI.aiRadio.disabledAi = 1
 			AI.forceMove(card)
 			occupant = null
 			AI.controlled_mech = null
@@ -962,8 +946,8 @@
 			else if(occupant || dna) //Normal AIs cannot steal mechs!
 				to_chat(user, "<span class='warning'>Access denied. [name] is [occupant ? "currently occupied" : "secured with a DNA lock"].")
 				return
-			AI.control_disabled = FALSE
-			AI.aiRadio.disabledAi = FALSE
+			AI.control_disabled = 0
+			AI.aiRadio.disabledAi = 0
 			to_chat(user, "<span class='boldnotice'>Transfer successful</span>: [AI.name] ([rand(1000,9999)].exe) installed and executed successfully. Local copy has been removed.")
 			ai_enter_mech(AI, interaction)
 
@@ -979,7 +963,8 @@
 	AI.cancel_camera()
 	AI.controlled_mech = src
 	AI.remote_control = src
-	AI.can_shunt = FALSE //ONE AI ENTERS. NO AI LEAVES.
+	AI.canmove = 1 //Much easier than adding AI checks! Be sure to set this back to 0 if you decide to allow an AI to leave a mech somehow.
+	AI.can_shunt = 0 //ONE AI ENTERS. NO AI LEAVES.
 	to_chat(AI, "[AI.can_dominate_mechs ? "<span class='announce'>Takeover of [name] complete! You are now permanently loaded onto the onboard computer. Do not attempt to leave the station sector!</span>" \
 	: "<span class='notice'>You have been uploaded to a mech's onboard computer."]")
 	to_chat(AI, "<span class='boldnotice'>Use Middle-Mouse to activate mech functions and equipment. Click normally for AI interactions.</span>")
@@ -1182,10 +1167,11 @@
 		brainmob.reset_perspective(src)
 		occupant = brainmob
 		brainmob.forceMove(src) //should allow relaymove
+		brainmob.canmove = TRUE
 		if(istype(mmi_as_oc, /obj/item/mmi/robotic_brain))
 			var/obj/item/mmi/robotic_brain/R = mmi_as_oc
 			if(R.imprinted_master)
-				to_chat(brainmob, "<span class='biggerdanger'>Your imprint to [R.imprinted_master] has been temporarily disabled. You should help the crew and not commit harm.</span>")
+				to_chat(brainmob, "<span class='notice'>Your imprint to [R.imprinted_master] has been temporarily disabled. You should help the crew and not commit harm.</span>")
 		mmi_as_oc.loc = src
 		mmi_as_oc.mecha = src
 		Entered(mmi_as_oc)
@@ -1194,7 +1180,7 @@
 		dir = dir_in
 		log_message("[mmi_as_oc] moved in as pilot.")
 		if(!hasInternalDamage())
-			occupant << sound(nominalsound, volume=50)
+			to_chat(occupant, sound(nominalsound, volume=50))
 		GrantActions(brainmob)
 		return TRUE
 	else
@@ -1267,6 +1253,7 @@
 				L.reset_perspective()
 			mmi.mecha = null
 			mmi.update_icon()
+			L.canmove = 0
 			if(istype(mmi, /obj/item/mmi/robotic_brain))
 				var/obj/item/mmi/robotic_brain/R = mmi
 				if(R.imprinted_master)

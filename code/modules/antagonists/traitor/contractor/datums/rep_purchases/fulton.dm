@@ -12,6 +12,7 @@
 	name = "fulton extraction kit"
 	icon_state = "box_of_doom"
 
-/obj/item/storage/box/contractor/fulton_kit/populate_contents()
+/obj/item/storage/box/contractor/fulton_kit/New()
+	..()
 	new /obj/item/extraction_pack(src)
 	new /obj/item/fulton_core(src)

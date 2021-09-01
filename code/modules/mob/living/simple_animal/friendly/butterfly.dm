@@ -14,7 +14,7 @@
 	health = 2
 	harm_intent_damage = 1
 	friendly = "nudges"
-	density = FALSE
+	density = 0
 	flying = TRUE
 	pass_flags = PASSTABLE | PASSGRILLE | PASSMOB
 	ventcrawler = 2
@@ -26,6 +26,3 @@
 /mob/living/simple_animal/butterfly/New()
 	..()
 	color = rgb(rand(0, 255), rand(0, 255), rand(0, 255))
-
-/mob/living/simple_animal/butterfly/npc_safe(mob/user)
-	return TRUE

@@ -10,6 +10,9 @@
 	name = "\improper Merchandise Computer Circuitboard"
 	build_path = /obj/machinery/computer/merch
 
+/obj/machinery/computer/merch/New()
+	..()
+
 /obj/machinery/computer/merch/attack_ai(mob/user as mob)
 	src.add_hiddenprint(user)
 	return attack_hand(user)
@@ -132,27 +135,25 @@ th.cost.toomuch {background:maroon;}
 
 /obj/machinery/computer/merch/Topic(href, href_list)
 	if(..())
-		return TRUE
+		return 1
 
-	add_fingerprint(usr)
+	//testing(href)
+
+	src.add_fingerprint(usr)
 
 	if(href_list["buy"])
 		var/itemID = text2num(href_list["buy"])
 		var/datum/storeitem/item = GLOB.centcomm_store.items[itemID]
-		var/sure = alert(usr, "Are you sure you wish to purchase [item.name] for $[item.cost]?", "You sure?", "Yes", "No") in list("Yes", "No")
-
+		var/sure = alert(usr,"Are you sure you wish to purchase [item.name] for $[item.cost]?","You sure?","Yes","No") in list("Yes","No")
 		if(!Adjacent(usr))
 			to_chat(usr, "<span class='warning'>You are not close enough to do that.</span>")
 			return
-
-		if(sure == "No")
+		if(sure=="No")
 			updateUsrDialog()
 			return
-
-		if(!GLOB.centcomm_store.PlaceOrder(usr, itemID))
+		if(!GLOB.centcomm_store.PlaceOrder(usr,itemID))
 			to_chat(usr, "<span class='warning'>Unable to charge your account.</span>")
 		else
 			to_chat(usr, "<span class='notice'>You've successfully purchased the item. It should be in your hands or on the floor.</span>")
-
-	updateUsrDialog()
+	src.updateUsrDialog()
 	return

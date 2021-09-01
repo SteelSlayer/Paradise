@@ -8,33 +8,33 @@
 /area/template_noop)
 "c" = (
 /turf/simulated/wall/r_wall,
-/area/ruin/space/unpowered)
+/area/ruin/unpowered)
 "d" = (
 /turf/simulated/floor/plating,
-/area/ruin/space/unpowered)
+/area/ruin/unpowered)
 "e" = (
 /obj/effect/spawner/lootdrop/crate_spawner,
 /turf/simulated/floor/plating,
-/area/ruin/space/unpowered)
+/area/ruin/unpowered)
 "f" = (
 /obj/item/ammo_box/magazine/sniper_rounds,
 /turf/simulated/floor/plating,
-/area/ruin/space/unpowered)
+/area/ruin/unpowered)
 "g" = (
 /obj/item/stack/rods,
 /turf/simulated/floor/plating,
-/area/ruin/space/unpowered)
+/area/ruin/unpowered)
 "h" = (
 /turf/simulated/floor/plating/airless,
-/area/ruin/space/unpowered)
+/area/ruin/unpowered)
 "i" = (
 /obj/machinery/door/airlock,
 /turf/simulated/floor/plating,
-/area/ruin/space/unpowered)
+/area/ruin/unpowered)
 "j" = (
 /obj/item/stack/cable_coil,
 /turf/simulated/floor/plating,
-/area/ruin/space/unpowered)
+/area/ruin/unpowered)
 
 (1,1,1) = {"
 a

@@ -15,7 +15,7 @@
 	icon = 'icons/obj/ninjaobjects.dmi'
 	icon_state = "injector"
 	attack_verb = list("poked", "prodded")
-	var/used = FALSE
+	var/used = 0
 
 /obj/item/creeping_widow_injector/attack_self(mob/living/carbon/human/user as mob)
 	if(!used)
@@ -26,7 +26,7 @@
 		var/datum/martial_art/ninja_martial_art/N = new/datum/martial_art/ninja_martial_art(null)
 		N.teach(user)
 
-		used = TRUE
+		used = 1
 		icon_state = "injector-used"
 		desc = "A strange autoinjector made of a black metal.<br>It appears to be used up and empty."
 		return 0
@@ -61,9 +61,8 @@
 			D.emote("scream")
 			D.drop_item()
 			D.apply_damage(5, BRUTE, pick("l_arm", "r_arm"))
-			D.Stun(2 SECONDS)
-			spawn(50)
-				has_focus = 1
+			D.Stun(1)
+			spawn(50) has_focus = 1
 			return 1
 		to_chat(A, "<span class='warning'>You are not focused enough to use that move yet!</span>")
 		return 0
@@ -107,7 +106,7 @@
 
 		to_chat(A, "<span class='warning'>You feel [D] go limp in your grip.</span>")
 		to_chat(D, "<span class='userdanger'>You feel your consciousness slip away as [A] strangles you!</span>")
-		D.AdjustParalysis(40 SECONDS)
+		D.AdjustParalysis(20)
 
 		has_choke_hold = 0
 
@@ -127,10 +126,9 @@
 			var/atom/throw_target = get_ranged_target_turf(D, get_dir(D, get_step_away(D, A)), 3) // Get a turf 3 tiles away from the target relative to our direction from him.
 			D.throw_at(throw_target, 200, 4) // Throw the poor bastard at the target we just gabbed.
 
-			D.Weaken(4 SECONDS)
+			D.Weaken(2)
 			playsound(get_turf(D), 'sound/weapons/punch1.ogg', 50, 1, -1)
-			spawn(50)
-				has_focus = 1
+			spawn(50) has_focus = 1
 			return 1
 		to_chat(A, "<span class='warning'>You are not focused enough to use that move yet!</span>")
 		return 0

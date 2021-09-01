@@ -9,42 +9,44 @@
 /obj/structure/coatrack/attack_hand(mob/user as mob)
 	user.visible_message("[user] takes [coat] off \the [src].", "You take [coat] off the \the [src]")
 	if(!user.put_in_active_hand(coat))
-		coat.forceMove(get_turf(user))
+		coat.loc = get_turf(user)
 	coat = null
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 
 /obj/structure/coatrack/attackby(obj/item/W as obj, mob/user as mob, params)
-	var/can_hang = FALSE
+	var/can_hang = 0
 	for(var/T in allowed)
 		if(istype(W,T))
-			can_hang = TRUE
+			can_hang = 1
 	if(can_hang && !coat)
 		user.visible_message("[user] hangs [W] on \the [src].", "You hang [W] on the \the [src]")
 		coat = W
 		user.drop_item(src)
-		coat.forceMove(src)
-		update_icon(UPDATE_OVERLAYS)
-		return
-	return ..()
+		coat.loc = src
+		update_icon()
+	else
+		return ..()
 
 /obj/structure/coatrack/CanPass(atom/movable/mover, turf/target, height=0)
-	var/can_hang = FALSE
+	var/can_hang = 0
 	for(var/T in allowed)
 		if(istype(mover,T))
-			can_hang = TRUE
-	if(can_hang && !coat)
-		visible_message("[mover] lands on \the [src].")
-		coat = mover
-		coat.forceMove(src)
-		update_icon(UPDATE_OVERLAYS)
-		return
-	return ..()
+			can_hang = 1
 
-/obj/structure/coatrack/update_overlays()
-	. = ..()
+	if(can_hang && !coat)
+		src.visible_message("[mover] lands on \the [src].")
+		coat = mover
+		coat.loc = src
+		update_icon()
+		return 0
+	else
+		return 1
+
+/obj/structure/coatrack/update_icon()
+	overlays.Cut()
 	if(istype(coat, /obj/item/clothing/suit/storage/labcoat))
-		. += "coat_lab"
+		overlays += image(icon, icon_state = "coat_lab")
 	if(istype(coat, /obj/item/clothing/suit/storage/labcoat/cmo))
-		. += "coat_cmo"
+		overlays += image(icon, icon_state = "coat_cmo")
 	if(istype(coat, /obj/item/clothing/suit/storage/det_suit))
-		. += "coat_det"
+		overlays += image(icon, icon_state = "coat_det")

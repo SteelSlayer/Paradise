@@ -8,9 +8,7 @@
 /proc/enable_debugging(mode, port)
 	CRASH("auxtools not loaded")
 
-/proc/auxtools_expr_stub()
-	CRASH("auxtools not loaded")
-
+// Called in world/New()
 /world/proc/enable_auxtools_debugger()
 	var/debug_server = world.GetConfig("env", "AUXTOOLS_DEBUG_DLL")
 	if (debug_server)

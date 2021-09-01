@@ -15,7 +15,8 @@
 	. = ..()
 	update_icon()
 
-/turf/simulated/floor/light/update_icon_state()
+/turf/simulated/floor/light/update_icon()
+	..()
 	if(on)
 		icon_state = "light_on"
 		set_light(5, null, color)

@@ -31,9 +31,7 @@
 		for(var/obj/item/W in M)
 			M.unEquip(W)
 		//teleport person to cell
-		if(isliving(M))
-			var/mob/living/L = M
-			L.Paralyse(10 SECONDS)
+		M.Paralyse(5)
 		sleep(5)	//so they black out before warping
 		M.loc = pick(GLOB.prisonwarp)
 		if(istype(M, /mob/living/carbon/human))
@@ -89,9 +87,6 @@
 	var/missing_ages = 0
 	var/msg = ""
 	for(var/client/C in GLOB.clients)
-		if(C?.holder?.fakekey && !check_rights(R_ADMIN, FALSE))
-			continue // Skip those in stealth mode if an admin isnt viewing the panel
-
 		if(C.player_age == "Requires database")
 			missing_ages = 1
 			continue
@@ -225,38 +220,29 @@
 	var/mute_string
 
 	switch(mute_type)
-		if(MUTE_IC)
-			mute_string = "IC (say and emote)"
-		if(MUTE_OOC)
-			mute_string = "OOC"
-		if(MUTE_PRAY)
-			mute_string = "pray"
-		if(MUTE_ADMINHELP)
-			mute_string = "adminhelp, admin PM and ASAY"
-		if(MUTE_DEADCHAT)
-			mute_string = "deadchat and DSAY"
-		if(MUTE_EMOTE)
-			mute_string = "emote"
-		if(MUTE_ALL)
-			mute_string = "everything"
-		else
-			return
+		if(MUTE_IC)			mute_string = "IC (say and emote)"
+		if(MUTE_OOC)		mute_string = "OOC"
+		if(MUTE_PRAY)		mute_string = "pray"
+		if(MUTE_ADMINHELP)	mute_string = "adminhelp, admin PM and ASAY"
+		if(MUTE_DEADCHAT)	mute_string = "deadchat and DSAY"
+		if(MUTE_ALL)		mute_string = "everything"
+		else				return
 
 	if(automute)
 		muteunmute = "auto-muted"
-		force_add_mute(M.client.ckey, mute_type)
+		M.client.prefs.muted |= mute_type
 		log_admin("SPAM AUTOMUTE: [muteunmute] [key_name(M)] from [mute_string]")
 		message_admins("SPAM AUTOMUTE: [muteunmute] [key_name_admin(M)] from [mute_string].", 1)
 		to_chat(M, "You have been [muteunmute] from [mute_string] by the SPAM AUTOMUTE system. Contact an admin.")
 		SSblackbox.record_feedback("tally", "admin_verb", 1, "Automute") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 		return
 
-	toggle_mute(M.client.ckey, mute_type)
-
-	if(check_mute(M.client.ckey, mute_type))
-		muteunmute = "muted"
-	else
+	if(M.client.prefs.muted & mute_type)
 		muteunmute = "unmuted"
+		M.client.prefs.muted &= ~mute_type
+	else
+		muteunmute = "muted"
+		M.client.prefs.muted |= mute_type
 
 	log_admin("[key_name(usr)] has [muteunmute] [key_name(M)] from [mute_string]")
 	message_admins("[key_name_admin(usr)] has [muteunmute] [key_name_admin(M)] from [mute_string].", 1)
@@ -410,12 +396,10 @@ Traitors and the like can also be revived with the previous role mostly intact.
 		new_character.age = record_found.fields["age"]
 		new_character.dna.blood_type = record_found.fields["blood_type"]
 	else
-		// We make a random character
 		new_character.change_gender(pick(MALE,FEMALE))
-		var/datum/character_save/S = new
-		S.randomise()
-		S.real_name = G_found.real_name
-		S.copy_to(new_character)
+		var/datum/preferences/A = new()
+		A.real_name = G_found.real_name
+		A.copy_to(new_character)
 
 	if(!new_character.real_name)
 		new_character.real_name = random_name(new_character.gender)
@@ -426,7 +410,7 @@ Traitors and the like can also be revived with the previous role mostly intact.
 		new_character.mind.special_verbs = list()
 	else
 		new_character.mind_initialize()
-	if(!new_character.mind.assigned_role)	new_character.mind.assigned_role = "Assistant" //If they somehow got a null assigned role.
+	if(!new_character.mind.assigned_role)	new_character.mind.assigned_role = "Civilian"//If they somehow got a null assigned role.
 
 	//DNA
 	if(record_found)//Pull up their name from database records if they did have a mind.
@@ -455,7 +439,7 @@ Traitors and the like can also be revived with the previous role mostly intact.
 		if("traitor")
 			if(new_character.mind.has_antag_datum(/datum/antagonist/traitor))
 				var/datum/antagonist/traitor/T = new_character.mind.has_antag_datum(/datum/antagonist/traitor)
-				T.give_uplink()
+				T.equip_traitor(src)
 			else
 				new_character.mind.add_antag_datum(/datum/antagonist/traitor)
 		if("Wizard")
@@ -468,8 +452,9 @@ Traitors and the like can also be revived with the previous role mostly intact.
 				new_character.loc = get_turf(synd_spawn)
 			call(/datum/game_mode/proc/equip_syndicate)(new_character)
 
-		if("Deathsquad Commando")//Leaves them at late-join spawn.
-			new_character.equip_deathsquad_commando()
+		if("Death Commando")//Leaves them at late-join spawn.
+			new_character.equip_death_commando()
+			new_character.internal = new_character.s_store
 			new_character.update_action_buttons_icon()
 		else//They may also be a cyborg or AI.
 			switch(new_character.mind.assigned_role)
@@ -485,7 +470,7 @@ Traitors and the like can also be revived with the previous role mostly intact.
 						new_character.mind.add_antag_datum(/datum/antagonist/traitor)
 				//Add aliens.
 				else
-					SSjobs.AssignRank(new_character, new_character.mind.assigned_role, FALSE, FALSE)
+					SSjobs.AssignRank(new_character, new_character.mind.assigned_role, 0)
 					SSjobs.EquipRank(new_character, new_character.mind.assigned_role, 1)//Or we simply equip them.
 
 	//Announces the character on all the systems, based on the record.
@@ -621,7 +606,7 @@ Traitors and the like can also be revived with the previous role mostly intact.
 		"Custom" = "Cryptic Message")
 
 	var/list/MsgSound = list("Beep" = 'sound/misc/notice2.ogg',
-		"Enemy Communications Intercepted" = 'sound/AI/intercept.ogg',
+		"Enemy Communications Intercepted" = 'sound/AI/intercept2.ogg',
 		"New Command Report Created" = 'sound/AI/commandreport.ogg')
 
 	var/type = input(usr, "Pick a type of report to send", "Report Type", "") as anything in MsgType
@@ -1087,12 +1072,12 @@ Traitors and the like can also be revived with the previous role mostly intact.
 		return
 
 	if(SSticker.mode.ert_disabled)
-		SSticker.mode.ert_disabled = FALSE
+		SSticker.mode.ert_disabled = 0
 		to_chat(usr, "<span class='notice'>ERT has been <b>Enabled</b>.</span>")
 		log_admin("Admin [key_name(src)] has enabled ERT calling.")
 		message_admins("Admin [key_name_admin(usr)] has enabled ERT calling.", 1)
 	else
-		SSticker.mode.ert_disabled = TRUE
+		SSticker.mode.ert_disabled = 1
 		to_chat(usr, "<span class='warning'>ERT has been <b>Disabled</b>.</span>")
 		log_admin("Admin [key_name(src)] has disabled ERT calling.")
 		message_admins("Admin [key_name_admin(usr)] has disabled ERT calling.", 1)

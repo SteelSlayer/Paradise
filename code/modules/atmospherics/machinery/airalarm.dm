@@ -43,7 +43,6 @@
 #define AALARM_PRESET_VOX       2 // Support Vox
 #define AALARM_PRESET_COLDROOM  3 // Kitchen coldroom
 #define AALARM_PRESET_SERVER    4 // Server coldroom
-#define AALARM_PRESET_DISABLED  5 // Disables all alarms
 
 #define AALARM_REPORT_TIMEOUT 100
 
@@ -73,7 +72,7 @@
 	name = "alarm"
 	icon = 'icons/obj/monitors.dmi'
 	icon_state = "alarm0"
-	anchored = TRUE
+	anchored = 1
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 4
 	active_power_usage = 8
@@ -81,23 +80,22 @@
 	req_one_access = list(ACCESS_ATMOSPHERICS, ACCESS_ENGINE_EQUIP)
 	max_integrity = 250
 	integrity_failure = 80
-	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 100, BOMB = 0, BIO = 100, RAD = 100, FIRE = 90, ACID = 30)
+	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 100, "bomb" = 0, "bio" = 100, "rad" = 100, "fire" = 90, "acid" = 30)
 	resistance_flags = FIRE_PROOF
 	siemens_strength = 1
 	frequency = ATMOS_VENTSCRUB
-	var/custom_name
 	var/alarm_id = null
 	//var/skipprocess = 0 //Experimenting
 	var/alarm_frequency = ATMOS_FIRE_FREQ
 	var/remote_control = TRUE
 	var/rcon_setting = RCON_AUTO
 	var/rcon_time = 0
-	var/locked = TRUE
+	var/locked = 1
 	var/datum/wires/alarm/wires = null
-	var/wiresexposed = FALSE // If it's been screwdrivered open.
-	var/aidisabled = FALSE
+	var/wiresexposed = 0 // If it's been screwdrivered open.
+	var/aidisabled = 0
 	var/AAlarmwires = 31
-	var/shorted = FALSE
+	var/shorted = 0
 
 	// Waiting on a device to respond.
 	// Specifies an id_tag.  NULL means we aren't waiting.
@@ -127,7 +125,6 @@
 	name = "engine air alarm"
 	locked = FALSE
 	req_access = null
-	custom_name = TRUE
 	req_one_access = list(ACCESS_ATMOSPHERICS, ACCESS_ENGINE)
 
 /obj/machinery/alarm/syndicate //general syndicate access
@@ -147,9 +144,6 @@
 
 /obj/machinery/alarm/kitchen_cold_room
 	preset = AALARM_PRESET_COLDROOM
-
-/obj/machinery/alarm/disabled
-	preset = AALARM_PRESET_DISABLED
 
 /obj/machinery/alarm/proc/apply_preset(no_cycle_after=0)
 	// Propogate settings.
@@ -198,17 +192,6 @@
 				"pressure"       = new/datum/tlv(-1.0, -1.0, -1.0, -1.0), /* kpa */
 				"temperature"    = new/datum/tlv(0, 0, T20C + 5, T20C + 15), // K
 			)
-		if(AALARM_PRESET_DISABLED)
-			no_cycle_after = TRUE
-			TLV = list(
-				"oxygen"         = new/datum/tlv(-1.0, -1.0, -1.0, -1.0), // Partial pressure, kpa
-				"nitrogen"       = new/datum/tlv(-1.0, -1.0, -1.0, -1.0), // Partial pressure, kpa
-				"carbon dioxide" = new/datum/tlv(-1.0, -1.0, -1.0, -1.0), // Partial pressure, kpa
-				"plasma"         = new/datum/tlv(-1.0, -1.0, -1.0, -1.0), // Partial pressure, kpa
-				"other"          = new/datum/tlv(-1.0, -1.0, -1.0, -1.0), // Partial pressure, kpa
-				"pressure"       = new/datum/tlv(-1.0, -1.0, -1.0, -1.0), /* kpa */
-				"temperature"    = new/datum/tlv(-1.0, -1.0, -1.0, -1.0), // K
-			)
 
 	if(!no_cycle_after)
 		mode = AALARM_MODE_REPLACEMENT
@@ -223,7 +206,7 @@
 			setDir(direction)
 
 		buildstage = 0
-		wiresexposed = TRUE
+		wiresexposed = 1
 		set_pixel_offsets_from_dir(-24, 24, -24, 24)
 
 	. = ..()
@@ -252,13 +235,13 @@
 /obj/machinery/alarm/proc/first_run()
 	alarm_area = get_area(src)
 	area_uid = alarm_area.uid
-	if(!custom_name)
+	if(name == "alarm")
 		name = "[alarm_area.name] Air Alarm"
 	apply_preset(1) // Don't cycle.
 	GLOB.air_alarm_repository.update_cache(src)
 
-/obj/machinery/alarm/Initialize(mapload)
-	. = ..()
+/obj/machinery/alarm/Initialize()
+	..()
 	set_frequency(frequency)
 	if(!master_is_operating())
 		elect_master()
@@ -267,8 +250,8 @@
 	if(!alarm_area)
 		alarm_area = get_area(src)
 	if(!alarm_area)
-		. = FALSE
-		CRASH("Air alarm /obj/machinery/alarm lacks alarm_area vars during proc/master_is_operating()")
+		log_runtime(EXCEPTION("Air alarm /obj/machinery/alarm lacks alarm_area vars during proc/master_is_operating()"), src)
+		return FALSE
 	return alarm_area.master_air_alarm && !(alarm_area.master_air_alarm.stat & (NOPOWER|BROKEN))
 
 
@@ -376,7 +359,7 @@
 
 			environment.merge(gas)
 
-/obj/machinery/alarm/update_icon_state()
+/obj/machinery/alarm/update_icon()
 	if(wiresexposed)
 		icon_state = "alarmx"
 		return
@@ -391,15 +374,6 @@
 			icon_state = "alarm2" //yes, alarm2 is yellow alarm
 		if(ATMOS_ALARM_DANGER)
 			icon_state = "alarm1"
-
-/obj/machinery/alarm/update_overlays()
-	. = ..()
-	underlays.Cut()
-
-	if(stat & NOPOWER || buildstage != AIR_ALARM_READY || wiresexposed || shorted)
-		return
-
-	underlays += emissive_appearance(icon, "alarm_lightmask")
 
 /obj/machinery/alarm/proc/register_env_machine(m_id, device_type)
 	var/new_name
@@ -564,7 +538,7 @@
 	if(alarm_area.atmosalert(new_area_danger_level, src)) //if area was in normal state or if area was in alert state
 		post_alert(new_area_danger_level)
 
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
 /obj/machinery/alarm/proc/post_alert(alert_level)
 	if(!report_danger_level)
@@ -631,8 +605,9 @@
 		return
 
 	var/datum/gas_mixture/environment = location.return_air()
-	var/known_total = environment.oxygen + environment.nitrogen + environment.carbon_dioxide + environment.toxins
-	var/total = environment.total_moles()
+	var/total = environment.oxygen + environment.nitrogen + environment.carbon_dioxide + environment.toxins
+	if(total == 0)
+		return null
 
 	var/datum/tlv/cur_tlv
 	var/GET_PP = R_IDEAL_GAS_EQUATION*environment.temperature/environment.volume
@@ -643,24 +618,23 @@
 
 	cur_tlv = TLV["oxygen"]
 	var/oxygen_dangerlevel = cur_tlv.get_danger_level(environment.oxygen*GET_PP)
-	var/oxygen_percent = total ? environment.oxygen / total * 100 : 0
+	var/oxygen_percent = round(environment.oxygen / total * 100, 2)
 
 	cur_tlv = TLV["nitrogen"]
 	var/nitrogen_dangerlevel = cur_tlv.get_danger_level(environment.nitrogen*GET_PP)
-	var/nitrogen_percent = total ? environment.nitrogen / total * 100 : 0
+	var/nitrogen_percent = round(environment.nitrogen / total * 100, 2)
 
 	cur_tlv = TLV["carbon dioxide"]
 	var/co2_dangerlevel = cur_tlv.get_danger_level(environment.carbon_dioxide*GET_PP)
-	var/co2_percent = total ? environment.carbon_dioxide / total * 100 : 0
+	var/co2_percent = round(environment.carbon_dioxide / total * 100, 2)
 
 	cur_tlv = TLV["plasma"]
 	var/plasma_dangerlevel = cur_tlv.get_danger_level(environment.toxins*GET_PP)
-	var/plasma_percent = total ? environment.toxins / total * 100 : 0
+	var/plasma_percent = round(environment.toxins / total * 100, 2)
 
 	cur_tlv = TLV["other"]
-	var/other_moles = total - known_total
-	var/other_dangerlevel = cur_tlv.get_danger_level(other_moles*GET_PP)
-	var/other_percent = total ? other_moles / total * 100 : 0
+	var/other_moles = environment.total_trace_moles()
+	var/other_dangerlevel = cur_tlv.get_danger_level(other_moles * GET_PP)
 
 	cur_tlv = TLV["temperature"]
 	var/temperature_dangerlevel = cur_tlv.get_danger_level(environment.temperature)
@@ -676,7 +650,7 @@
 	percentages["nitrogen"] = nitrogen_percent
 	percentages["co2"] = co2_percent
 	percentages["plasma"] = plasma_percent
-	percentages["other"] = other_percent
+	percentages["other"] = other_moles
 	data["contents"] = percentages
 
 	var/list/danger = list()
@@ -728,8 +702,7 @@
 		AALARM_PRESET_HUMAN		= list("name"="Human",     	 "desc"="Checks for oxygen and nitrogen", "id" = AALARM_PRESET_HUMAN),\
 		AALARM_PRESET_VOX 		= list("name"="Vox",       	 "desc"="Checks for nitrogen only", "id" = AALARM_PRESET_VOX),\
 		AALARM_PRESET_COLDROOM 	= list("name"="Coldroom", 	 "desc"="For freezers", "id" = AALARM_PRESET_COLDROOM),\
-		AALARM_PRESET_SERVER 	= list("name"="Server Room", "desc"="For server rooms", "id" = AALARM_PRESET_SERVER),\
-		AALARM_PRESET_DISABLED 	= list("name"="Disabled", "desc"="Disables all alarms", "id" = AALARM_PRESET_DISABLED)
+		AALARM_PRESET_SERVER 	= list("name"="Server Room", "desc"="For server rooms", "id" = AALARM_PRESET_SERVER)
 	)
 	data["preset"] = preset
 
@@ -921,13 +894,13 @@
 			if(alarm_area.atmosalert(ATMOS_ALARM_DANGER, src))
 				post_alert(ATMOS_ALARM_DANGER)
 			alarmActivated = TRUE
-			update_icon(UPDATE_ICON_STATE)
+			update_icon()
 
 		if("atmos_reset")
 			if(alarm_area.atmosalert(ATMOS_ALARM_NONE, src, TRUE))
 				post_alert(ATMOS_ALARM_NONE)
 			alarmActivated = FALSE
-			update_icon(UPDATE_ICON_STATE)
+			update_icon()
 
 		if("mode")
 			if(!is_authenticated(usr, active_ui))
@@ -1001,7 +974,7 @@
 				coil.use(5)
 
 				buildstage = 2
-				update_icon(UPDATE_ICON_STATE | UPDATE_OVERLAYS)
+				update_icon()
 				first_run()
 				return
 		if(0)
@@ -1010,7 +983,7 @@
 				playsound(get_turf(src), I.usesound, 50, 1)
 				qdel(I)
 				buildstage = 1
-				update_icon(UPDATE_ICON_STATE)
+				update_icon()
 				return
 	return ..()
 
@@ -1028,7 +1001,7 @@
 	to_chat(user, "You pry out the circuit!")
 	new /obj/item/airalarm_electronics(user.drop_location())
 	buildstage = AIR_ALARM_FRAME
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
 /obj/machinery/alarm/multitool_act(mob/user, obj/item/I)
 	if(buildstage != AIR_ALARM_READY)
@@ -1046,7 +1019,7 @@
 	if(!I.use_tool(src, user, 0, volume = I.tool_volume))
 		return
 	wiresexposed = !wiresexposed
-	update_icon(UPDATE_ICON_STATE | UPDATE_OVERLAYS)
+	update_icon()
 	if(wiresexposed)
 		SCREWDRIVER_OPEN_PANEL_MESSAGE
 	else
@@ -1062,7 +1035,7 @@
 		var/obj/item/stack/cable_coil/new_coil = new /obj/item/stack/cable_coil(user.drop_location())
 		new_coil.amount = 5
 		buildstage = AIR_ALARM_BUILDING
-		update_icon(UPDATE_ICON_STATE)
+		update_icon()
 	if(wiresexposed)
 		wires.Interact(user)
 
@@ -1079,15 +1052,13 @@
 /obj/machinery/alarm/power_change()
 	if(powered(power_channel))
 		stat &= ~NOPOWER
-		set_light(1, LIGHTING_MINIMUM_POWER)
 	else
 		stat |= NOPOWER
-		set_light(0)
-	update_icon(UPDATE_ICON_STATE | UPDATE_OVERLAYS)
+	update_icon()
 
 /obj/machinery/alarm/obj_break(damage_flag)
 	..()
-	update_icon(UPDATE_ICON_STATE | UPDATE_OVERLAYS)
+	update_icon()
 
 /obj/machinery/alarm/deconstruct(disassembled = TRUE)
 	if(!(flags & NODECONSTRUCT))
@@ -1108,7 +1079,7 @@
 /obj/machinery/alarm/proc/unshort_callback()
 	if(shorted)
 		shorted = FALSE
-		update_icon(UPDATE_ICON_STATE | UPDATE_OVERLAYS)
+		update_icon()
 
 /obj/machinery/alarm/proc/enable_ai_control_callback()
 	if(aidisabled)
@@ -1118,7 +1089,6 @@
 	name = "all-access air alarm"
 	desc = "This particular atmos control unit appears to have no access restrictions."
 	locked = FALSE
-	custom_name = TRUE
 	req_access = null
 	req_one_access = null
 

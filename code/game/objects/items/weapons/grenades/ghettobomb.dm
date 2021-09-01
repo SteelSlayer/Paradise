@@ -6,18 +6,18 @@
 	w_class = WEIGHT_CLASS_SMALL
 	icon = 'icons/obj/grenade.dmi'
 	icon_state = "improvised_grenade"
-	item_state = "grenade"
+	item_state = "flashbang"
 	throw_speed = 3
 	throw_range = 7
 	flags = CONDUCT
 	slot_flags = SLOT_BELT
-	active = FALSE
-	det_time = 5 SECONDS
-	display_timer = FALSE
+	active = 0
+	det_time = 50
+	display_timer = 0
 	var/list/times
 
-/obj/item/grenade/iedcasing/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/iedcasing/New()
+	..()
 	overlays += "improvised_grenade_filled"
 	overlays += "improvised_grenade_wired"
 	times = list("5" = 10, "-1" = 20, "[rand(30, 80)]" = 50, "[rand(65, 180)]" = 20)// "Premature, Dud, Short Fuse, Long Fuse"=[weighting value]

@@ -22,12 +22,13 @@
 	melee_damage_upper = 20
 	web_type = /obj/structure/spider/terrorweb/green
 	var/feedings_to_lay = 2
+	var/datum/action/innate/terrorspider/greeneggs/greeneggs_action
 
 
-/mob/living/simple_animal/hostile/poison/terror_spider/green/Initialize(mapload)
-	. = ..()
-	var/datum/action/innate/terrorspider/greeneggs/act = new
-	act.Grant(src)
+/mob/living/simple_animal/hostile/poison/terror_spider/green/New()
+	..()
+	greeneggs_action = new()
+	greeneggs_action.Grant(src)
 
 /mob/living/simple_animal/hostile/poison/terror_spider/green/proc/DoLayGreenEggs()
 	var/obj/structure/spider/eggcluster/E = locate() in get_turf(src)
@@ -86,8 +87,9 @@
 		..()
 		return
 	var/inject_target = pick("chest","head")
-	if(L.IsStunned() || L.can_inject(null, FALSE, inject_target, FALSE))
-		L.AdjustEyeBlurry(20 SECONDS, 0, 120 SECONDS)
+	if(L.stunned || L.can_inject(null, FALSE, inject_target, FALSE))
+		if(L.eye_blurry < 60)
+			L.AdjustEyeBlurry(10)
 		// instead of having a venom that only lasts seconds, we just add the eyeblur directly.
 		visible_message("<span class='danger'>[src] buries its fangs deep into the [inject_target] of [target]!</span>")
 	else
@@ -100,5 +102,6 @@
 
 /obj/structure/spider/terrorweb/green/web_special_ability(mob/living/carbon/C)
 	if(istype(C))
-		C.AdjustEyeBlurry(60 SECONDS, 0, 120 SECONDS)
+		if(C.eye_blurry < 60)
+			C.AdjustEyeBlurry(30)
 

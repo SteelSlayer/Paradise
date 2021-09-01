@@ -7,22 +7,19 @@
 		smoothTurfs = turfs
 
 	log_debug("Setting up atmos")
-	/* setup_allturfs is superfluous during server initialization because
-	   air subsystem will call subsequently call setup_allturfs with _every_
-	   turf in the world */
-	if(SSair && SSair.initialized)
+	if(SSair)
 		SSair.setup_allturfs(turfs)
 	log_debug("\tTook [stop_watch(subtimer)]s")
 
 	subtimer = start_watch()
 	log_debug("Smoothing tiles")
 	for(var/turf/T in smoothTurfs)
-		if(T.smoothing_flags)
-			QUEUE_SMOOTH(T)
+		if(T.smooth)
+			queue_smooth(T)
 		for(var/R in T)
 			var/atom/A = R
-			if(A.smoothing_flags)
-				QUEUE_SMOOTH(A)
+			if(A.smooth)
+				queue_smooth(A)
 	log_debug("\tTook [stop_watch(subtimer)]s")
 	log_debug("Late setup finished - took [stop_watch(total_timer)]s")
 

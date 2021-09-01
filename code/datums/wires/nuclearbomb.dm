@@ -51,7 +51,7 @@
 			if(!N.lighthack)
 				if(N.icon_state == "nuclearbomb2")
 					N.icon_state = "nuclearbomb1"
-			N.timing = FALSE
+			N.timing = 0
 			GLOB.bomb_set = FALSE
 
 		if(WIRE_BOMB_LIGHT)

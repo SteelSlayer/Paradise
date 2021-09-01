@@ -1,6 +1,5 @@
 /area
 	var/fire = null
-	var/area_emergency_mode = FALSE // When true, fire alarms cannot unset emergency lighting. Not to be confused with emergency_mode var on light objects.
 	var/atmosalm = ATMOS_ALARM_NONE
 	var/poweralm = TRUE
 	var/report_alerts = TRUE // Should atmos alerts notify the AI/computers
@@ -75,8 +74,6 @@
 	var/min_ambience_cooldown = 30 SECONDS
 	///Used to decide what the maximum time between ambience is
 	var/max_ambience_cooldown = 90 SECONDS
-
-	var/area/area_limited_icon_smoothing
 
 /area/New(loc, ...)
 	if(!there_can_be_many) // Has to be done in New else the maploader will fuck up and find subtypes for the parent
@@ -245,7 +242,6 @@
 					D.nextstate = opening ? FD_OPEN : FD_CLOSED
 				else if(!(D.density ^ opening))
 					INVOKE_ASYNC(D, (opening ? /obj/machinery/door/firedoor.proc/open : /obj/machinery/door/firedoor.proc/close))
-					INVOKE_ASYNC(D, (opening ? /obj/machinery/door/firedoor.proc/deactivate_alarm : /obj/machinery/door/firedoor.proc/activate_alarm))
 
 /**
   * Generate a firealarm alert for this area
@@ -264,7 +260,6 @@
 		for(var/item in firealarms)
 			var/obj/machinery/firealarm/F = item
 			F.update_icon()
-			GLOB.firealarm_soundloop.start(F)
 
 	for(var/thing in cameras)
 		var/obj/machinery/camera/C = locateUID(thing)
@@ -290,7 +285,6 @@
 		for(var/item in firealarms)
 			var/obj/machinery/firealarm/F = item
 			F.update_icon()
-			GLOB.firealarm_soundloop.stop(F, TRUE)
 
 	for(var/thing in cameras)
 		var/obj/machinery/camera/C = locateUID(thing)
@@ -351,26 +345,24 @@
 	for(var/alarm in firealarms)
 		var/obj/machinery/firealarm/F = alarm
 		F.update_fire_light(fire)
-	if(area_emergency_mode) //Fires are not legally allowed if the power is off
-		return
 	for(var/obj/machinery/light/L in src)
-		L.fire_mode = TRUE
-		L.update(TRUE, TRUE, FALSE)
+		L.update()
 
-///unset the fire alarm visual affects in an area
+/**
+  * unset the fire alarm visual affects in an area
+  *
+  * Updates the fire light on fire alarms in the area and sets all lights to emergency mode
+  */
 /area/proc/unset_fire_alarm_effects()
 	fire = FALSE
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 	for(var/alarm in firealarms)
 		var/obj/machinery/firealarm/F = alarm
 		F.update_fire_light(fire)
-	if(area_emergency_mode) //The lights stay red until the crisis is resolved
-		return
 	for(var/obj/machinery/light/L in src)
-		L.fire_mode = FALSE
-		L.update(TRUE, TRUE, FALSE)
+		L.update()
 
-/area/update_icon_state()
+/area/proc/updateicon()
 	var/weather_icon
 	for(var/V in SSweather.processing)
 		var/datum/weather/W = V
@@ -380,7 +372,7 @@
 	if(!weather_icon)
 		icon_state = null
 
-/area/space/update_icon_state()
+/area/space/updateicon()
 	icon_state = null
 
 /*
@@ -417,7 +409,7 @@
 	for(var/obj/machinery/M in src)	// for each machine in the area
 		M.power_change()			// reverify power status (to update icons etc.)
 	SEND_SIGNAL(src, COMSIG_AREA_POWER_CHANGE)
-	update_icon(UPDATE_ICON_STATE)
+	updateicon()
 
 /area/proc/usage(chan)
 	var/used = 0
@@ -514,9 +506,6 @@
 		if(istype(M.shoes, /obj/item/clothing/shoes/magboots) && (M.shoes.flags & NOSLIP))
 			return
 
-	if(M.dna.species.spec_thunk(M)) //Species level thunk overrides
-		return
-
 	if(M.buckled) //Cam't fall down if you are buckled
 		return
 
@@ -524,10 +513,12 @@
 		return
 
 	if((istype(M,/mob/living/carbon/human/)) && (M.m_intent == MOVE_INTENT_RUN))
-		M.Weaken(10 SECONDS)
+		M.Stun(5)
+		M.Weaken(5)
 
 	else if(istype(M,/mob/living/carbon/human/))
-		M.Weaken(4 SECONDS)
+		M.Stun(2)
+		M.Weaken(2)
 
 
 	to_chat(M, "Gravity!")

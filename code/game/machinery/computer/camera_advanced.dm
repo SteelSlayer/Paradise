@@ -134,9 +134,7 @@
 		if(!isturf(eye_user.loc))
 			return
 		T = get_turf(T)
-		var/old_loc = loc
 		loc = T
-		Moved(old_loc, get_dir(old_loc, loc))
 		if(use_static)
 			GLOB.cameranet.visibility(src, GetViewerClient())
 		if(visible_icon)

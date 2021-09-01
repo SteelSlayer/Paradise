@@ -49,12 +49,11 @@
 
 /datum/reagent/slimejelly/on_mob_life(mob/living/M)
 	var/update_flags = STATUS_UPDATE_NONE
-	if(M.get_blood_id() != id)  // no effect on slime people
-		if(prob(10))
-			to_chat(M, "<span class='danger'>Your insides are burning!</span>")
-			update_flags |= M.adjustToxLoss(rand(2, 6) * REAGENTS_EFFECT_MULTIPLIER, FALSE) // avg 0.4 toxin per cycle, not unreasonable
-		else if(prob(40))
-			update_flags |= M.adjustBruteLoss(-0.5 * REAGENTS_EFFECT_MULTIPLIER, FALSE)
+	if(prob(10))
+		to_chat(M, "<span class='danger'>Your insides are burning!</span>")
+		update_flags |= M.adjustToxLoss(rand(2, 6) * REAGENTS_EFFECT_MULTIPLIER, FALSE) // avg 0.4 toxin per cycle, not unreasonable
+	else if(prob(40))
+		update_flags |= M.adjustBruteLoss(-0.5 * REAGENTS_EFFECT_MULTIPLIER, FALSE)
 	return ..() | update_flags
 
 /datum/reagent/slimejelly/on_merge(list/mix_data)
@@ -179,7 +178,9 @@
 	taste_description = "slime"
 
 /datum/reagent/mutagen/reaction_mob(mob/living/M, method=REAGENT_TOUCH, volume)
-	if(!M || !M.dna || HAS_TRAIT(M, TRAIT_BADDNA) || HAS_TRAIT(M, TRAIT_GENELESS))
+	if(!..())
+		return
+	if(!M.dna || HAS_TRAIT(M, TRAIT_BADDNA) || HAS_TRAIT(M, TRAIT_GENELESS))
 		return //No robots, AIs, aliens, Ians or other mobs should be affected by this.
 	if((method==REAGENT_TOUCH && prob(33)) || method==REAGENT_INGEST)
 		randmutb(M)
@@ -198,7 +199,7 @@
 /datum/reagent/stable_mutagen
 	name = "Stable mutagen"
 	id = "stable_mutagen"
-	description = "Just the regular, boring sort of mutagenic compound. Works in a completely predictable manner."
+	description = "Just the regular, boring sort of mutagenic compound.  Works in a completely predictable manner."
 	reagent_state = LIQUID
 	color = "#7DFF00"
 	taste_description = "slime"
@@ -232,7 +233,7 @@
 			data = B.data.Copy()
 
 /datum/reagent/uranium
-	name = "Uranium"
+	name ="Uranium"
 	id = "uranium"
 	description = "A silvery-white metallic chemical element in the actinide series, weakly radioactive."
 	reagent_state = SOLID
@@ -366,7 +367,7 @@
 		to_chat(H, "<span class='warning'>The blueish acidic substance stings[volume < 5 ? " you, but isn't concentrated enough to harm you" : null]!</span>")
 
 /datum/reagent/acetic_acid
-	name = "Acetic acid"
+	name = "acetic acid"
 	id = "acetic_acid"
 	description = "A weak acid that is the main component of vinegar and bad hangovers."
 	color = "#0080ff"
@@ -435,7 +436,7 @@
 	var/update_flags = STATUS_UPDATE_NONE
 	update_flags |= M.adjustToxLoss(1, FALSE)
 	M.damageoverlaytemp = 60
-	M.EyeBlurry(6 SECONDS)
+	update_flags |= M.EyeBlurry(3)
 	return ..() | update_flags
 
 /datum/reagent/beer2	//disguised as normal beer for use by emagged service borgs
@@ -447,27 +448,16 @@
 	drink_icon ="beerglass"
 	drink_name = "Beer glass"
 	drink_desc = "A freezing pint of beer"
-	can_synth = FALSE
 	taste_description = "beer"
 	taste_description = "piss water"
 
 /datum/reagent/beer2/on_mob_life(mob/living/M)
 	var/update_flags = STATUS_UPDATE_NONE
 	switch(current_cycle)
-		if(1 to 5)
-			if(prob(25))
-				M.emote("yawn")
-		if(6 to 9)
-			M.AdjustEyeBlurry(10 SECONDS)
-			if(prob(35))
-				M.emote("yawn")
-		if(10)
-			M.emote("faint")
-			M.Weaken(4 SECONDS)
-		if(11 to 50)
-			M.Paralyse(4 SECONDS)
+		if(1 to 50)
+			update_flags |= M.Sleeping(2, FALSE)
 		if(51 to INFINITY)
-			M.Paralyse(4 SECONDS)
+			update_flags |= M.Sleeping(2, FALSE)
 			update_flags |= M.adjustToxLoss((current_cycle - 50)*REAGENTS_EFFECT_MULTIPLIER, FALSE)
 	return ..() | update_flags
 
@@ -511,7 +501,7 @@
 	if(prob(10))
 		to_chat(M, "<span class='notice'>Your eyes itch.</span>")
 		M.emote(pick("blink", "sneeze"))
-		M.AdjustEyeBlurry(6 SECONDS)
+		update_flags |= M.AdjustEyeBlurry(3, FALSE)
 	if(prob(10))
 		M.visible_message("<span class='danger'>[M] scratches at an itch.</span>")
 		update_flags |= M.adjustBruteLoss(1, FALSE)
@@ -529,10 +519,10 @@
 		if(effect <= 2)
 			to_chat(M, "<span class='warning'>You feel mucus running down the back of your throat.</span>")
 			update_flags |= M.adjustToxLoss(1, FALSE)
-			M.Jitter(8 SECONDS)
+			M.Jitter(4)
 			M.emote(pick("sneeze", "cough"))
 		else if(effect <= 4)
-			M.AdjustStuttering(rand(0, 10 SECONDS))
+			M.AdjustStuttering(rand(0,5))
 			if(prob(25))
 				M.emote(pick("choke","gasp"))
 				update_flags |= M.adjustOxyLoss(5, FALSE)
@@ -546,20 +536,20 @@
 			update_flags |= M.adjustBruteLoss(6, FALSE)
 		else if(effect <= 4)
 			M.visible_message("<span class='warning'>[M] has a horrible coughing fit!</span>")
-			M.Jitter(20 SECONDS)
-			M.AdjustStuttering(rand(0, 10 SECONDS))
+			M.Jitter(10)
+			M.AdjustStuttering(rand(0,5))
 			M.emote("cough")
 			if(prob(40))
 				M.emote(pick("choke","gasp"))
 				update_flags |= M.adjustOxyLoss(6, FALSE)
-			M.Weaken(16 SECONDS)
+			update_flags |= M.Weaken(8, FALSE)
 		else if(effect <= 7)
 			to_chat(M, "<span class='warning'>Your heartbeat is pounding inside your head!</span>")
 			SEND_SOUND(M, sound('sound/effects/singlebeat.ogg'))
 			M.emote("collapse")
 			update_flags |= M.adjustOxyLoss(8, FALSE)
 			update_flags |= M.adjustToxLoss(3, FALSE)
-			M.Weaken(6 SECONDS)
+			update_flags |= M.Weaken(3, FALSE)
 			M.emote(pick("choke", "gasp"))
 			to_chat(M, "<span class='warning'>You feel like you're dying!</span>")
 	return list(effect, update_flags)
@@ -638,19 +628,19 @@
 			current_cycle++
 			return
 		if(5 to 8)
-			M.AdjustDizzy(2 SECONDS)
-			M.Confused(20 SECONDS)
+			M.AdjustDizzy(1)
+			M.Confused(10)
 		if(9 to 12)
-			M.Drowsy(20 SECONDS)
-			M.AdjustDizzy(2 SECONDS)
-			M.Confused(40 SECONDS)
+			M.Drowsy(10)
+			M.AdjustDizzy(1)
+			M.Confused(20)
 		if(13)
 			M.emote("faint")
 		if(14 to INFINITY)
-			M.Paralyse(20 SECONDS)
-			M.Drowsy(40 SECONDS)
+			update_flags |= M.Paralyse(10, FALSE)
+			M.Drowsy(20)
 
-	M.AdjustJitter(-60 SECONDS)
+	M.AdjustJitter(-30)
 	if(M.getBrainLoss() <= 80)
 		update_flags |= M.adjustBrainLoss(1, FALSE)
 	else
@@ -678,11 +668,11 @@
 		M.emote("drool")
 	if(prob(10))
 		to_chat(M, "<span class='danger'>You cannot breathe!</span>")
-		M.AdjustLoseBreath(2 SECONDS)
+		M.AdjustLoseBreath(1)
 		M.emote("gasp")
 	if(prob(8))
 		to_chat(M, "<span class='danger'>You feel horrendously weak!</span>")
-		M.Stun(4 SECONDS)
+		update_flags |= M.Stun(2, FALSE)
 		update_flags |= M.adjustToxLoss(2, FALSE)
 	return ..() | update_flags
 
@@ -706,7 +696,7 @@
 	if(prob(15))
 		M.visible_message("<span class='danger'>[M] scratches at an itch.</span>")
 		update_flags |= M.adjustBruteLoss(1, FALSE)
-		M.Stun(rand(0, 2 SECONDS))
+		update_flags |= M.Stun(rand(0,1), FALSE)
 		M.emote("grumble")
 	if(prob(10))
 		to_chat(M, "<span class='danger'>So itchy!</span>")
@@ -716,8 +706,8 @@
 	if(prob(2))
 		to_chat(M, "<span class='danger'>AHHHHHH!</span>")
 		update_flags |= M.adjustBruteLoss(5, FALSE)
-		M.Weaken(10 SECONDS)
-		M.AdjustJitter(12 SECONDS)
+		update_flags |= M.Weaken(5, FALSE)
+		M.AdjustJitter(6)
 		M.visible_message("<span class='danger'>[M] falls to the floor, scratching [M.p_them()]self violently!</span>")
 		M.emote("scream")
 	return ..() | update_flags
@@ -737,16 +727,17 @@
 		update_flags |= M.adjustToxLoss(rand(5,25), FALSE)
 	if(prob(33))
 		to_chat(M, "<span class='danger'>You feel horribly weak.</span>")
-		M.Stun(4 SECONDS)
+		update_flags |= M.Stun(2, FALSE)
 	if(prob(10))
 		to_chat(M, "<span class='danger'>You cannot breathe!</span>")
 		update_flags |= M.adjustOxyLoss(10, FALSE)
-		M.AdjustLoseBreath(2 SECONDS)
+		M.AdjustLoseBreath(1)
 	if(prob(10))
 		to_chat(M, "<span class='danger'>Your chest is burning with pain!</span>")
 		update_flags |= M.adjustOxyLoss(10, FALSE)
-		M.AdjustLoseBreath(2 SECONDS)
-		M.Weaken(4 SECONDS)
+		M.AdjustLoseBreath(1)
+		update_flags |= M.Stun(3, FALSE)
+		update_flags |= M.Weaken(2, FALSE)
 		if(ishuman(M))
 			var/mob/living/carbon/human/H = M
 			if(!H.undergoing_cardiac_arrest())
@@ -771,19 +762,20 @@
 		if(6 to 10)
 			if(prob(8))
 				to_chat(M, "<span class='danger'>You feel [pick("weak", "horribly weak", "numb", "like you can barely move", "tingly")].</span>")
-				M.Stun(2 SECONDS)
+				update_flags |= M.Stun(1, FALSE)
 			else if(prob(8))
 				M.emote(pick("drool", "tremble"))
 		if(11 to INFINITY)
-			M.Weaken(40 SECONDS)
+			update_flags |= M.Stun(20, FALSE)
+			update_flags |= M.Weaken(20, FALSE)
 			if(prob(10))
 				M.emote(pick("drool", "tremble", "gasp"))
-				M.AdjustLoseBreath(2 SECONDS)
+				M.AdjustLoseBreath(1)
 			if(prob(9))
 				to_chat(M, "<span class='danger'>You can't [pick("move", "feel your legs", "feel your face", "feel anything")]!</span>")
 			if(prob(7))
 				to_chat(M, "<span class='danger'>You can't breathe!</span>")
-				M.AdjustLoseBreath(6 SECONDS)
+				M.AdjustLoseBreath(3)
 	return ..() | update_flags
 
 /datum/reagent/sodium_thiopental
@@ -801,15 +793,15 @@
 	switch(current_cycle)
 		if(1)
 			M.emote("drool")
-			M.Confused(10 SECONDS)
+			M.Confused(5)
 		if(2 to 4)
-			M.Drowsy(40 SECONDS)
+			M.Drowsy(20)
 		if(5)
 			M.emote("faint")
-			M.Weaken(10 SECONDS)
+			update_flags |= M.Weaken(5, FALSE)
 		if(6 to INFINITY)
-			M.Paralyse(40 SECONDS)
-	M.AdjustJitter(-100 SECONDS)
+			update_flags |= M.Paralyse(20, FALSE)
+	M.AdjustJitter(-50)
 	if(prob(10))
 		M.emote("drool")
 		update_flags |= M.adjustBrainLoss(1, FALSE)
@@ -833,14 +825,14 @@
 			if(prob(25))
 				M.emote("yawn")
 		if(6 to 9)
-			M.AdjustEyeBlurry(10 SECONDS)
+			update_flags |= M.AdjustEyeBlurry(5, FALSE)
 			if(prob(35))
 				M.emote("yawn")
 		if(10)
 			M.emote("faint")
-			M.Weaken(10 SECONDS)
+			update_flags |= M.Weaken(5, FALSE)
 		if(11 to INFINITY)
-			M.Paralyse(50 SECONDS)
+			update_flags |= M.Paralyse(25, FALSE)
 	return ..() | update_flags
 
 /datum/reagent/sulfonal
@@ -854,20 +846,20 @@
 
 /datum/reagent/sulfonal/on_mob_life(mob/living/M)
 	var/update_flags = STATUS_UPDATE_NONE
-	M.AdjustJitter(-60 SECONDS)
+	M.AdjustJitter(-30)
 	switch(current_cycle)
 		if(1 to 10)
 			if(prob(7))
 				M.emote("yawn")
 		if(11 to 20)
-			M.Drowsy(40 SECONDS)
+			M.Drowsy(20)
 		if(21)
 			M.emote("faint")
 		if(22 to INFINITY)
 			if(prob(20))
 				M.emote("faint")
-				M.Paralyse(10 SECONDS)
-			M.Drowsy(40 SECONDS)
+				update_flags |= M.Paralyse(5, FALSE)
+			M.Drowsy(20)
 	update_flags |= M.adjustToxLoss(1, FALSE)
 	return ..() | update_flags
 
@@ -901,8 +893,6 @@
 			if(2)
 				update_flags |= M.adjustToxLoss(1, FALSE)
 				to_chat(M, "<span class='warning'>Your stomach grumbles painfully!</span>")
-			else
-				pass()
 	else
 		if(prob(60))
 			var/fat_to_burn = max(round(M.nutrition / 100, 1), 5)
@@ -923,7 +913,7 @@
 /datum/reagent/coniine/on_mob_life(mob/living/M)
 	var/update_flags = STATUS_UPDATE_NONE
 	update_flags |= M.adjustToxLoss(2, FALSE)
-	M.AdjustLoseBreath(10 SECONDS)
+	M.AdjustLoseBreath(5)
 	return ..() | update_flags
 
 /datum/reagent/curare
@@ -946,20 +936,20 @@
 			if(prob(20))
 				M.emote(pick("drool", "pale", "gasp"))
 		if(6 to 10)
-			M.AdjustEyeBlurry(10 SECONDS)
+			update_flags |= M.AdjustEyeBlurry(5, FALSE)
 			if(prob(8))
 				to_chat(M, "<span class='danger'>You feel [pick("weak", "horribly weak", "numb", "like you can barely move", "tingly")].</span>")
-				M.Stun(2 SECONDS)
+				update_flags |= M.Stun(1, FALSE)
 			else if(prob(8))
 				M.emote(pick("drool", "pale", "gasp"))
 		if(11 to INFINITY)
-			M.Stun(60 SECONDS)
-			M.Drowsy(40 SECONDS)
+			update_flags |= M.Stun(30, FALSE)
+			M.Drowsy(20)
 			if(prob(20))
 				M.emote(pick("drool", "faint", "pale", "gasp", "collapse"))
 			else if(prob(8))
 				to_chat(M, "<span class='danger'>You can't [pick("breathe", "move", "feel your legs", "feel your face", "feel anything")]!</span>")
-				M.AdjustLoseBreath(2 SECONDS)
+				M.AdjustLoseBreath(1)
 	return ..() | update_flags
 
 /datum/reagent/sarin
@@ -977,42 +967,42 @@
 	var/update_flags = STATUS_UPDATE_NONE
 	switch(current_cycle)
 		if(1 to 15)
-			M.AdjustJitter(40 SECONDS)
+			M.AdjustJitter(20)
 			if(prob(20))
 				M.emote(pick("twitch","twitch_s","quiver"))
 		if(16 to 30)
 			if(prob(25))
 				M.emote(pick("twitch","twitch","drool","quiver","tremble"))
-			M.AdjustEyeBlurry(10 SECONDS)
-			M.Stuttering(10 SECONDS)
+			update_flags |= M.AdjustEyeBlurry(5, FALSE)
+			M.Stuttering(5)
 			if(prob(10))
-				M.Confused(30 SECONDS)
+				M.Confused(15)
 			if(prob(15))
-				M.Stun(2 SECONDS)
+				update_flags |= M.Stun(1, FALSE)
 				M.emote("scream")
 		if(30 to 60)
-			M.AdjustEyeBlurry(10 SECONDS)
-			M.Stuttering(10 SECONDS)
+			update_flags |= M.AdjustEyeBlurry(5, FALSE)
+			M.Stuttering(5)
 			if(prob(10))
-				M.Stun(2 SECONDS)
+				update_flags |= M.Stun(1, FALSE)
 				M.emote(pick("twitch","twitch","drool","shake","tremble"))
 			if(prob(5))
 				M.emote("collapse")
 			if(prob(5))
-				M.Weaken(6 SECONDS)
+				update_flags |= M.Weaken(3, FALSE)
 				M.visible_message("<span class='warning'>[M] has a seizure!</span>")
-				M.SetJitter(2000 SECONDS)
+				M.SetJitter(1000)
 			if(prob(5))
 				to_chat(M, "<span class='warning'>You can't breathe!</span>")
 				M.emote(pick("gasp", "choke", "cough"))
-				M.AdjustLoseBreath(2 SECONDS)
+				M.AdjustLoseBreath(1)
 		if(61 to INFINITY)
 			if(prob(15))
 				M.emote(pick("gasp", "choke", "cough","twitch", "shake", "tremble","quiver","drool", "twitch","collapse"))
-			M.LoseBreath(10 SECONDS)
+			M.LoseBreath(5)
 			update_flags |= M.adjustToxLoss(1, FALSE)
 			update_flags |= M.adjustBrainLoss(1, FALSE)
-			M.Weaken(8 SECONDS)
+			update_flags |= M.Weaken(4, FALSE)
 	if(prob(8))
 		M.fakevomit()
 	update_flags |= M.adjustToxLoss(1, FALSE)
@@ -1116,15 +1106,15 @@
 	var/update_flags = STATUS_UPDATE_NONE
 	switch(current_cycle)
 		if(1 to 5)
-			M.AdjustEyeBlurry(20 SECONDS)
+			update_flags |= M.AdjustEyeBlurry(10, FALSE)
 		if(6 to 10)
-			M.Drowsy(40 SECONDS)
+			M.Drowsy(10)
 		if(11)
 			fakedeath(M)
 		if(61 to 69)
-			M.AdjustEyeBlurry(20 SECONDS)
+			update_flags |= M.AdjustEyeBlurry(10, FALSE)
 		if(70 to INFINITY)
-			M.AdjustEyeBlurry(20 SECONDS)
+			update_flags |= M.AdjustEyeBlurry(10, FALSE)
 			if(HAS_TRAIT(M, TRAIT_FAKEDEATH))
 				fakerevive(M)
 	return ..() | update_flags
@@ -1144,7 +1134,7 @@
 	taste_description = "sweetness"
 
 /datum/reagent/capulettium_plus/on_mob_life(mob/living/M)
-	M.Silence(4 SECONDS)
+	M.Silence(2)
 	if((HAS_TRAIT(M, TRAIT_FAKEDEATH)) && !M.resting)
 		fakerevive(M)
 	else if(!HAS_TRAIT(M, TRAIT_FAKEDEATH) && M.resting)
@@ -1170,7 +1160,7 @@
 		update_flags |= M.adjustToxLoss(rand(2.4), FALSE)
 	if(prob(7))
 		to_chat(M, "<span class='danger'>A horrible migraine overpowers you.</span>")
-		M.Stun(rand(4 SECONDS, 10 SECONDS))
+		update_flags |= M.Stun(rand(2,5), FALSE)
 	if(prob(7))
 		M.fakevomit(1)
 	return ..() | update_flags
@@ -1184,7 +1174,9 @@
 	taste_description = "slime"
 
 /datum/reagent/glowing_slurry/reaction_mob(mob/living/M, method=REAGENT_TOUCH, volume) //same as mutagen
-	if(!M || !M.dna)
+	if(!..())
+		return
+	if(!M.dna)
 		return //No robots, AIs, aliens, Ians or other mobs should be affected by this.
 	if((method==REAGENT_TOUCH && prob(50)) || method==REAGENT_INGEST)
 		randmutb(M)

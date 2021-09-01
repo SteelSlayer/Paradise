@@ -3,8 +3,8 @@
 	desc = "An energy field."
 	icon = 'icons/obj/singularity.dmi'
 	icon_state = "Contain_F"
-	anchored = TRUE
-	density = FALSE
+	anchored = 1
+	density = 0
 	move_resist = INFINITY
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | UNACIDABLE | ACID_PROOF
 	flags_2 = RAD_NO_CONTAMINATE_2
@@ -100,13 +100,14 @@
 		var/shock_damage = min(rand(30,40),rand(30,40))
 
 		if(isliving(user) && !issilicon(user))
-			var/stun = (min(shock_damage, 15)) STATUS_EFFECT_CONSTANT
-			user.Weaken(stun)
+			var/stun = min(shock_damage, 15)
+			user.Stun(stun)
+			user.Weaken(10)
 			user.electrocute_act(shock_damage, src, 1)
 
 		else if(issilicon(user))
 			if(prob(20))
-				user.Stun(4 SECONDS)
+				user.Stun(2)
 			user.take_overall_damage(0, shock_damage)
 			user.visible_message("<span class='danger'>[user.name] was shocked by [src]!</span>", \
 			"<span class='userdanger'>Energy pulse detected, system damaged!</span>", \

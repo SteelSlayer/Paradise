@@ -162,8 +162,6 @@
 #define MFOAM_IRON 		2
 
 //Human Overlays Indexes/////////
-#define WING_LAYER				41
-#define WING_UNDERLIMBS_LAYER		40
 #define BODY_LAYER				39
 #define MUTANTRACE_LAYER		38
 #define TAIL_UNDERLIMBS_LAYER	37	//Tail split-rendering.
@@ -203,7 +201,7 @@
 #define FIRE_LAYER				3	//If you're on fire
 #define MISC_LAYER				2
 #define FROZEN_LAYER			1
-#define TOTAL_LAYERS			41
+#define TOTAL_LAYERS			39
 
 ///Access Region Codes///
 #define REGION_ALL			0
@@ -353,14 +351,10 @@
 #define BLOOD_LOSS_IN_SPREAD		20
 #define BLOOD_AMOUNT_PER_DECAL		20
 
-//Blood smears
-#define BLOOD_SPLATTER_ALPHA_SLIME 150
-
 //Bloody shoe blood states
 #define BLOOD_STATE_HUMAN			"blood"
 #define BLOOD_STATE_XENO			"xeno"
 #define BLOOD_STATE_NOT_BLOODY		"no blood whatsoever"
-#define BLOOD_BASE_ALPHA			"blood_alpha"
 
 //for obj explosion block calculation
 #define EXPLOSION_BLOCK_PROC -1
@@ -371,7 +365,7 @@
 #define INVESTIGATE_BOMB "bombs"
 
 // The SQL version required by this version of the code
-#define SQL_VERSION 44
+#define SQL_VERSION 25
 
 // Vending machine stuff
 #define CAT_NORMAL 1
@@ -502,23 +496,3 @@
 
 // Runechat symbol types
 #define RUNECHAT_SYMBOL_EMOTE 1
-
-/// Waits at a line of code until X is true
-#define UNTIL(X) while(!(X)) sleep(world.tick_lag)
-
-/proc/client_from_var(I)
-	if(ismob(I))
-		var/mob/A = I
-		return A.client
-	if(isclient(I))
-		return I
-	if(istype(I, /datum/mind))
-		var/datum/mind/B = I
-		return B.current.client
-
-#define SERVER_MESSAGES_REDIS_CHANNEL "byond.servermessages"
-
-/// Projectile reflectability defines
-#define REFLECTABILITY_NEVER 0
-#define REFLECTABILITY_PHYSICAL 1
-#define REFLECTABILITY_ENERGY 2

@@ -30,6 +30,8 @@ import './styles/themes/security.scss';
 import './styles/themes/syndicate.scss';
 import './styles/themes/nologo.scss';
 
+
+
 const enteredBundleAt = Date.now();
 const store = createStore();
 let reactRoot;
@@ -61,7 +63,8 @@ const renderLayout = () => {
       reactRoot = document.getElementById('react-root');
     }
     render(element, reactRoot);
-  } catch (err) {
+  }
+  catch (err) {
     logger.error('rendering error', err);
     throw err;
   }
@@ -70,14 +73,16 @@ const renderLayout = () => {
     const finishedAt = Date.now();
     if (initialRender) {
       logger.debug('serving from:', location.href);
-      logger.debug(
-        'bundle entered in',
-        timeDiff(window.__inception__, enteredBundleAt)
-      );
-      logger.debug('initialized in', timeDiff(enteredBundleAt, startedAt));
-      logger.log('rendered in', timeDiff(startedAt, finishedAt));
-      logger.log('fully loaded in', timeDiff(window.__inception__, finishedAt));
-    } else {
+      logger.debug('bundle entered in', timeDiff(
+        window.__inception__, enteredBundleAt));
+      logger.debug('initialized in', timeDiff(
+        enteredBundleAt, startedAt));
+      logger.log('rendered in', timeDiff(
+        startedAt, finishedAt));
+      logger.log('fully loaded in', timeDiff(
+        window.__inception__, finishedAt));
+    }
+    else {
       logger.debug('rendered in', timeDiff(startedAt, finishedAt));
     }
   }
@@ -93,7 +98,7 @@ const timeDiff = (startedAt, finishedAt) => {
 };
 
 // Parse JSON and report all abnormal JSON strings coming from BYOND
-const parseStateJson = (json) => {
+const parseStateJson = json => {
   let reviver = (key, value) => {
     if (typeof value === 'object' && value !== null) {
       if (value.__number__) {
@@ -109,7 +114,8 @@ const parseStateJson = (json) => {
   }
   try {
     return JSON.parse(json, reviver);
-  } catch (err) {
+  }
+  catch (err) {
     logger.log(err);
     logger.log('What we got:', json);
     const msg = err && err.message;
@@ -124,11 +130,12 @@ const setupApp = () => {
   });
 
   // Subscribe for bankend updates
-  window.update = (stateJson) => {
+  window.update = stateJson => {
     // NOTE: stateJson can be an object only if called manually from console.
     // This is useful for debugging tgui in external browsers, like Chrome.
-    const state =
-      typeof stateJson === 'string' ? parseStateJson(stateJson) : stateJson;
+    const state = typeof stateJson === 'string'
+      ? parseStateJson(stateJson)
+      : stateJson;
     // Backend update dispatches a store action
     store.dispatch(backendUpdate(state));
   };
@@ -136,7 +143,11 @@ const setupApp = () => {
   // Enable hot module reloading
   if (module.hot) {
     setupHotReloading();
-    module.hot.accept(['./components', './layouts', './routes'], () => {
+    module.hot.accept([
+      './components',
+      './layouts',
+      './routes',
+    ], () => {
       renderLayout();
     });
   }
@@ -156,6 +167,7 @@ const setupApp = () => {
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', setupApp);
-} else {
+}
+else {
   setupApp();
 }

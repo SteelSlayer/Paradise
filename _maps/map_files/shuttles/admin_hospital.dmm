@@ -214,6 +214,15 @@
 /obj/effect/spawner/window/shuttle,
 /turf/simulated/floor/plating,
 /area/shuttle/administration)
+"aQ" = (
+/obj/structure/chair{
+	dir = 4
+	},
+/obj/structure/chair/comfy/shuttle{
+	dir = 4
+	},
+/turf/simulated/floor/mineral/titanium,
+/area/shuttle/administration)
 "aR" = (
 /obj/structure/chair{
 	dir = 8
@@ -584,7 +593,7 @@
 /turf/simulated/floor/mineral/titanium,
 /area/shuttle/administration)
 "ce" = (
-/obj/machinery/atmospherics/portable/canister/oxygen{
+/obj/machinery/portable_atmospherics/canister/oxygen{
 	name = "Canister: \[O2] (CRYO)"
 	},
 /obj/machinery/atmospherics/unary/portables_connector{
@@ -599,7 +608,7 @@
 /turf/simulated/floor/mineral/titanium,
 /area/shuttle/administration)
 "cg" = (
-/obj/machinery/atmospherics/portable/canister/oxygen{
+/obj/machinery/portable_atmospherics/canister/oxygen{
 	name = "Canister: \[O2] (CRYO)"
 	},
 /obj/machinery/light{
@@ -667,7 +676,7 @@
 /turf/simulated/floor/mineral/titanium,
 /area/shuttle/administration)
 "co" = (
-/obj/machinery/atmospherics/portable/canister/oxygen,
+/obj/machinery/portable_atmospherics/canister/oxygen,
 /turf/simulated/floor/mineral/titanium,
 /area/shuttle/administration)
 "cp" = (
@@ -870,9 +879,9 @@ ab
 ah
 av
 aw
-av
+aQ
 aw
-av
+aQ
 bc
 aP
 aw

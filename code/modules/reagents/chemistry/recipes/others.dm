@@ -99,12 +99,12 @@
 	result = null
 	required_reagents = list("oil" = 5, "sacid" = 2, "ash" = 3)
 	min_temp = T0C + 100
-	result_amount = 10
+	result_amount = 1
 
 /datum/chemical_reaction/plastic_polymers/on_reaction(datum/reagents/holder, created_volume)
-	var/loc = get_turf(holder.my_atom)
-	for(var/i in 1 to created_volume)
-		new /obj/item/stack/sheet/plastic(loc)
+	var/obj/item/stack/sheet/plastic/P = new /obj/item/stack/sheet/plastic
+	P.amount = 10
+	P.forceMove(get_turf(holder.my_atom))
 
 /datum/chemical_reaction/lube
 	name = "Space Lube"

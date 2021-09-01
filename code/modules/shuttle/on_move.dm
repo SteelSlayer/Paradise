@@ -49,16 +49,16 @@
     update_parallax_contents()
 
 /mob/living/carbon/onShuttleMove()
-	. = ..()
-	if(!.)
-		return
-	if(!buckled)
-		Weaken(6 SECONDS)
+    . = ..()
+    if(!.)
+        return
+    if(!buckled)
+        Weaken(3)
 
 // After docking //
 /atom/proc/postDock(obj/docking_port/S1)
-	if(smoothing_flags)
-		QUEUE_SMOOTH(src)
+	if(smooth)
+		queue_smooth(src)
 
 /mob/postDock()
 	update_parallax_contents()

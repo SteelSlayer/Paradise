@@ -2,10 +2,9 @@
 	name = "critter crate"
 	desc = "A crate designed for safe transport of animals. Only openable from the the outside."
 	icon_state = "critter"
-	icon_opened = "critter_open"
+	icon_opened = "critteropen"
 	icon_closed = "critter"
-	open_door_sprite = null
-	var/already_opened = FALSE
+	var/already_opened = 0
 	var/content_mob = null
 	var/amount = 1
 	open_sound = 'sound/machines/wooden_closet_open.ogg'
@@ -15,44 +14,26 @@
 
 /obj/structure/closet/critter/can_open()
 	if(welded)
-		return
-	return TRUE
+		return 0
+	return 1
 
 /obj/structure/closet/critter/open()
 	if(!can_open())
-		return
+		return 0
 
 	if(content_mob == null) //making sure we don't spawn anything too eldritch
-		already_opened = TRUE
+		already_opened = 1
 		return ..()
 
 	if(content_mob != null && already_opened == 0)
 		for(var/i = 1, i <= amount, i++)
 			new content_mob(loc)
-		already_opened = TRUE
+		already_opened = 1
 	. = ..()
 
 /obj/structure/closet/critter/close()
 	..()
-	return TRUE
-
-/obj/structure/closet/critter/random
-	name = "unmarked crate"
-	desc = "A crate designed for safe transport of animals. The contents are a mystery."
-
-/obj/structure/closet/critter/random/populate_contents()
-	content_mob = pick(/mob/living/simple_animal/pet/dog/corgi,
-	/mob/living/simple_animal/pet/dog/corgi/Lisa,
-	/mob/living/simple_animal/cow,
-	/mob/living/simple_animal/pig,
-	/mob/living/simple_animal/hostile/retaliate/goat,
-	/mob/living/simple_animal/turkey,
-	/mob/living/simple_animal/chick,
-	/mob/living/simple_animal/pet/cat,
-	/mob/living/simple_animal/pet/dog/pug,
-	/mob/living/simple_animal/pet/dog/fox,
-	/mob/living/simple_animal/deer,
-	/mob/living/simple_animal/bunny)
+	return 1
 
 /obj/structure/closet/critter/corgi
 	name = "corgi crate"
@@ -108,7 +89,3 @@
 /obj/structure/closet/critter/deer
 	name = "deer crate"
 	content_mob = /mob/living/simple_animal/deer
-
-/obj/structure/closet/critter/bunny
-	name = "bunny crate"
-	content_mob = /mob/living/simple_animal/bunny

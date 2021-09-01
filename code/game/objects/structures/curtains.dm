@@ -7,13 +7,13 @@
 	icon_state = "closed"
 	face_while_pulling = FALSE
 	layer = SHOWER_CLOSED_LAYER
-	opacity = TRUE
-	density = FALSE
+	opacity = 1
+	density = 0
 
 /obj/structure/curtain/open
 	icon_state = "open"
 	layer = SHOWER_OPEN_LAYER
-	opacity = FALSE
+	opacity = 0
 
 /obj/structure/curtain/attack_hand(mob/user)
 	playsound(get_turf(loc), "rustle", 15, 1, -5)

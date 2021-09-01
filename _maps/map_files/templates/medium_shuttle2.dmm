@@ -140,7 +140,7 @@
 	name = "Shuttle"
 	})
 "z" = (
-/obj/machinery/atmospherics/portable/canister/oxygen,
+/obj/machinery/portable_atmospherics/canister/oxygen,
 /turf/simulated/floor/plasteel,
 /area/ruin/powered{
 	name = "Shuttle"

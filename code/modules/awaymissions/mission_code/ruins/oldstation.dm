@@ -3,7 +3,8 @@
 	icon_state = "firstaid"
 	desc = "A first aid kit with the ability to heal common types of injuries."
 
-/obj/item/storage/firstaid/ancient/populate_contents()
+/obj/item/storage/firstaid/ancient/New()
+	..()
 	new /obj/item/stack/medical/bruise_pack(src)
 	new /obj/item/stack/medical/bruise_pack(src)
 	new /obj/item/stack/medical/bruise_pack(src)
@@ -66,7 +67,7 @@
 /obj/item/clothing/head/helmet/old
 	name = "degrading helmet"
 	desc = "Standard issue security helmet. Due to degradation the helmet's visor obstructs the users ability to see long distances."
-	tint = FLASH_PROTECTION_WELDER
+	tint = 2
 
 /obj/item/clothing/suit/armor/vest/old
 	name = "degrading armor vest"
@@ -157,7 +158,7 @@
 	desc = "Early prototype RIG hardsuit helmet, designed to quickly shift over a user's head. Design constraints of the helmet mean it has no inbuilt cameras, thus it restricts the users visability."
 	icon_state = "hardsuit0-ancient"
 	item_state = "anc_helm"
-	armor = list(MELEE = 30, BULLET = 5, LASER = 5, ENERGY = 0, BOMB = 50, BIO = INFINITY, RAD = INFINITY, FIRE = INFINITY, ACID = 75)
+	armor = list("melee" = 30, "bullet" = 5, "laser" = 5, "energy" = 0, "bomb" = 50, "bio" = 100, "rad" = 100, "fire" = 100, "acid" = 75)
 	item_color = "ancient"
 	resistance_flags = FIRE_PROOF
 	sprite_sheets = null
@@ -167,7 +168,7 @@
 	desc = "Prototype powered RIG hardsuit. Provides excellent protection from the elements of space while being comfortable to move around in, thanks to the powered locomotives. Remains very bulky however."
 	icon_state = "hardsuit-ancient"
 	item_state = "anc_hardsuit"
-	armor = list(MELEE = 30, BULLET = 5, LASER = 5, ENERGY = 0, BOMB = 50, BIO = INFINITY, RAD = INFINITY, FIRE = INFINITY, ACID = 75)
+	armor = list("melee" = 30, "bullet" = 5, "laser" = 5, "energy" = 0, "bomb" = 50, "bio" = 100, "rad" = 100, "fire" = 100, "acid" = 75)
 	slowdown = 3
 	resistance_flags = FIRE_PROOF
 	sprite_sheets = null
@@ -289,7 +290,7 @@
 // Engines
 /obj/structure/shuttle/engine/large
 	name = "engine"
-	opacity = TRUE
+	opacity = 1
 	icon = 'icons/obj/2x2.dmi'
 	icon_state = "large_engine"
 	desc = "A very large bluespace engine used to propel very large ships."
@@ -300,69 +301,69 @@
 // areas
 //Ruin of ancient Space Station
 
-/area/ruin/ancientstation
+/area/ruin/space/ancientstation
 	name = "Charlie Station Main Corridor"
 	icon_state = "green"
 	has_gravity = TRUE
 
-/area/ruin/ancientstation/powered
+/area/ruin/space/ancientstation/powered
 	name = "Powered Tile"
 	icon_state = "teleporter"
 	requires_power = FALSE
 	dynamic_lighting = DYNAMIC_LIGHTING_FORCED
 
-/area/ruin/ancientstation/space
+/area/ruin/space/ancientstation/space
 	name = "Exposed To Space"
 	icon_state = "teleporter"
 	has_gravity = FALSE
 
-/area/ruin/ancientstation/atmo
+/area/ruin/space/ancientstation/atmo
 	name = "Beta Station Atmospherics"
 	icon_state = "red"
 	has_gravity = FALSE
 	ambientsounds = ENGINEERING_SOUNDS
 
-/area/ruin/ancientstation/betanorth
+/area/ruin/space/ancientstation/betanorth
 	name = "Beta Station North Corridor"
-	icon_state = "purple"
+	icon_state = "blue"
 
-/area/ruin/ancientstation/solar
+/area/ruin/space/ancientstation/solar
 	name = "Station Solar Array"
 	icon_state = "panelsAP"
 
-/area/ruin/ancientstation/engi
+/area/ruin/space/ancientstation/engi
 	name = "Charlie Station Engineering"
 	icon_state = "engine"
 	ambientsounds = ENGINEERING_SOUNDS
 
-/area/ruin/ancientstation/comm
+/area/ruin/space/ancientstation/comm
 	name = "Charlie Station Command"
 	icon_state = "captain"
 
-/area/ruin/ancientstation/hydroponics
+/area/ruin/space/ancientstation/hydroponics
 	name = "Charlie Station Hydroponics"
-	icon_state = "hydro"
+	icon_state = "garden"
 
-/area/ruin/ancientstation/kitchen
+/area/ruin/space/ancientstation/kitchen
 	name = "Charlie Station Kitchen"
 	icon_state = "kitchen"
 
-/area/ruin/ancientstation/sec
+/area/ruin/space/ancientstation/sec
 	name = "Charlie Station Security"
 	icon_state = "red"
 
-/area/ruin/ancientstation/thetacorridor
+/area/ruin/space/ancientstation/thetacorridor
 	name = "Theta Station Main Corridor"
 	icon_state = "green"
 
-/area/ruin/ancientstation/proto
+/area/ruin/space/ancientstation/proto
 	name = "Theta Station Prototype Lab"
-	icon_state = "scilab"
+	icon_state = "toxlab"
 
-/area/ruin/ancientstation/rnd
+/area/ruin/space/ancientstation/rnd
 	name = "Theta Station Research and Development"
-	icon_state = "rnd"
+	icon_state = "toxlab"
 
-/area/ruin/ancientstation/hivebot
+/area/ruin/space/ancientstation/hivebot
 	name = "Hivebot Mothership"
 	icon_state = "teleporter"

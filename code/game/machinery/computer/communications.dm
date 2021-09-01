@@ -33,7 +33,7 @@
 
 	var/stat_msg1
 	var/stat_msg2
-	var/display_type = STATUS_DISPLAY_TIME
+	var/display_type = "blank"
 	var/display_icon
 
 	var/datum/announcement/priority/crew_announcement = new
@@ -43,9 +43,6 @@
 /obj/machinery/computer/communications/New()
 	GLOB.shuttle_caller_list += src
 	..()
-
-/obj/machinery/computer/communications/Initialize(mapload)
-	. = ..()
 	crew_announcement.newscast = 0
 
 /obj/machinery/computer/communications/proc/is_authenticated(mob/user, message = 1)
@@ -155,7 +152,7 @@
 				return
 			call_shuttle_proc(usr, input)
 			if(SSshuttle.emergency.timer)
-				post_status(STATUS_DISPLAY_TRANSFER_SHUTTLE_TIME)
+				post_status("shuttle")
 			setMenuState(usr, COMM_SCREEN_MAIN)
 
 		if("cancelshuttle")
@@ -166,7 +163,7 @@
 			if(response == "Yes")
 				cancel_call_proc(usr)
 				if(SSshuttle.emergency.timer)
-					post_status(STATUS_DISPLAY_TRANSFER_SHUTTLE_TIME)
+					post_status("shuttle")
 			setMenuState(usr, COMM_SCREEN_MAIN)
 
 		if("messagelist")
@@ -198,17 +195,17 @@
 
 		// Status display stuff
 		if("setstat")
-			display_type = text2num(params["statdisp"])
+			display_type = params["statdisp"]
 			switch(display_type)
-				if(STATUS_DISPLAY_MESSAGE)
+				if("message")
 					display_icon = null
-					post_status(STATUS_DISPLAY_MESSAGE, stat_msg1, stat_msg2)
-				if(STATUS_DISPLAY_ALERT)
+					post_status("message", stat_msg1, stat_msg2, usr)
+				if("alert")
 					display_icon = params["alert"]
-					post_status(STATUS_DISPLAY_ALERT, params["alert"])
+					post_status("alert", params["alert"], user = usr)
 				else
 					display_icon = null
-					post_status(display_type)
+					post_status(params["statdisp"], user = usr)
 			setMenuState(usr, COMM_SCREEN_STAT)
 
 		if("setmsg1")
@@ -275,7 +272,7 @@
 
 		if("RestoreBackup")
 			to_chat(usr, "Backup routing data restored!")
-			emagged = FALSE
+			src.emagged = 0
 			setMenuState(usr, COMM_SCREEN_MAIN)
 
 		if("RestartNanoMob")
@@ -294,7 +291,7 @@
 
 /obj/machinery/computer/communications/emag_act(user as mob)
 	if(!emagged)
-		emagged = TRUE
+		src.emagged = 1
 		to_chat(user, "<span class='notice'>You scramble the communication routing circuits!</span>")
 		SStgui.update_uis(src)
 
@@ -337,9 +334,9 @@
 		"line_2" = (stat_msg2 ? stat_msg2 : "-----"),
 
 		"presets" = list(
-			list("name" = STATUS_DISPLAY_BLANK,    "label" = "Clear",       "desc" = "Blank slate"),
-			list("name" = STATUS_DISPLAY_TRANSFER_SHUTTLE_TIME,  "label" = "Shuttle ETA", "desc" = "Display how much time is left."),
-			list("name" = STATUS_DISPLAY_MESSAGE,  "label" = "Message",     "desc" = "A custom message.")
+			list("name" = "blank",    "label" = "Clear",       "desc" = "Blank slate"),
+			list("name" = "shuttle",  "label" = "Shuttle ETA", "desc" = "Display how much time is left."),
+			list("name" = "message",  "label" = "Message",     "desc" = "A custom message.")
 		),
 
 		"alerts"=list(
@@ -414,8 +411,8 @@
 		menu_state=value
 
 /proc/call_shuttle_proc(mob/user, reason, sanitized = FALSE)
-	if(GLOB.deathsquad_sent)
-		to_chat(user, "<span class='warning'>Central Command does not allow the shuttle to be called at this time. Please stand by.</span>") //This may show up before Epsilon Alert/Before DS arrives
+	if(GLOB.sent_strike_team == 1)
+		to_chat(user, "<span class='warning'>Central Command will not allow the shuttle to be called. Consider all contracts terminated.</span>")
 		return
 
 	if(SSshuttle.emergencyNoEscape)
@@ -446,11 +443,10 @@
 			to_chat(user, "Central Command does not currently have a shuttle available in your sector. Please try again later.")
 			return
 
-		if(GLOB.deathsquad_sent)
-			to_chat(user, "<span class='warning'>Central Command does not allow the shuttle to be called at this time. Please stand by.</span>") //This may show up before Epsilon Alert/Before DS arrives
+		if(GLOB.sent_strike_team == 1)
+			to_chat(user, "Central Command will not allow the shuttle to be called. Consider all contracts terminated.")
 			return
 
-		// AA 2022-08-18 - Why is this not a round time offset??
 		if(world.time < 54000) // 30 minute grace period to let the game get going
 			to_chat(user, "The shuttle is refueling. Please wait another [round((54000-world.time)/600)] minutes before trying again.")
 			return
@@ -460,18 +456,21 @@
 			return
 
 	if(seclevel2num(get_security_level()) >= SEC_LEVEL_RED) // There is a serious threat we gotta move no time to give them five minutes.
-		SSshuttle.emergency.canRecall = FALSE
 		SSshuttle.emergency.request(null, 0.5, null, " Automatic Crew Transfer", 1)
-	else
 		SSshuttle.emergency.canRecall = FALSE
+	else
 		SSshuttle.emergency.request(null, 1, null, " Automatic Crew Transfer", 0)
+		SSshuttle.emergency.canRecall = FALSE
 	if(user)
 		log_game("[key_name(user)] has called the shuttle.")
 		message_admins("[key_name_admin(user)] has called the shuttle - [formatJumpTo(user)].", 1)
 	return
 
-// Why the hell are all these procs global?
+
 /proc/cancel_call_proc(mob/user)
+	if(SSticker.mode.name == "meteor")
+		return
+
 	if(SSshuttle.cancelEvac(user))
 		log_game("[key_name(user)] has recalled the shuttle.")
 		message_admins("[key_name_admin(user)] has recalled the shuttle - ([ADMIN_FLW(user,"FLW")]).", 1)
@@ -479,6 +478,28 @@
 		to_chat(user, "<span class='warning'>Central Command has refused the recall request!</span>")
 		log_game("[key_name(user)] has tried and failed to recall the shuttle.")
 		message_admins("[key_name_admin(user)] has tried and failed to recall the shuttle - ([ADMIN_FLW(user,"FLW")]).", 1)
+
+/proc/post_status(command, data1, data2, mob/user = null)
+
+	var/datum/radio_frequency/frequency = SSradio.return_frequency(DISPLAY_FREQ)
+
+	if(!frequency) return
+
+	var/datum/signal/status_signal = new
+	status_signal.transmission_method = 1
+	status_signal.data["command"] = command
+
+	switch(command)
+		if("message")
+			status_signal.data["msg1"] = data1
+			status_signal.data["msg2"] = data2
+			log_admin("STATUS: [user] set status screen message: [data1] [data2]")
+			//message_admins("STATUS: [user] set status screen with [PDA]. Message: [data1] [data2]")
+		if("alert")
+			status_signal.data["picture_state"] = data1
+
+	spawn(0)
+		frequency.post_signal(null, status_signal)
 
 
 /obj/machinery/computer/communications/Destroy()

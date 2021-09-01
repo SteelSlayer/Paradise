@@ -1,3 +1,6 @@
+//generic procs copied from obj/effect/alien
+#define SPIDER_SOFT_CAP 30
+#define SPIDER_HARD_CAP 40
 /obj/structure/spider
 	name = "web"
 	desc = "it's stringy and sticky"
@@ -13,7 +16,7 @@
 
 
 /obj/structure/spider/run_obj_armor(damage_amount, damage_type, damage_flag = 0, attack_dir)
-	if(damage_flag == MELEE)
+	if(damage_flag == "melee")
 		switch(damage_type)
 			if(BURN)
 				damage_amount *= 2
@@ -56,11 +59,8 @@
 	desc = "They seem to pulse slightly with an inner life"
 	icon_state = "eggs"
 	var/amount_grown = 0
-	var/player_spiders = FALSE
-	///Was this egg laid by a xenobiology mob? Used for mob capping
-	var/xenobiology_spawned = FALSE
+	var/player_spiders = 0
 	var/list/faction = list("spiders")
-	flags_2 = CRITICAL_ATOM_2
 
 /obj/structure/spider/eggcluster/Initialize(mapload)
 	. = ..()
@@ -69,7 +69,7 @@
 	START_PROCESSING(SSobj, src)
 
 /obj/structure/spider/eggcluster/process()
-	if(SSmobs.xenobiology_mobs > MAX_GOLD_CORE_MOBS - 10) //eggs gonna chill out until there is less spiders
+	if(SSmobs.giant_spiders > SPIDER_SOFT_CAP) //eggs gonna chill out until there is less spiders
 		return
 
 	amount_grown += rand(0, 2)
@@ -80,7 +80,6 @@
 			var/obj/structure/spider/spiderling/S = new /obj/structure/spider/spiderling(loc)
 			S.faction = faction.Copy()
 			S.master_commander = master_commander
-			S.xenobiology_spawned = xenobiology_spawned
 			if(player_spiders)
 				S.player_spiders = TRUE
 		qdel(src)
@@ -89,18 +88,16 @@
 	name = "spiderling"
 	desc = "It never stays still for long."
 	icon_state = "spiderling"
-	anchored = FALSE
+	anchored = 0
 	layer = 2.75
 	max_integrity = 3
 	var/amount_grown = 0
 	var/grow_as = null
 	var/obj/machinery/atmospherics/unary/vent_pump/entry_vent
-	var/travelling_in_vent = FALSE
-	var/player_spiders = FALSE
+	var/travelling_in_vent = 0
+	var/player_spiders = 0
 	var/list/faction = list("spiders")
 	var/selecting_player = 0
-	///Is this spiderling created from a xenobiology mob?
-	var/xenobiology_spawned = FALSE
 
 /obj/structure/spider/spiderling/Initialize(mapload)
 	. = ..()
@@ -112,8 +109,7 @@
 /obj/structure/spider/spiderling/Destroy()
 	STOP_PROCESSING(SSobj, src)
 	entry_vent = null
-	if(amount_grown < 100)
-		new /obj/effect/decal/cleanable/spiderling_remains(get_turf(src))
+	new /obj/effect/decal/cleanable/spiderling_remains(get_turf(src))
 	return ..()
 
 /obj/structure/spider/spiderling/Bump(atom/user)
@@ -125,7 +121,7 @@
 /obj/structure/spider/spiderling/process()
 	if(travelling_in_vent)
 		if(istype(loc, /turf))
-			travelling_in_vent = FALSE
+			travelling_in_vent = 0
 			entry_vent = null
 	else if(entry_vent)
 		if(get_dist(src, entry_vent) <= 1)
@@ -178,21 +174,19 @@
 	if(isturf(loc))
 		amount_grown += rand(0,2)
 		if(amount_grown >= 100)
-			if(SSmobs.xenobiology_mobs > MAX_GOLD_CORE_MOBS && xenobiology_spawned)
+			if(SSmobs.giant_spiders > SPIDER_HARD_CAP)
 				qdel(src)
 				return
 			if(!grow_as)
 				grow_as = pick(typesof(/mob/living/simple_animal/hostile/poison/giant_spider))
 			var/mob/living/simple_animal/hostile/poison/giant_spider/S = new grow_as(loc)
+			SSmobs.giant_spiders++
 			S.faction = faction.Copy()
 			S.master_commander = master_commander
-			S.xenobiology_spawned = xenobiology_spawned
-			if(xenobiology_spawned)
-				SSmobs.xenobiology_mobs++
 			if(player_spiders && !selecting_player)
 				selecting_player = 1
 				spawn()
-					var/list/candidates = SSghost_spawns.poll_candidates("Do you want to play as a giant spider?", ROLE_SENTIENT, TRUE, source = S)
+					var/list/candidates = SSghost_spawns.poll_candidates("Do you want to play as a giant spider?", ROLE_GSPIDER, TRUE, source = S)
 
 					if(length(candidates) && !QDELETED(S))
 						var/mob/C = pick(candidates)
@@ -229,6 +223,7 @@
 	desc = "Green squishy mess."
 	icon = 'icons/effects/effects.dmi'
 	icon_state = "greenshatter"
+	anchored = 1
 
 /obj/structure/spider/cocoon
 	name = "cocoon"

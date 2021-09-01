@@ -17,7 +17,7 @@
 	speed = -1
 	maxHealth = 50000
 	health = 50000
-	healable = FALSE
+	healable = 0
 
 	harm_intent_damage = 35
 	obj_damage = 100
@@ -47,26 +47,22 @@
 	pull_force = MOVE_FORCE_EXTREMELY_STRONG
 	status_flags = GODMODE // Cannot push also
 
-	var/cannot_be_seen = TRUE
+	var/cannot_be_seen = 1
 	var/mob/living/creator = null
 
 
 // No movement while seen code.
 
-/mob/living/simple_animal/hostile/statue/Initialize(mapload, mob/living/creator)
-	. = ..()
+/mob/living/simple_animal/hostile/statue/New(loc, mob/living/creator)
+	..()
 	// Give spells
 	AddSpell(new /obj/effect/proc_holder/spell/aoe_turf/flicker_lights(null))
 	AddSpell(new /obj/effect/proc_holder/spell/aoe_turf/blindness(null))
-	AddSpell(new /obj/effect/proc_holder/spell/night_vision(null))
+	AddSpell(new /obj/effect/proc_holder/spell/targeted/night_vision(null))
 
 	// Set creator
 	if(creator)
 		src.creator = creator
-
-/mob/living/simple_animal/hostile/statue/Destroy()
-	creator = null
-	return ..()
 
 /mob/living/simple_animal/hostile/statue/Move(turf/NewLoc)
 	if(can_be_seen(NewLoc))
@@ -164,13 +160,9 @@
 	name = "Flicker Lights"
 	desc = "You will trigger a large amount of lights around you to flicker."
 
-	base_cooldown = 300
-	clothes_req = FALSE
-
-/obj/effect/proc_holder/spell/aoe_turf/flicker_lights/create_new_targeting()
-	var/datum/spell_targeting/aoe/turf/T = new()
-	T.range = 14
-	return T
+	charge_max = 300
+	clothes_req = 0
+	range = 14
 
 /obj/effect/proc_holder/spell/aoe_turf/flicker_lights/cast(list/targets, mob/user = usr)
 	for(var/turf/T in targets)
@@ -184,13 +176,9 @@
 	desc = "Your prey will be momentarily blind for you to advance on them."
 
 	message = "<span class='notice'>You glare your eyes.</span>"
-	base_cooldown = 600
-	clothes_req = FALSE
-
-/obj/effect/proc_holder/spell/aoe_turf/blindness/create_new_targeting()
-	var/datum/spell_targeting/aoe/turf/T = new()
-	T.range = 10
-	return T
+	charge_max = 600
+	clothes_req = 0
+	range = 10
 
 /obj/effect/proc_holder/spell/aoe_turf/blindness/cast(list/targets, mob/user = usr)
 	for(var/mob/living/L in GLOB.alive_mob_list)
@@ -198,7 +186,7 @@
 			continue
 		var/turf/T = get_turf(L.loc)
 		if(T && (T in targets))
-			L.EyeBlind(8 SECONDS)
+			L.EyeBlind(4)
 	return
 
 /mob/living/simple_animal/hostile/statue/sentience_act()

@@ -2,9 +2,8 @@
 	name = "Dye Generator"
 	icon = 'icons/obj/vending.dmi'
 	icon_state = "barbervend"
-	density = TRUE
-	anchored = TRUE
-	integrity_failure = 100
+	density = 1
+	anchored = 1
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 40
 	var/dye_color = "#FFFFFF"
@@ -13,32 +12,20 @@
 	..()
 	power_change()
 
-/obj/machinery/dye_generator/deconstruct(disassembled = TRUE)
-	new /obj/item/stack/sheet/metal(loc, 3)
-	qdel(src)
-
 /obj/machinery/dye_generator/power_change()
-	if(powered() && anchored)
-		stat &= ~NOPOWER
-		set_light(2, l_color = dye_color)
-	else
-		stat |= NOPOWER
+	if(stat & BROKEN)
+		icon_state = "[initial(icon_state)]-broken"
 		set_light(0)
-	update_icon(UPDATE_OVERLAYS)
-
-/obj/machinery/dye_generator/extinguish_light()
-	set_light(0)
-	underlays.Cut()
-
-/obj/machinery/dye_generator/update_overlays()
-	. = ..()
-	underlays.Cut()
-	if(stat & (BROKEN|NOPOWER))
-		. += "barbervend_off"
-		if(stat & BROKEN)
-			. += "barbervend_broken"
-	if(light)
-		underlays += emissive_appearance(icon, "barbervend_lightmask")
+	else
+		if(powered())
+			icon_state = initial(icon_state)
+			stat &= ~NOPOWER
+			set_light(2, l_color = dye_color)
+		else
+			spawn(rand(0, 15))
+				src.icon_state = "[initial(icon_state)]-off"
+				stat |= NOPOWER
+				set_light(0)
 
 /obj/machinery/dye_generator/attack_hand(mob/user)
 	..()
@@ -58,14 +45,9 @@
 		var/obj/item/hair_dye_bottle/HD = I
 		user.visible_message("<span class='notice'>[user] fills [HD] up with some dye.</span>","<span class='notice'>You fill [HD] up with some hair dye.</span>")
 		HD.dye_color = dye_color
-		HD.update_icon()
+		HD.update_dye_overlay()
 		return
 	return ..()
-
-/obj/machinery/dye_generator/obj_break(damage_flag)
-	if(!(stat & BROKEN))
-		stat |= BROKEN
-		update_icon(UPDATE_OVERLAYS)
 
 //Hair Dye Bottle
 
@@ -83,13 +65,13 @@
 
 /obj/item/hair_dye_bottle/New()
 	..()
-	update_icon(UPDATE_OVERLAYS)
+	update_dye_overlay()
 
-/obj/item/hair_dye_bottle/update_overlays()
-	. = ..()
+/obj/item/hair_dye_bottle/proc/update_dye_overlay()
+	overlays.Cut()
 	var/image/I = new('icons/obj/items.dmi', "hairdyebottle-overlay")
 	I.color = dye_color
-	. += I
+	overlays += I
 
 /obj/item/hair_dye_bottle/attack(mob/living/carbon/M, mob/user)
 	if(user.a_intent != INTENT_HELP)

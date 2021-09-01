@@ -13,7 +13,7 @@
 	bot_type = HONK_BOT
 	bot_filter = RADIO_HONKBOT
 	model = "Honkbot"
-	req_access = list(ACCESS_CLOWN, ACCESS_ROBOTICS, ACCESS_MIME)
+	bot_core_type = /obj/machinery/bot_core/honkbot
 	window_id = "autohonk"
 	window_name = "Honkomatic Bike Horn Unit v1.0.7"
 	data_hud_type = DATA_HUD_SECURITY_BASIC // show jobs
@@ -30,6 +30,9 @@
 	var/threatlevel = FALSE
 	var/arrest_type = FALSE
 
+/obj/machinery/bot_core/honkbot
+	req_one_access = list(ACCESS_CLOWN, ACCESS_ROBOTICS, ACCESS_MIME)
+
 /mob/living/simple_animal/bot/honkbot/Initialize(mapload)
 	. = ..()
 	update_icon()
@@ -43,7 +46,7 @@
 
 /mob/living/simple_animal/bot/honkbot/proc/sensor_blink()
 	icon_state = "honkbot-c"
-	addtimer(CALLBACK(src, /atom/.proc/update_icon), 5, TIMER_OVERRIDE|TIMER_UNIQUE)
+	addtimer(CALLBACK(src, .proc/update_icon), 5, TIMER_OVERRIDE|TIMER_UNIQUE)
 
 //honkbots react with sounds.
 /mob/living/simple_animal/bot/honkbot/proc/react_ping()
@@ -129,7 +132,7 @@
 		if(emagged <= 1)
 			honk_attack(A)
 		else
-			if(!C.IsStunned() || arrest_type)
+			if(!C.stunned || arrest_type) //originaly was paralisysed in tg ported as stun
 				stun_attack(A)
 		..()
 	else if(!spam_flag) //honking at the ground
@@ -139,9 +142,9 @@
 	if(istype(AM, /obj/item))
 		playsound(src, honksound, 50, TRUE, -1)
 		var/obj/item/I = AM
-		var/mob/thrower = locateUID(I.thrownby)
-		if(I.throwforce < src.health && ishuman(thrower))
-			retaliate(thrower)
+		if(I.throwforce < src.health && I.thrownby && ishuman(I.thrownby))
+			var/mob/living/carbon/human/H = I.thrownby
+			retaliate(H)
 	..()
 
 /mob/living/simple_animal/bot/honkbot/proc/bike_horn() //use bike_horn
@@ -156,7 +159,7 @@
 			playsound(src, "honkbot_e", 50, 0)
 			spam_flag = TRUE // prevent spam
 			icon_state = "honkbot-e"
-			addtimer(CALLBACK(src, /atom/.proc/update_icon), 30, TIMER_OVERRIDE|TIMER_UNIQUE)
+			addtimer(CALLBACK(src, .proc/update_icon), 30, TIMER_OVERRIDE|TIMER_UNIQUE)
 		addtimer(CALLBACK(src, .proc/spam_flag_false), cooldowntimehorn)
 
 /mob/living/simple_animal/bot/honkbot/proc/honk_attack(mob/living/carbon/C) // horn attack
@@ -175,10 +178,11 @@
 			var/mob/living/carbon/human/H = C
 			if(H.check_ear_prot() >= HEARING_PROTECTION_MAJOR)
 				return
-			C.SetStuttering(40 SECONDS) //stammer
+			C.stuttering = 20 //stammer
 			C.AdjustEarDamage(0, 5) //far less damage than the H.O.N.K.
-			C.Jitter(100 SECONDS)
-			C.Weaken(10 SECONDS)
+			C.Jitter(50)
+			C.Weaken(5)
+			C.Stun(5)      // Paralysis from tg ported as stun
 			if(client) //prevent spam from players..
 				spam_flag = TRUE
 			if(emagged <= 1) //HONK once, then leave
@@ -191,8 +195,8 @@
 			C.visible_message("<span class='danger'>[src] has honked [C]!</span>",\
 					"<span class='userdanger'>[src] has honked you!</span>")
 		else
-			C.Stuttering(40 SECONDS)
-			C.Stun(20 SECONDS)
+			C.stuttering = 20
+			C.Stun(10)
 			addtimer(CALLBACK(src, .proc/spam_flag_false), cooldowntime)
 
 
@@ -317,7 +321,7 @@
 						  	"[C] trips over [src] and falls!", \
 						  	"[C] topples over [src]!", \
 						  	"[C] leaps out of [src]'s way!")]</span>")
-			C.KnockDown(10 SECONDS)
+			C.Weaken(5)
 			playsound(loc, 'sound/misc/sadtrombone.ogg', 50, 1, -1)
 			if(!client)
 				speak("Honk!")

@@ -3,7 +3,7 @@
 	desc = "A heads-up display that provides important info in (almost) real time."
 	flags = null //doesn't protect eyes because it's a monocle, duh
 	origin_tech = "magnets=3;biotech=2"
-	prescription_upgradable = TRUE
+	prescription_upgradable = 1
 	/// The visual icons granted by wearing these glasses.
 	var/HUDType = null
 	/// List of things added to examine text, like security or medical records.
@@ -23,8 +23,8 @@
 		H.remove_hud_from(user)
 
 /obj/item/clothing/glasses/hud/emp_act(severity)
-	if(!emagged)
-		emagged = TRUE
+	if(emagged == 0)
+		emagged = 1
 		desc = desc + " The display flickers slightly."
 
 /obj/item/clothing/glasses/hud/health
@@ -49,22 +49,22 @@
 	origin_tech = "magnets=4;biotech=4;plasmatech=4;engineering=5"
 	see_in_dark = 8
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_VISIBLE
-	prescription_upgradable = FALSE
+	prescription_upgradable = 0
 
 /obj/item/clothing/glasses/hud/health/sunglasses
 	name = "medical HUDSunglasses"
 	desc = "Sunglasses with a medical HUD."
 	icon_state = "sunhudmed"
 	see_in_dark = 1
-	flash_protect = FLASH_PROTECTION_FLASH
-	tint = FLASH_PROTECTION_FLASH
+	flash_protect = 1
+	tint = 1
 
 /obj/item/clothing/glasses/hud/diagnostic
 	name = "diagnostic HUD"
 	desc = "A heads-up display capable of analyzing the integrity and status of robotics and exosuits."
 	icon_state = "diagnostichud"
 	origin_tech = "magnets=2;engineering=2"
-	HUDType = DATA_HUD_DIAGNOSTIC_BASIC
+	HUDType = DATA_HUD_DIAGNOSTIC
 
 	sprite_sheets = list(
 		"Vox" = 'icons/mob/clothing/species/vox/eyes.dmi',
@@ -80,15 +80,15 @@
 	origin_tech = "magnets=4;powerstorage=4;plasmatech=4;engineering=5"
 	see_in_dark = 8
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_VISIBLE
-	prescription_upgradable = FALSE
+	prescription_upgradable = 0
 
 /obj/item/clothing/glasses/hud/diagnostic/sunglasses
 	name = "diagnostic sunglasses"
 	desc = "Sunglasses with a diagnostic HUD."
 	icon_state = "sunhuddiag"
 	item_state = "glasses"
-	flash_protect = FLASH_PROTECTION_FLASH
-	tint = FLASH_PROTECTION_FLASH
+	flash_protect = 1
+	tint = 1
 
 /obj/item/clothing/glasses/hud/security
 	name = "security HUD"
@@ -121,7 +121,7 @@
 	origin_tech = "magnets=4;combat=4;plasmatech=4;engineering=5"
 	see_in_dark = 8
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE //don't render darkness while wearing these
-	prescription_upgradable = FALSE
+	prescription_upgradable = 0
 
 /obj/item/clothing/glasses/hud/security/sunglasses/read_only
 	examine_extensions = list(EXAMINE_HUD_SECURITY_READ)
@@ -132,9 +132,9 @@
 	icon_state = "sunhud"
 	origin_tech = "magnets=3;combat=3;engineering=3"
 	see_in_dark = 1
-	flash_protect = FLASH_PROTECTION_FLASH
-	tint = FLASH_PROTECTION_FLASH
-	prescription_upgradable = TRUE
+	flash_protect = 1
+	tint = 1
+	prescription_upgradable = 1
 
 	sprite_sheets = list(
 		"Vox" = 'icons/mob/clothing/species/vox/eyes.dmi',
@@ -164,7 +164,7 @@
 	item_state = "glasses"
 	see_in_dark = 8
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_VISIBLE
-	prescription_upgradable = FALSE
+	prescription_upgradable = 0
 
 /obj/item/clothing/glasses/hud/security/tajblind
 	name = "sleek veil"
@@ -174,7 +174,7 @@
 	flash_protect = FLASH_PROTECTION_FLASH
 	flags_cover = GLASSESCOVERSEYES
 	actions_types = list(/datum/action/item_action/toggle)
-	up = FALSE
+	up = 0
 
 	sprite_sheets = list(
 		"Vox" = 'icons/mob/clothing/species/vox/eyes.dmi'
@@ -190,7 +190,7 @@
 	item_state = "tajblind_med"
 	flags_cover = GLASSESCOVERSEYES
 	actions_types = list(/datum/action/item_action/toggle)
-	up = FALSE
+	up = 0
 
 	sprite_sheets = list(
 		"Vox" = 'icons/mob/clothing/species/vox/eyes.dmi',
@@ -219,8 +219,8 @@
 	desc = "Sunglasses with a build-in skills HUD, showing the employment history of nearby NT crew members."
 	icon_state = "sunhudskill"
 	see_in_dark = 1 // None of these three can be converted to booleans. Do not try it.
-	flash_protect = FLASH_PROTECTION_FLASH
-	tint = FLASH_PROTECTION_FLASH
+	flash_protect = 1
+	tint = 1
 	prescription_upgradable = TRUE
 	sprite_sheets = list(
 		"Drask" = 'icons/mob/clothing/species/drask/eyes.dmi',

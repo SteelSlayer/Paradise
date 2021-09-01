@@ -9,7 +9,7 @@
 	if(!src.mob)
 		return
 
-	if(check_mute(ckey, MUTE_DEADCHAT))
+	if(prefs.muted & MUTE_DEADCHAT)
 		to_chat(src, "<span class='warning'>You cannot send DSAY messages (muted).</span>")
 		return
 
@@ -45,7 +45,5 @@
 	SSblackbox.record_feedback("tally", "admin_verb", 1, "Dsay") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 /client/proc/get_dead_say()
-	if(!check_rights(R_ADMIN))
-		return
-	var/msg = input(src, null, "dsay \"text\"") as text | null
+	var/msg = input(src, null, "dsay \"text\"") as text
 	dsay(msg)

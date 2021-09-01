@@ -62,8 +62,8 @@ SUBSYSTEM_DEF(tickets)
 			report += "[num], "
 		message_staff("<span class='[span_class]'>Tickets [report] have been open for over [TICKET_TIMEOUT / 600] minutes. Changing status to stale.</span>")
 
-/datum/controller/subsystem/tickets/get_stat_details()
-	return "Tickets: [LAZYLEN(allTickets)]"
+/datum/controller/subsystem/tickets/stat_entry()
+	..("Tickets: [LAZYLEN(allTickets)]")
 
 /datum/controller/subsystem/tickets/proc/checkStaleness()
 	var/stales = list()
@@ -215,7 +215,7 @@ SUBSYSTEM_DEF(tickets)
 			return
 	T.assignStaff(C)
 
-	var/response_phrases = list("Thanks" = "Thanks for the ahelp!",
+	var/response_phrases = list("Thanks" = "Thanks, have a Paradise day!",
 		"Handling It" = "The issue is being looked into, thanks.",
 		"Already Resolved" = "The problem has been resolved already.",
 		"Mentorhelp" = "Please redirect your question to Mentorhelp, as they are better experienced with these types of questions.",

@@ -25,7 +25,12 @@
 			qdel(A)
 	return ..()
 
-/obj/item/picture_frame/update_icon_state()
+/obj/item/picture_frame/update_icon()
+	overlays.Cut()
+
+	if(displayed)
+		overlays |= getFlatIcon(displayed)
+
 	if(istype(displayed, /obj/item/photo))
 		icon_state = "[icon_base]-photo"
 	else if(istype(displayed, /obj/structure/sign/poster))
@@ -33,11 +38,7 @@
 	else
 		icon_state = "[icon_base]-paper"
 
-/obj/item/picture_frame/update_overlays()
-	. = ..()
-	if(displayed)
-		. |= getFlatIcon(displayed)
-	. |= icon_state
+	overlays |= icon_state
 
 /obj/item/picture_frame/proc/insert(obj/D)
 	if(istype(D, /obj/item/poster))
@@ -198,18 +199,15 @@
 	QDEL_NULL(frame)
 	return ..()
 
-/obj/structure/sign/picture_frame/update_icon_state()
+/obj/structure/sign/picture_frame/update_icon()
+	overlays.Cut()
 	if(frame)
 		icon = null
 		icon_state = null
+		overlays |= getFlatIcon(frame)
 	else
 		icon = initial(icon)
 		icon_state = initial(icon_state)
-
-/obj/structure/sign/picture_frame/update_overlays()
-	. += ..()
-	if(frame)
-		overlays |= getFlatIcon(frame)
 
 /obj/structure/sign/picture_frame/attackby(obj/item/I, mob/user)
 	if(istype(I, /obj/item/screwdriver))

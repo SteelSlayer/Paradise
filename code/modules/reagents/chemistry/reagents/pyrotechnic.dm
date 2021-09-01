@@ -1,5 +1,5 @@
 /datum/reagent/phlogiston
-	name = "Phlogiston"
+	name = "phlogiston"
 	id = "phlogiston"
 	description = "It appears to be liquid fire."
 	reagent_state = LIQUID
@@ -36,7 +36,7 @@
 	return ..()
 
 /datum/reagent/phlogiston/firedust
-	name = "Phlogiston dust"
+	name = "phlogiston dust"
 	id = "phlogiston_dust"
 	description = "And this is solid fire. However that works."
 	temp_fire = 1500
@@ -45,7 +45,7 @@
 	mob_burning = 3 // 15
 
 /datum/reagent/napalm
-	name = "Napalm"
+	name = "napalm"
 	id = "napalm"
 	description = "A highly flammable jellied fuel."
 	reagent_state = LIQUID

@@ -73,7 +73,7 @@
 		return
 
 	step_towards(target, get_turf(src))
-	target.Weaken(4 SECONDS)
+	target.Weaken(4 SECONDS_TO_LIFE_CYCLES)
 	target.visible_message("<span class='warning'>[target] flails [target.p_their()] [I.name] as if striking something, only to trip!</span>",
 					  	   "<span class='userdanger'>[src] vanishes as you strike it with [I], causing you to stumble forward!</span>")
 	qdel(src)
@@ -302,11 +302,11 @@
 	if(prob(80))
 		new_name = "Unknown"
 		hallucination_icon = 'icons/mob/simple_human.dmi'
-		hallucination_icon_state = pick("arctic_skeleton", "templar", "skeleton", "russianmelee", "piratemelee", "plasma_miner_tool", "cat_butcher", "syndicate_space_sword", "syndicate_stormtrooper_sword", "zombie", "scary_clown")
+		hallucination_icon_state = pick("eskimo", "templar", "skeleton", "russianmelee", "piratemelee", "plasma_miner_tool", "cat_butcher", "syndicate_space_sword", "syndicate_stormtrooper_sword", "zombie", "scary_clown")
 
 		// Adjust the attack verb and sound depending on the "mob"
 		switch(hallucination_icon_state)
-			if("arctic_skeleton", "templar", "russianmelee", "plasma_miner_tool")
+			if("eskimo", "templar", "russianmelee", "plasma_miner_tool")
 				attack_verb = "slashed"
 				attack_sound = 'sound/weapons/bladeslice.ogg'
 			if("cat_butcher")
@@ -381,7 +381,7 @@
 /obj/effect/hallucination/xeno_pouncer/throw_impact(A)
 	if(A == target)
 		forceMove(get_turf(target))
-		target.Weaken(10 SECONDS)
+		target.Weaken(5)
 		target.visible_message("<span class='danger'>[target] recoils backwards and falls flat!</span>",
 							   "<span class='userdanger'>[name] pounces on you!</span>")
 

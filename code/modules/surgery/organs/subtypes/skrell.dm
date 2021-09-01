@@ -16,7 +16,7 @@
 	var/obj/item/held_item
 
 /obj/item/organ/internal/headpocket/Destroy()
-	empty_contents()
+	QDEL_NULL(held_item)
 	return ..()
 
 /obj/item/organ/internal/headpocket/on_life()

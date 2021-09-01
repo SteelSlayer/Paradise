@@ -81,18 +81,6 @@ GLOBAL_DATUM_INIT(global_prizes, /datum/prizes, new())
 	typepath = /obj/item/deck/cards
 	cost = 25
 
-/datum/prize_item/tiny_cards
-	name = "Deck of Tiny Cards"
-	desc = "Anyone fancy a tiny game of 52-card Pickup?"
-	typepath = /obj/item/deck/cards/tiny
-	cost = 25
-
-/datum/prize_item/double_tiny_cards
-	name = "Double Deck of Tiny Cards"
-	desc = "Anyone fancy a tiny game of 108-card Pickup?"
-	typepath = /obj/item/deck/cards/tiny/doublecards
-	cost = 50
-
 /datum/prize_item/crayons
 	name = "Box of Crayons"
 	desc = "A six-pack of crayons, just like back in kindergarten."
@@ -261,12 +249,6 @@ GLOBAL_DATUM_INIT(global_prizes, /datum/prizes, new())
 	name = "Foam Arm Blade"
 	desc = "Perfect for reenacting space horror holo-vids."
 	typepath = /obj/item/toy/foamblade
-	cost = 100
-
-/datum/prize_item/wind_up_toolbox
-	name = "Wind Up Toolbox"
-	desc = "A replica toolbox that rumbles when you turn the key."
-	typepath = /obj/item/toy/windup_toolbox
 	cost = 100
 
 /datum/prize_item/redbutton

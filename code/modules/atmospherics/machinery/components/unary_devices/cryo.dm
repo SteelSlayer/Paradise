@@ -1,20 +1,18 @@
 #define AUTO_EJECT_DEAD		(1<<0)
 #define AUTO_EJECT_HEALTHY	(1<<1)
-#define HIGH 24
-#define MID 23
-#define LOW 22
+
 /obj/machinery/atmospherics/unary/cryo_cell
 	name = "cryo cell"
 	desc = "Lowers the body temperature so certain medications may take effect."
 	icon = 'icons/obj/cryogenics.dmi'
 	icon_state = "pod0"
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1.0
 	layer = ABOVE_WINDOW_LAYER
 	plane = GAME_PLANE
-	interact_offline = TRUE
+	interact_offline = 1
 	max_integrity = 350
-	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 100, BOMB = 0, BIO = 100, RAD = 100, FIRE = 30, ACID = 30)
+	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 100, "bomb" = 0, "bio" = 100, "rad" = 100, "fire" = 30, "acid" = 30)
 	var/temperature_archived
 	var/mob/living/carbon/occupant = null
 	var/obj/item/reagent_containers/glass/beaker = null
@@ -25,22 +23,24 @@
 	var/current_heat_capacity = 50
 	var/efficiency
 
-	var/running_bob_animation = FALSE // This is used to prevent threads from building up if update_icons is called multiple times
+	var/running_bob_animation = 0 // This is used to prevent threads from building up if update_icons is called multiple times
 
 	light_color = LIGHT_COLOR_WHITE
 
 /obj/machinery/atmospherics/unary/cryo_cell/detailed_examine()
-	return "The cryogenic chamber, or 'cryo', treats most damage types, most notably genetic damage. <br>\
+	return "The cryogenic chamber, or 'cryo', treats most damage types, most notably genetic damage. It also stabilizes patients \
+			in critical condition by placing them in stasis, so they can be treated at a later time.<br>\
 			<br>\
-			In order for it to work, it must be loaded with chemical. Additionally, it requires a supply of pure oxygen, provided by canisters that are attached. \
-			The most commonly used chemicals in the chambers is Cryoxadone, which heals most damage types including genetic damage.<br>\
+			In order for it to work, it must be loaded with chemicals, and the temperature of the solution must reach a certain point. Additionally, it \
+			requires a supply of pure oxygen, provided by canisters that are attached. The most commonly used chemicals in the chambers is Cryoxadone, which \
+			heals most damage types including genetic damage.<br>\
 			<br>\
 			Activating the freezer nearby, and setting it to a temperature setting below 150, is recommended before operation! Further, any clothing the patient \
 			is wearing that act as an insulator will reduce its effectiveness, and should be removed.<br>\
 			<br>\
 			Clicking the tube with a beaker full of chemicals in hand will place it in its storage to distribute when it is activated.<br>\
 			<br>\
-			Click your target and drag them onto the cryo cell to place them inside it. Click the tube again to open the menu. \
+			Click your target with Grab intent, then click on the tube, with an empty hand, to place them in it. Click the tube again to open the menu. \
 			Press the button on the menu to activate it. Once they have reached 100 health, right-click the cell and click 'Eject Occupant' to remove them. \
 			Remember to turn it off, once you've finished, to save power and chemicals!"
 
@@ -144,7 +144,7 @@
 	if(!istype(L) || L.buckled)
 		return
 	if(L.abiotic())
-		to_chat(user, "<span class='danger'>Subject may not hold anything in their hands.</span>")
+		to_chat(user, "<span class='danger'>Subject cannot have abiotic items on.</span>")
 		return
 	if(L.has_buckled_mobs()) //mob attached to us
 		to_chat(user, "<span class='warning'>[L] will not fit into [src] because [L.p_they()] [L.p_have()] a slime latched onto [L.p_their()] head.</span>")
@@ -342,53 +342,55 @@
 	if(default_deconstruction_screwdriver(user, "pod0-o", "pod0", I))
 		return TRUE
 
-/obj/machinery/atmospherics/unary/cryo_cell/update_icon_state()
+/obj/machinery/atmospherics/unary/cryo_cell/update_icon()
+	handle_update_icon()
+
+/obj/machinery/atmospherics/unary/cryo_cell/proc/handle_update_icon() //making another proc to avoid spam in update_icon
+	overlays.Cut() //empty the overlay proc, just in case
 	icon_state = "pod[on]" //set the icon properly every time
 
-/obj/machinery/atmospherics/unary/cryo_cell/update_overlays()
-	. = ..()
-	if(!occupant)
-		. += "lid[on]" //if no occupant, just put the lid overlay on, and ignore the rest
+	if(!src.occupant)
+		overlays += "lid[on]" //if no occupant, just put the lid overlay on, and ignore the rest
 		return
 
 	if(occupant)
 		var/mutable_appearance/pickle = mutable_appearance(occupant.icon, occupant.icon_state)
 		pickle.overlays = occupant.overlays
-		pickle.pixel_y = LOW
+		pickle.pixel_y = 22
 
-		. += pickle
-		. += "lid[on]"
-		if(on && !running_bob_animation) //no bobbing if off
-			var/bobbing = NONE //used to see if we are going up or down
+		overlays += pickle
+		overlays += "lid[on]"
+		if(src.on && !running_bob_animation) //no bobbing if off
+			var/up = 0 //used to see if we are going up or down, 1 is down, 2 is up
 			spawn(0) // Without this, the icon update will block. The new thread will die once the occupant leaves.
-				running_bob_animation = TRUE
-				while(occupant && on)
-					cut_overlay("lid[on]") //have to remove the overlays first, to force an update- remove cloning pod overlay
-					cut_overlay(pickle) //remove mob overlay
+				running_bob_animation = 1
+				while(occupant)
+					overlays -= "lid[on]" //have to remove the overlays first, to force an update- remove cloning pod overlay
+					overlays -= pickle //remove mob overlay
 
 					switch(pickle.pixel_y) //this looks messy as fuck but it works, switch won't call itself twice
 
-						if(MID) //inbetween state, for smoothness
-							switch(bobbing) //this is set later in the switch, to keep track of where the mob is supposed to go
-								if(UP)
-									pickle.pixel_y = HIGH //set to highest
+						if(23) //inbetween state, for smoothness
+							switch(up) //this is set later in the switch, to keep track of where the mob is supposed to go
+								if(2) //2 is up
+									pickle.pixel_y = 24 //set to highest
 
-								if(DOWN)
-									pickle.pixel_y = LOW //set to lowest
+								if(1) //1 is down
+									pickle.pixel_y = 22 //set to lowest
 
-						if(LOW) //mob is at it's lowest
-							pickle.pixel_y = MID //set to inbetween
-							bobbing = UP //have to go up
+						if(22) //mob is at it's lowest
+							pickle.pixel_y = 23 //set to inbetween
+							up = 2 //have to go up
 
-						if(HIGH) //mob is at it's highest
-							pickle.pixel_y = MID //set to inbetween
-							bobbing = DOWN //have to go down
+						if(24) //mob is at it's highest
+							pickle.pixel_y = 23 //set to inbetween
+							up = 1 //have to go down
 
-					add_overlay(pickle) //re-add the mob to the icon
-					add_overlay("lid[on]") //re-add the overlay of the pod, they are inside it, not floating
+					overlays += pickle //re-add the mob to the icon
+					overlays += "lid[on]" //re-add the overlay of the pod, they are inside it, not floating
 
 					sleep(7) //don't want to jiggle violently, just slowly bob
-				running_bob_animation = FALSE
+				running_bob_animation = 0
 
 /obj/machinery/atmospherics/unary/cryo_cell/proc/process_occupant()
 	if(air_contents.total_moles() < 10)
@@ -400,9 +402,8 @@
 		occupant.bodytemperature += 2*(air_contents.temperature - occupant.bodytemperature)*current_heat_capacity/(current_heat_capacity + air_contents.heat_capacity())
 		occupant.bodytemperature = max(occupant.bodytemperature, air_contents.temperature) // this is so ugly i'm sorry for doing it i'll fix it later i promise
 		if(occupant.bodytemperature < T0C)
-			var/stun_time = (max(5 / efficiency, (1 / occupant.bodytemperature) * 2000/efficiency)) STATUS_EFFECT_CONSTANT
-			occupant.Sleeping(stun_time)
-			occupant.Paralyse(stun_time)
+			occupant.Sleeping(max(5/efficiency, (1/occupant.bodytemperature)*2000/efficiency))
+			occupant.Paralyse(max(5/efficiency, (1/occupant.bodytemperature)*3000/efficiency))
 			if(air_contents.oxygen > 2)
 				if(occupant.getOxyLoss())
 					occupant.adjustOxyLoss(-6)
@@ -434,7 +435,7 @@
 	if(occupant.bodytemperature < 261 && occupant.bodytemperature >= 70) //Patch by Aranclanos to stop people from taking burn damage after being ejected
 		occupant.bodytemperature = 261
 	occupant = null
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 	// eject trash the occupant dropped
 	for(var/atom/movable/A in contents - component_parts - list(beaker))
 		A.forceMove(get_step(loc, SOUTH))
@@ -461,21 +462,21 @@
 		to_chat(usr, "<span class='danger'>The cryo cell is already occupied!</span>")
 		return
 	if(M.abiotic())
-		to_chat(usr, "<span class='warning'>Subject may not hold anything in their hands.</span>")
+		to_chat(usr, "<span class='warning'>Subject may not have abiotic items on.</span>")
 		return
 	if(!node)
 		to_chat(usr, "<span class='warning'>The cell is not correctly connected to its pipe network!</span>")
 		return
 	M.stop_pulling()
 	M.forceMove(src)
-	if(M.health > -100 && (M.health < 0 || M.IsSleeping()))
+	if(M.health > -100 && (M.health < 0 || M.sleeping))
 		to_chat(M, "<span class='boldnotice'>You feel a cold liquid surround you. Your skin starts to freeze up.</span>")
 	occupant = M
 //	M.metabslow = 1
 	add_fingerprint(usr)
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 	M.ExtinguishMob()
-	return TRUE
+	return 1
 
 /obj/machinery/atmospherics/unary/cryo_cell/verb/move_eject()
 	set name = "Eject occupant"
@@ -491,8 +492,6 @@
 			return
 		go_out()//and release him from the eternal prison.
 	else
-		if(usr.default_can_use_topic(src) != STATUS_INTERACTIVE)
-			return
 		if(usr.incapacitated()) //are you cuffed, dying, lying, stunned or other
 			return
 		add_attack_logs(usr, occupant, "Ejected from cryo cell at [COORD(src)]")
@@ -549,6 +548,3 @@
 
 #undef AUTO_EJECT_HEALTHY
 #undef AUTO_EJECT_DEAD
-#undef HIGH
-#undef MID
-#undef LOW

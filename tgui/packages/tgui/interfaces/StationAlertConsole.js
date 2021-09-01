@@ -23,8 +23,12 @@ export const StationAlertConsoleContent = (props, context) => {
     <Fragment>
       <Section title="Fire Alarms">
         <ul>
-          {fire.length === 0 && <li className="color-good">Systems Nominal</li>}
-          {fire.map((alert) => (
+          {fire.length === 0 && (
+            <li className="color-good">
+              Systems Nominal
+            </li>
+          )}
+          {fire.map(alert => (
             <li key={alert} className="color-average">
               {alert}
             </li>
@@ -34,9 +38,11 @@ export const StationAlertConsoleContent = (props, context) => {
       <Section title="Atmospherics Alarms">
         <ul>
           {atmos.length === 0 && (
-            <li className="color-good">Systems Nominal</li>
+            <li className="color-good">
+              Systems Nominal
+            </li>
           )}
-          {atmos.map((alert) => (
+          {atmos.map(alert => (
             <li key={alert} className="color-average">
               {alert}
             </li>
@@ -46,9 +52,11 @@ export const StationAlertConsoleContent = (props, context) => {
       <Section title="Power Alarms">
         <ul>
           {power.length === 0 && (
-            <li className="color-good">Systems Nominal</li>
+            <li className="color-good">
+              Systems Nominal
+            </li>
           )}
-          {power.map((alert) => (
+          {power.map(alert => (
             <li key={alert} className="color-average">
               {alert}
             </li>

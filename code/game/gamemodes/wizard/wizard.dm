@@ -8,10 +8,10 @@
 	required_players = 20
 	required_enemies = 1
 	recommended_enemies = 1
-	var/use_huds = TRUE
+	var/use_huds = 1
 
-	var/finished = FALSE
-	var/but_wait_theres_more = FALSE
+	var/finished = 0
+	var/but_wait_theres_more = 0
 
 /datum/game_mode/wizard/announce()
 	to_chat(world, "<B>The current game mode is - Wizard!</B>")
@@ -29,7 +29,7 @@
 	modePlayer += wizard
 	wizard.assigned_role = SPECIAL_ROLE_WIZARD //So they aren't chosen for other jobs.
 	wizard.special_role = SPECIAL_ROLE_WIZARD
-	wizard.set_original_mob(wizard.current)
+	wizard.original = wizard.current
 	if(GLOB.wizardstart.len == 0)
 		to_chat(wizard.current, "<span class='danger'>A starting location for you could not be found, please report this bug!</span>")
 		return 0
@@ -186,7 +186,7 @@
 	if(wizards_alive || apprentices_alive || but_wait_theres_more)
 		return ..()
 	else
-		finished = TRUE
+		finished = 1
 		return 1
 
 /datum/game_mode/wizard/declare_completion(ragin = 0)
@@ -202,7 +202,7 @@
 
 		for(var/datum/mind/wizard in wizards)
 
-			text += "<br><b>[wizard.get_display_key()]</b> was <b>[wizard.name]</b> ("
+			text += "<br><b>[wizard.key]</b> was <b>[wizard.name]</b> ("
 			if(wizard.current)
 				if(wizard.current.stat == DEAD)
 					text += "died"

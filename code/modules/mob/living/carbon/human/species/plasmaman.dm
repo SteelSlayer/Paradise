@@ -5,7 +5,7 @@
 	dangerous_existence = TRUE //So so much
 	//language = "Clatter"
 
-	species_traits = list(IS_WHITELISTED, NO_BLOOD, NO_HAIR)
+	species_traits = list(IS_WHITELISTED, NO_BLOOD, NOTRANSSTING, NO_HAIR)
 	inherent_traits = list(TRAIT_RADIMMUNE, TRAIT_NOHUNGER)
 	inherent_biotypes = MOB_HUMANOID | MOB_MINERAL
 	forced_heartattack = TRUE // Plasmamen have no blood, but they should still get heart-attacks
@@ -69,7 +69,7 @@
 		if("Chef")
 			O = new /datum/outfit/plasmaman/chef
 
-		if("Security Officer", "Special Operations Officer")
+		if("Security Officer", "Security Pod Pilot", "Special Operations Officer")
 			O = new /datum/outfit/plasmaman/security
 
 		if("Detective")
@@ -87,7 +87,7 @@
 		if("Shaft Miner")
 			O = new /datum/outfit/plasmaman/mining
 
-		if("Medical Doctor", "Paramedic", "Coroner")
+		if("Medical Doctor", "Brig Physician", "Paramedic", "Coroner")
 			O = new /datum/outfit/plasmaman/medical
 
 		if("Chief Medical Officer")
@@ -111,7 +111,7 @@
 		if("Research Director")
 			O = new /datum/outfit/plasmaman/rd
 
-		if("Station Engineer")
+		if("Station Engineer", "Mechanic")
 			O = new /datum/outfit/plasmaman/engineering
 
 		if("Chief Engineer")
@@ -135,7 +135,7 @@
 		if("Blueshield")
 			O = new /datum/outfit/plasmaman/blueshield
 
-		if("Assistant")
+		if("Assistant", "Tourist", "Civilian", "Businessman", "Trader")
 			O = new /datum/outfit/plasmaman/assistant
 
 	H.equipOutfit(O, visualsOnly)
@@ -171,23 +171,3 @@
 		return FALSE //Handling reagent removal on our own. Prevents plasma from dealing toxin damage to Plasmamen.
 
 	return ..()
-
-/datum/species/plasmaman/after_equip_job(datum/job/J, mob/living/carbon/human/H)
-	if(!H.mind || !H.mind.assigned_role || H.mind.assigned_role != "Clown" && H.mind.assigned_role != "Mime")
-		H.unEquip(H.wear_mask)
-
-	H.equip_or_collect(new /obj/item/clothing/mask/breath(H), slot_wear_mask)
-	var/tank_pref = H.client && H.client.prefs ? H.client.prefs.active_character.speciesprefs : null
-	var/obj/item/tank/internal_tank
-	if(tank_pref) //Diseasel, here you go
-		internal_tank = new /obj/item/tank/internals/plasmaman/full(H)
-	else
-		internal_tank = new /obj/item/tank/internals/plasmaman/belt/full(H)
-	if(!H.equip_to_appropriate_slot(internal_tank) && !H.put_in_any_hand_if_possible(internal_tank))
-		H.unEquip(H.l_hand)
-		H.equip_or_collect(internal_tank, slot_l_hand)
-		to_chat(H, "<span class='boldannounce'>Could not find an empty slot for internals! Please report this as a bug.</span>")
-		stack_trace("Failed to equip plasmaman with a tank, with the job [J.type]")
-	H.internal = internal_tank
-	to_chat(H, "<span class='notice'>You are now running on plasma internals from [internal_tank]. Oxygen is toxic to your species, so you must breathe plasma only.</span>")
-	H.update_action_buttons_icon()

@@ -15,7 +15,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 	item_state = "electronic"
 	w_class = WEIGHT_CLASS_TINY
 	slot_flags = SLOT_ID | SLOT_BELT | SLOT_PDA
-	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 100, ACID = 100)
+	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 100)
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 	origin_tech = "programming=2"
 
@@ -34,7 +34,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 	var/silent = FALSE //To beep or not to beep, that is the question
 	var/honkamt = 0 //How many honks left when infected with honk.exe
 	var/mimeamt = 0 //How many silence left when infected with mime.exe
-	var/detonate = TRUE // Can the PDA be blown up?
+	var/detonate = 1 // Can the PDA be blown up?
 	var/ttone = "beep" //The ringtone!
 	var/list/ttone_sound = list("beep" = 'sound/machines/twobeep.ogg',
 								"boom" = 'sound/effects/explosionfar.ogg',
@@ -84,7 +84,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 		return 0
 
 	var/mob/M = loc
-	if(M.incapacitated())
+	if(M.incapacitated(ignore_lying = TRUE))
 		return 0
 	if((src in M.contents) || ( istype(loc, /turf) && in_range(src, M) ))
 		return 1
@@ -106,6 +106,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 		return attack_self(M)
 
 /obj/item/pda/attack_self(mob/user as mob)
+	user.set_machine(src)
 	if(active_uplink_check(user))
 		return
 	ui_interact(user)
@@ -250,7 +251,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 			playsound(src, 'sound/machines/pda_button1.ogg', 50, TRUE)
 	return
 
-/obj/item/pda/attackby(obj/item/C, mob/user, params)
+/obj/item/pda/attackby(obj/item/C as obj, mob/user as mob, params)
 	..()
 	if(istype(C, /obj/item/cartridge) && !cartridge)
 		cartridge = C
@@ -260,6 +261,8 @@ GLOBAL_LIST_EMPTY(PDAs)
 		update_shortcuts()
 		to_chat(user, "<span class='notice'>You insert [cartridge] into [src].</span>")
 		SStgui.update_uis(src)
+		if(cartridge.radio)
+			cartridge.radio.hostpda = src
 		playsound(src, 'sound/machines/pda_button1.ogg', 50, TRUE)
 
 	else if(istype(C, /obj/item/card/id))

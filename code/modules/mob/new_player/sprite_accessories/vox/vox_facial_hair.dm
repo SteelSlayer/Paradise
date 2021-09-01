@@ -18,7 +18,3 @@
 /datum/sprite_accessory/facial_hair/vox/vox_beard
 	name = "Vox Quill Beard"
 	icon_state = "beard"
-
-/datum/sprite_accessory/facial_hair/vox/vox_mane
-	name = "Vox Mane Beard"
-	icon_state = "mane"

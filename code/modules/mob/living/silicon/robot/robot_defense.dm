@@ -1,6 +1,6 @@
 /mob/living/silicon/robot/attack_alien(mob/living/carbon/alien/humanoid/M)
 	if(M.a_intent == INTENT_DISARM)
-		if(mobility_flags & MOBILITY_MOVE)
+		if(!lying)
 			M.do_attack_animation(src, ATTACK_EFFECT_DISARM)
 			var/obj/item/I = get_active_hand()
 			if(I)
@@ -8,7 +8,7 @@
 				visible_message("<span class='danger'>[M] disarmed [src]!</span>", "<span class='userdanger'>[M] has disabled [src]'s active module!</span>")
 				add_attack_logs(M, src, "alien disarmed")
 			else
-				Stun(4 SECONDS)
+				Stun(2)
 				step(src, get_dir(M,src))
 				add_attack_logs(M, src, "Alien pushed over")
 				visible_message("<span class='danger'>[M] forces back [src]!</span>", "<span class='userdanger'>[M] forces back [src]!</span>")
@@ -37,18 +37,20 @@
 /mob/living/silicon/robot/attack_hand(mob/living/carbon/human/user)
 	add_fingerprint(user)
 
-	if(opened && !wiresexposed && !issilicon(user))
+	if((cover_flags & OPENED) && !(cover_flags & WIRES_EXPOSED) && !issilicon(user))
 		if(cell)
 			cell.update_icon()
 			cell.add_fingerprint(user)
 			user.put_in_active_hand(cell)
 			to_chat(user, "<span class='notice'>You remove \the [cell].</span>")
+			cell = null
 			var/datum/robot_component/C = components["power cell"]
+			C.installed = 0
 			C.uninstall()
 			module?.update_cells(TRUE)
 			diag_hud_set_borgcell()
 
-	if(!opened)
+	if(!(cover_flags & OPENED))
 		if(..()) // hulk attack
 			spark_system.start()
 			spawn(0)

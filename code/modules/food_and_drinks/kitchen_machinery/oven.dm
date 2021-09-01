@@ -4,16 +4,15 @@
 	icon = 'icons/obj/cooking_machines.dmi'
 	icon_state = "oven_off"
 	layer = 2.9
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1
 	use_power = IDLE_POWER_USE
-	var/candy = FALSE
+	var/candy = 0
 	idle_power_usage = 5
 	var/on = FALSE	//Is it making food already?
 	var/list/food_choices = list()
-
-/obj/machinery/cooking/Initialize(mapload)
-	. = ..()
+/obj/machinery/cooking/New()
+	..()
 	updatefood()
 
 /obj/machinery/cooking/attackby(obj/item/I, mob/user, params)
@@ -69,7 +68,7 @@
 	desc = "Get yer box of deep fried deep fried deep fried deep fried cotton candy cereal sandwich cookies here!"
 	icon = 'icons/obj/cooking_machines.dmi'
 	icon_state = "mixer_off"
-	candy = TRUE
+	candy = 1
 
 /obj/machinery/cooking/candy/updatefood()
 	for(var/U in food_choices)

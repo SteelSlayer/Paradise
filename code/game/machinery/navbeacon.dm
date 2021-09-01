@@ -8,29 +8,27 @@
 	name = "navigation beacon"
 	desc = "A radio beacon used for bot navigation."
 	level = 1		// underfloor
-	layer = WIRE_LAYER
-	plane = FLOOR_PLANE
-	anchored = TRUE
+	layer = 2.5
+	anchored = 1
 	max_integrity = 500
 	armor = list(melee = 70, bullet = 70, laser = 70, energy = 70, bomb = 0, bio = 0, rad = 0, fire = 80, acid = 80)
-	var/open = FALSE		// true if cover is open
-	var/locked = TRUE		// true if controls are locked
+	var/open = 0		// true if cover is open
+	var/locked = 1		// true if controls are locked
 	var/location = ""	// location response text
 	var/list/codes		// assoc. list of transponder codes
 	var/codes_txt = ""	// codes as set on map: "tag1;tag2" or "tag1=value;tag2=value"
 
 	req_access = list(ACCESS_ENGINE, ACCESS_ROBOTICS)
 
-/obj/machinery/navbeacon/Initialize(mapload)
-	. = ..()
+/obj/machinery/navbeacon/New()
+	..()
 
 	set_codes()
 
 	var/turf/T = loc
-	if(!T.transparent_floor)
-		hide(T.intact)
-	if(!length(codes))
-		stack_trace("Empty codes datum at ([x],[y],[z]) (codes_txt: [codes_txt])")
+	hide(T.intact)
+	if(!codes || !codes.len)
+		log_runtime(EXCEPTION("Empty codes datum at ([x],[y],[z])"), src, list("codes_txt: '[codes_txt]'"))
 	if("patrol" in codes)
 		if(!GLOB.navbeacons["[z]"])
 			GLOB.navbeacons["[z]"] = list()
@@ -76,11 +74,17 @@
 // hide the object if turf is intact
 /obj/machinery/navbeacon/hide(intact)
 	invisibility = intact ? INVISIBILITY_MAXIMUM : 0
-	update_icon(UPDATE_ICON_STATE)
+	updateicon()
 
-/obj/machinery/navbeacon/update_icon_state()
-	icon_state = "navbeacon[open][invisibility ? "-f" : ""]"	// if invisible, set icon to faded version
-																// in case revealed by T-scanner
+// update the icon_state
+/obj/machinery/navbeacon/proc/updateicon()
+	var/state="navbeacon[open]"
+
+	if(invisibility)
+		icon_state = "[state]-f"	// if invisible, set icon to faded version
+									// in case revealed by T-scanner
+	else
+		icon_state = "[state]"
 
 /obj/machinery/navbeacon/attackby(obj/item/I, mob/user, params)
 	var/turf/T = loc
@@ -92,7 +96,7 @@
 
 		user.visible_message("[user] [open ? "opens" : "closes"] the beacon's cover.", "<span class='notice'>You [open ? "open" : "close"] the beacon's cover.</span>")
 
-		update_icon(UPDATE_ICON_STATE)
+		updateicon()
 
 	else if(istype(I, /obj/item/card/id) || istype(I, /obj/item/pda))
 		if(open)
@@ -215,4 +219,4 @@ Transponder Codes:<UL>"}
 
 /obj/machinery/navbeacon/invisible/hide(intact)
 	invisibility = INVISIBILITY_MAXIMUM
-	update_icon(UPDATE_ICON_STATE)
+	updateicon()

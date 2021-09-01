@@ -39,19 +39,19 @@
 
 	set_typing_indicator(FALSE, TRUE)
 	if(use_me)
-		custom_emote(usr.emote_type, message, intentional = TRUE)
+		custom_emote(usr.emote_type, message)
 	else
-		usr.emote(message, intentional = TRUE)
+		usr.emote(message)
 
 
 /mob/proc/say_dead(message)
 	if(client)
-		if(!check_rights(R_ADMIN, FALSE))
+		if(!client.holder)
 			if(!GLOB.dsay_enabled)
 				to_chat(src, "<span class='danger'>Deadchat is globally muted.</span>")
 				return
 
-		if(check_mute(client.ckey, MUTE_DEADCHAT))
+		if(client.prefs.muted & MUTE_DEADCHAT)
 			to_chat(src, "<span class='warning'>You cannot talk in deadchat (muted).</span>")
 			return
 
@@ -61,13 +61,6 @@
 
 		if(client.handle_spam_prevention(message, MUTE_DEADCHAT))
 			return
-
-
-	if(message in USABLE_DEAD_EMOTES)
-		emote(copytext(message, 2), intentional = TRUE)
-		log_emote(message, src)
-		create_log(DEADCHAT_LOG, message)
-		return
 
 	say_dead_direct("[pick("complains", "moans", "whines", "laments", "blubbers", "salts")], <span class='message'>\"[message]\"</span>", src)
 	create_log(DEADCHAT_LOG, message)
@@ -116,6 +109,12 @@
 		else if(ending == "?")
 			verb = "asks"
 	return verb
+
+
+/mob/proc/emote(act, type, message, force)
+	if(act == "me")
+		return custom_emote(type, message)
+
 
 /mob/proc/get_ear()
 	// returns an atom representing a location on the map from which this
@@ -221,5 +220,4 @@
 		. += S.message + " "
 	. = trim_right(.)
 
-#undef USABLE_DEAD_EMOTES
 #undef ILLEGAL_CHARACTERS_LIST

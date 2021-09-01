@@ -1,11 +1,11 @@
 /obj/machinery/transformer
 	name = "Automatic Robotic Factory 5000"
-	desc = "A large metallic machine with an entrance and an exit. A sign on the side reads, 'human go in, robot come out'. Has a cooldown between each use."
+	desc = "A large metalic machine with an entrance and an exit. A sign on the side reads, 'human go in, robot come out', human must be lying down and alive. Has to cooldown between each use."
 	icon = 'icons/obj/recycling.dmi'
 	icon_state = "separator-AO1"
 	layer = MOB_LAYER+1 // Overhead
-	anchored = TRUE
-	density = TRUE
+	anchored = 1
+	density = 1
 	/// TRUE if the factory can transform dead mobs.
 	var/transform_dead = TRUE
 	/// TRUE if the mob can be standing and still be transformed.
@@ -48,9 +48,10 @@
 
 /obj/machinery/transformer/power_change()
 	..()
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
-/obj/machinery/transformer/update_icon_state()
+/obj/machinery/transformer/update_icon()
+	..()
 	if(is_on_cooldown || stat & (BROKEN|NOPOWER))
 		icon_state = "separator-AO0"
 	else
@@ -65,7 +66,7 @@
 /// Resets `is_on_cooldown` to `FALSE` and updates our icon. Used in a callback after the transformer does a transformation.
 /obj/machinery/transformer/proc/reset_cooldown()
 	is_on_cooldown = FALSE
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
 /obj/machinery/transformer/Bumped(atom/movable/AM)
 	// They have to be human to be transformed.
@@ -75,7 +76,7 @@
 	var/mob/living/carbon/human/H = AM
 	var/move_dir = get_dir(loc, H.loc)
 
-	if((transform_standing || IS_HORIZONTAL(H)) && move_dir == acceptdir)
+	if((transform_standing || H.lying) && move_dir == acceptdir)
 		H.forceMove(drop_location())
 		do_transform(H)
 
@@ -93,7 +94,7 @@
 
 	// Activate the cooldown
 	is_on_cooldown = TRUE
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 	addtimer(CALLBACK(src, .proc/reset_cooldown), cooldown_duration)
 	addtimer(CALLBACK(null, .proc/playsound, loc, 'sound/machines/ping.ogg', 50, 0), 3 SECONDS)
 
@@ -102,7 +103,7 @@
 		H.Robotize(robot_cell_type)
 		return
 
-	var/mob/living/silicon/robot/R = H.Robotize(robot_cell_type, FALSE, masterAI)
+	var/mob/living/silicon/robot/R = H.Robotize(robot_cell_type, masterAI)
 	if(R.mind && !R.client && !R.grab_ghost()) // Make sure this is an actual player first and not just a humanized monkey or something.
 		message_admins("[key_name_admin(R)] was just transformed by a borg factory, but they were SSD. Polling ghosts for a replacement.")
 		var/list/candidates = SSghost_spawns.poll_candidates("Do you want to play as a malfunctioning cyborg?", ROLE_TRAITOR, poll_time = 15 SECONDS)
@@ -140,7 +141,7 @@
 
 	// Activate the cooldown
 	is_on_cooldown = TRUE
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 	addtimer(CALLBACK(src, .proc/reset_cooldown), cooldown_duration)
 
 /obj/machinery/transformer/xray
@@ -166,9 +167,10 @@
 
 /obj/machinery/transformer/xray/power_change()
 	..()
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
-/obj/machinery/transformer/xray/update_icon_state()
+/obj/machinery/transformer/xray/update_icon()
+	..()
 	if(stat & (BROKEN|NOPOWER))
 		icon_state = "separator-AO0"
 	else
@@ -184,7 +186,7 @@
 		var/mob/living/carbon/human/H = AM
 		var/move_dir = get_dir(loc, H.loc)
 
-		if(IS_HORIZONTAL(H) && move_dir == acceptdir)
+		if(H.lying && move_dir == acceptdir)
 			H.forceMove(drop_location())
 			irradiate(H)
 

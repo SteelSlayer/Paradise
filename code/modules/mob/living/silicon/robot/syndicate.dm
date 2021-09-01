@@ -1,8 +1,8 @@
 /mob/living/silicon/robot/syndicate
-	base_icon = "syndie_bloodhound"
 	icon_state = "syndie_bloodhound"
 	lawupdate = FALSE
-	scrambledcodes = TRUE
+	auto_snyc_to_AI = FALSE
+	visible_on_console = TRUE
 	has_camera = FALSE
 	pdahide = TRUE
 	faction = list("syndicate")
@@ -10,42 +10,37 @@
 	designation = "Syndicate Assault"
 	modtype = "Syndicate"
 	req_access = list(ACCESS_SYNDICATE)
-	ionpulse = TRUE
 	damage_protection = 5
 	brute_mod = 0.7 //30% less damage
 	burn_mod = 0.7
-	can_lock_cover = TRUE
-	lawchannel = "State"
+	cover_flags = LOCKED | SELF_LOCKABLE
+	default_cell_type = /obj/item/stock_parts/cell/hyper
+	law_type_override = /datum/ai_laws/syndicate_override
+	radio_type = /obj/item/radio/borg/syndicate
+	creation_sound = 'sound/mecha/nominalsyndi.ogg'
 	var/playstyle_string = "<span class='userdanger'>You are a Syndicate assault cyborg!</span><br>\
 							<b>You are armed with powerful offensive tools to aid you in your mission: help the operatives secure the nuclear authentication disk. \
 							Your cyborg LMG will slowly produce ammunition from your power supply, and your operative pinpointer will find and locate fellow nuclear operatives. \
 							<i>Help the operatives secure the disk at all costs!</i></b>"
 
-/mob/living/silicon/robot/syndicate/New(loc)
+/mob/living/silicon/robot/syndicate/Initialize(mapload, mob/living/silicon/ai/AI_to_sync_to)
 	..()
-	cell = new /obj/item/stock_parts/cell/hyper(src)
+	var/obj/item/borg/upgrade/thrusters/thrusters = new(src)
+	thrusters.do_install(src)
+	return INITIALIZE_HINT_LATELOAD
 
-/mob/living/silicon/robot/syndicate/init(alien = FALSE, mob/living/silicon/ai/ai_to_sync_to = null)
-	laws = new /datum/ai_laws/syndicate_override
-	module = new /obj/item/robot_module/syndicate(src)
-
-	aiCamera = new/obj/item/camera/siliconcam/robot_camera(src)
-	radio = new /obj/item/radio/borg/syndicate(src)
-	radio.recalculateChannels()
-
-	spawn(5)
-		if(playstyle_string)
-			to_chat(src, playstyle_string)
-
-	playsound(loc, 'sound/mecha/nominalsyndi.ogg', 75, 0)
+/mob/living/silicon/robot/syndicate/LateInitialize()
+	if(!playstyle_string)
+		return
+	to_chat(src, playstyle_string) // TODO: test this
 
 /mob/living/silicon/robot/syndicate/medical
-	base_icon = "syndi-medi"
 	icon_state = "syndi-medi"
 	modtype = "Syndicate Medical"
 	designation = "Syndicate Medical"
 	brute_mod = 0.8 //20% less damage
 	burn_mod = 0.8
+	module_type = /obj/item/robot_module/syndicate_medical
 	playstyle_string = "<span class='userdanger'>You are a Syndicate medical cyborg!</span><br>\
 						<b>You are armed with powerful medical tools to aid you in your mission: help the operatives secure the nuclear authentication disk. \
 						Your hypospray will produce Restorative Nanites, a wonder-drug that will heal most types of bodily damages, including clone and brain damage. It also produces morphine for offense. \
@@ -53,19 +48,13 @@
 						Your energy saw functions as a circular saw, but can be activated to deal more damage, and your operative pinpointer will find and locate fellow nuclear operatives. \
 						<i>Help the operatives secure the disk at all costs!</i></b>"
 
-/mob/living/silicon/robot/syndicate/medical/init(alien = FALSE, mob/living/silicon/ai/ai_to_sync_to = null)
-	..()
-	module = new /obj/item/robot_module/syndicate_medical(src)
-
 /mob/living/silicon/robot/syndicate/saboteur
-	base_icon = "syndi-engi"
 	icon_state = "syndi-engi"
 	modtype = "Syndicate Saboteur"
 	designation = "Syndicate Saboteur"
 	brute_mod = 0.8
 	burn_mod = 0.8
-	var/mail_destination = 0
-	var/obj/item/borg_chameleon/cham_proj = null
+	module_type = /obj/item/robot_module/syndicate_saboteur
 	playstyle_string = "<span class='userdanger'>You are a Syndicate saboteur cyborg!</span><br>\
 						<b>You are equipped with robust engineering tools to aid you in your mission: help the operatives secure the nuclear authentication disk. \
 						Your built-in mail tagger will allow you to stealthily traverse the disposal network across the station. \
@@ -74,18 +63,13 @@
 						You are armed with a standard energy sword, use it to ambush key targets if needed. Your pinpointer will let you locate fellow nuclear operatives to regroup.\
 						Be aware that physical contact or taking damage will break your disguise. \
 						<i>Help the operatives secure the disk at all costs!</i></b>"
+	var/mail_destination = 0
+	var/obj/item/borg_chameleon/cham_proj
 
-/mob/living/silicon/robot/syndicate/saboteur/init(alien = FALSE, mob/living/silicon/ai/ai_to_sync_to = null)
-	..()
-	module = new /obj/item/robot_module/syndicate_saboteur(src)
-
-	var/obj/item/borg/upgrade/selfrepair/SR = new /obj/item/borg/upgrade/selfrepair(src)
-	SR.cyborg = src
-	SR.icon_state = "selfrepair_off"
-
-	var/datum/action/self_repair = new /datum/action/item_action/toggle(SR)
-	self_repair.Grant(src)
-
+/mob/living/silicon/robot/syndicate/saboteur/Initialize(mapload, mob/living/silicon/ai/AI_to_sync_to)
+	. = ..()
+	var/obj/item/borg/upgrade/selfrepair/SR = new(src)
+	SR.do_install(src)
 	var/datum/action/thermals = new /datum/action/innate/robot_sight/thermal()
 	thermals.Grant(src)
 

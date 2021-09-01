@@ -10,13 +10,13 @@
 	name = "dual-port air vent"
 	desc = "Has a valve and pump attached to it. There are two ports."
 
-	can_unwrench = TRUE
+	can_unwrench = 1
 
 	level = 1
 
-	connect_types = list(CONNECT_TYPE_NORMAL, CONNECT_TYPE_SUPPLY, CONNECT_TYPE_SCRUBBER) //connects to regular, supply and scrubbers pipes
+	connect_types = list(1,2,3) //connects to regular, supply and scrubbers pipes
 
-	var/releasing = TRUE //FALSE = siphoning, TRUE = releasing
+	var/pump_direction = 1 //0 = siphoning, 1 = releasing
 
 	var/external_pressure_bound = ONE_ATMOSPHERE
 	var/input_pressure_min = 0
@@ -70,8 +70,13 @@
 		add_underlay(T, node1, turn(dir, -180))
 		add_underlay(T, node2, dir)
 
-/obj/machinery/atmospherics/binary/dp_vent_pump/update_overlays()
-	. = ..()
+/obj/machinery/atmospherics/binary/dp_vent_pump/update_icon(safety = 0)
+	..()
+
+	if(!check_icon_cache())
+		return
+
+	overlays.Cut()
 
 	var/vent_icon = "vent"
 
@@ -79,12 +84,15 @@
 	if(!istype(T))
 		return
 
+	if(T.intact && node1 && node2 && node1.level == 1 && node2.level == 1 && istype(node1, /obj/machinery/atmospherics/pipe) && istype(node2, /obj/machinery/atmospherics/pipe))
+		vent_icon += "h"
+
 	if(!powered())
 		vent_icon += "off"
 	else
-		vent_icon += "[on ? "[releasing ? "out" : "in"]" : "off"]"
+		vent_icon += "[on ? "[pump_direction ? "out" : "in"]" : "off"]"
 
-	. += SSair.icon_manager.get_atmos_icon("device", , , vent_icon)
+	overlays += SSair.icon_manager.get_atmos_icon("device", , , vent_icon)
 
 /obj/machinery/atmospherics/binary/dp_vent_pump/update_underlays()
 	if(..())
@@ -103,8 +111,6 @@
 				add_underlay(T, node2, dir, node2.icon_connect_type)
 			else
 				add_underlay(T, node2, dir)
-		var/icon/frame = icon('icons/atmos/vent_pump.dmi', "frame")
-		underlays += frame
 
 /obj/machinery/atmospherics/binary/dp_vent_pump/process_atmos()
 	..()
@@ -114,7 +120,7 @@
 	var/datum/gas_mixture/environment = loc.return_air()
 	var/environment_pressure = environment.return_pressure()
 
-	if(releasing) //input -> external
+	if(pump_direction) //input -> external
 		var/pressure_delta = 10000
 
 		if(pressure_checks&1)
@@ -164,7 +170,7 @@
 		"tag" = id_tag,
 		"device" = "ADVP",
 		"power" = on,
-		"direction" = releasing?("release"):("siphon"),
+		"direction" = pump_direction?("release"):("siphon"),
 		"checks" = pressure_checks,
 		"input" = input_pressure_min,
 		"output" = output_pressure_max,
@@ -185,18 +191,18 @@
 		on = !on
 
 	if(signal.data["direction"] != null)
-		releasing = text2num(signal.data["direction"])
+		pump_direction = text2num(signal.data["direction"])
 
 	if(signal.data["checks"] != null)
 		pressure_checks = text2num(signal.data["checks"])
 
 	if(signal.data["purge"])
 		pressure_checks &= ~1
-		releasing = FALSE
+		pump_direction = 0
 
 	if(signal.data["stabilize"])//the fact that this was "stabalize" shows how many fucks people give about these wonders, none
 		pressure_checks |= 1
-		releasing = TRUE
+		pump_direction = 1
 
 	if(signal.data["set_input_pressure"] != null)
 		input_pressure_min = clamp(

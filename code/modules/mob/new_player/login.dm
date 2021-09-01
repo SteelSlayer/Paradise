@@ -5,7 +5,7 @@
 
 	if(!mind)
 		mind = new /datum/mind(key)
-		mind.active = TRUE
+		mind.active = 1
 		mind.current = src
 
 	if(length(GLOB.newplayer_start))
@@ -28,8 +28,9 @@
 
 	if(ckey in GLOB.deadmins)
 		verbs += /client/proc/readmin
-
-	client?.playtitlemusic()
+	spawn(40)
+		if(client)
+			client.playtitlemusic()
 
 	//Overflow rerouting, if set, forces players to be moved to a different server once a player cap is reached. Less rough than a pure kick.
 	if(GLOB.configuration.overflow.reroute_cap && GLOB.configuration.overflow.overflow_server_location)

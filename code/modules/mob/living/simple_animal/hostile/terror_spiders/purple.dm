@@ -111,5 +111,5 @@
 /obj/structure/spider/terrorweb/purple
 	name = "thick web"
 	desc = "This web is so thick, most cannot see beyond it."
-	opacity = TRUE
+	opacity = 1
 	max_integrity = 40

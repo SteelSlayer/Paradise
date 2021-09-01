@@ -18,8 +18,8 @@
 *   Initialising
 ********************/
 
-/obj/machinery/kitchen_machine/grill/Initialize(mapload)
-	. = ..()
+/obj/machinery/kitchen_machine/grill/New()
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/grill(null)
 	component_parts += new /obj/item/stock_parts/micro_laser(null)
@@ -28,8 +28,8 @@
 	component_parts += new /obj/item/stack/cable_coil(null, 5)
 	RefreshParts()
 
-/obj/machinery/kitchen_machine/grill/upgraded/Initialize(mapload)
-	. = ..()
+/obj/machinery/kitchen_machine/grill/upgraded/New()
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/grill(null)
 	component_parts += new /obj/item/stock_parts/micro_laser/ultra(null)

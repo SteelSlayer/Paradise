@@ -39,11 +39,11 @@ GLOBAL_LIST_EMPTY(holopads)
 	name = "holopad"
 	desc = "It's a floor-mounted device for projecting holographic images."
 	icon_state = "holopad0"
-	anchored = TRUE
+	anchored = 1
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 5
 	active_power_usage = 100
-	layer = HOLOPAD_LAYER //Preventing mice and drones from sneaking under them.
+	layer = TURF_LAYER+0.1 //Preventing mice and drones from sneaking under them.
 	plane = FLOOR_PLANE
 	max_integrity = 300
 	armor = list(melee = 50, bullet = 20, laser = 20, energy = 20, bomb = 0, bio = 0, rad = 0, fire = 50, acid = 0)
@@ -59,8 +59,8 @@ GLOBAL_LIST_EMPTY(holopads)
 	var/ringing = FALSE
 	var/dialling_input = FALSE //The user is currently selecting where to send their call
 
-/obj/machinery/hologram/holopad/Initialize(mapload)
-	. = ..()
+/obj/machinery/hologram/holopad/New()
+	..()
 	GLOB.holopads += src
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/holopad(null)
@@ -83,26 +83,10 @@ GLOBAL_LIST_EMPTY(holopads)
 /obj/machinery/hologram/holopad/power_change()
 	if(powered())
 		stat &= ~NOPOWER
-		set_light(1, LIGHTING_MINIMUM_POWER)
 	else
 		stat |= NOPOWER
 		if(outgoing_call)
 			outgoing_call.ConnectionFailure(src)
-		set_light(0)
-	update_icon(UPDATE_OVERLAYS)
-
-/obj/machinery/hologram/holopad/update_overlays()
-	. = ..()
-	underlays.Cut()
-
-	if(stat & NOPOWER)
-		return
-
-	var/total_users = LAZYLEN(masters) + LAZYLEN(holo_calls)
-	if(ringing)
-		underlays += emissive_appearance(icon, "holopad_ringing_lightmask")
-	else if(total_users)
-		underlays += emissive_appearance(icon, "holopad1_lightmask")
 
 /obj/machinery/hologram/holopad/obj_break()
 	. = ..()
@@ -306,7 +290,7 @@ GLOBAL_LIST_EMPTY(holopads)
 				playsound(src, 'sound/machines/twobeep.ogg', 100)	//bring, bring!
 				ringing = TRUE
 
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
 
 //Try to transfer hologram to another pad that can project on T
@@ -379,10 +363,10 @@ GLOBAL_LIST_EMPTY(holopads)
 			hologram.alpha = 100
 			hologram.Impersonation = user
 
-		hologram.mouse_opacity = MOUSE_OPACITY_TRANSPARENT //So you can't click on it.
-		hologram.layer = FLY_LAYER //Above all the other objects/mobs. Or the vast majority of them.
-		hologram.anchored = TRUE //So space wind cannot drag it.
-		hologram.name = "[user.name] (hologram)" //If someone decides to right click.
+		hologram.mouse_opacity = MOUSE_OPACITY_TRANSPARENT//So you can't click on it.
+		hologram.layer = FLY_LAYER//Above all the other objects/mobs. Or the vast majority of them.
+		hologram.anchored = 1//So space wind cannot drag it.
+		hologram.name = "[user.name] (hologram)"//If someone decides to right click.
 		hologram.set_light(2)	//hologram lighting
 		move_hologram()
 
@@ -421,11 +405,13 @@ For the other part of the code, check silicon say.dm. Particularly robot talk.*/
 	active_power_usage = HOLOPAD_PASSIVE_POWER_USAGE + (HOLOGRAM_POWER_USAGE * total_users)
 	if(total_users)
 		set_light(2)
+		icon_state = "holopad1"
 	else
 		set_light(0)
-	update_icon(UPDATE_ICON_STATE | UPDATE_OVERLAYS)
+		icon_state = "holopad0"
+	update_icon()
 
-/obj/machinery/hologram/holopad/update_icon_state()
+/obj/machinery/hologram/holopad/update_icon()
 	var/total_users = LAZYLEN(masters) + LAZYLEN(holo_calls)
 	if(icon_state == "holopad_open")
 		return

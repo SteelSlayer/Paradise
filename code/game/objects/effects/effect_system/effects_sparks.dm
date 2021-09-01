@@ -13,12 +13,13 @@
 	var/datum/effect_system/spark_spread/sparks = new
 	sparks.set_up(n, c, source)
 	sparks.autocleanup = TRUE
-	INVOKE_ASYNC(sparks, /datum/effect_system/.proc/start)
+	sparks.start()
 
 /obj/effect/particle_effect/sparks
 	name = "sparks"
 	desc = "it's a spark what do you need to know?"
 	icon_state = "sparks"
+	anchored = TRUE
 	var/hotspottemp = 1000
 
 /obj/effect/particle_effect/sparks/New()

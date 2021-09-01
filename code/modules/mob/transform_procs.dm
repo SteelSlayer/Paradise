@@ -4,7 +4,7 @@
 	singlemutcheck(H, GLOB.monkeyblock, MUTCHK_FORCED)
 
 /mob/new_player/AIize()
-	spawning = TRUE
+	spawning = 1
 	return ..()
 
 /mob/living/carbon/AIize()
@@ -12,7 +12,8 @@
 		return
 	for(var/obj/item/W in src)
 		unEquip(W)
-	notransform = TRUE
+	notransform = 1
+	canmove = 0
 	icon = null
 	invisibility = 101
 	return ..()
@@ -27,7 +28,7 @@
 
 	if(mind)
 		mind.transfer_to(O)
-		O.mind.set_original_mob(O)
+		O.mind.original = O
 	else
 		O.key = key
 
@@ -47,26 +48,21 @@
 
 	Arguments:
 	* cell_type: A type path of the cell the new borg should receive.
-	* connect_to_default_AI: TRUE if you want /robot/New() to handle connecting the borg to the AI with the least borgs.
-	* AI: A reference to the AI we want to connect to.
+	* mob/living/silicon/ai/AI: A reference to the AI we want to connect to.
 */
-/mob/living/carbon/human/proc/Robotize(cell_type = null, connect_to_default_AI = TRUE, mob/living/silicon/ai/AI = null)
+/mob/living/carbon/human/proc/Robotize(cell_type = null, mob/living/silicon/ai/AI = null)
 	if(notransform)
 		return
 	for(var/obj/item/W in src)
 		unEquip(W)
 
-	notransform = TRUE
+	notransform = 1
+	canmove = 0
 	icon = null
 	invisibility = 101
 
-	// Creating a new borg here will connect them to a default AI and notify that AI, if `connect_to_default_AI` is TRUE.
-	var/mob/living/silicon/robot/O = new /mob/living/silicon/robot(loc, connect_to_AI = connect_to_default_AI)
-
-	// If `AI` is passed in, we want to connect to that AI specifically.
-	if(AI)
-		O.lawupdate = TRUE
-		O.connect_to_ai(AI)
+	// If an `AI` arg was passed in, they will be connected to that AI.
+	var/mob/living/silicon/robot/O = new(loc, AI)
 
 	if(!cell_type)
 		O.cell = new /obj/item/stock_parts/cell/high(O)
@@ -79,13 +75,12 @@
 	if(mind)		//TODO
 		mind.transfer_to(O)
 		if(O.mind.assigned_role == "Cyborg")
-			O.mind.set_original_mob(O)
+			O.mind.original = O
 		else if(mind && mind.special_role)
 			O.mind.store_memory("In case you look at this after being borged, the objectives are only here until I find a way to make them not show up for you, as I can't simply delete them without screwing up round-end reporting. --NeoFite")
 	else
 		O.key = key
 
-	O.forceMove(loc)
 	O.job = "Cyborg"
 
 	if(O.mind && O.mind.assigned_role == "Cyborg")
@@ -119,7 +114,8 @@
 	for(var/obj/item/W in src)
 		unEquip(W)
 	regenerate_icons()
-	notransform = TRUE
+	notransform = 1
+	canmove = 0
 	icon = null
 	invisibility = 101
 	for(var/t in bodyparts)
@@ -146,6 +142,7 @@
 	if(notransform)
 		return
 	notransform = TRUE
+	canmove = FALSE
 	for(var/obj/item/I in src)
 		unEquip(I)
 	regenerate_icons()
@@ -180,7 +177,8 @@
 	for(var/obj/item/W in src)
 		unEquip(W)
 	regenerate_icons()
-	notransform = TRUE
+	notransform = 1
+	canmove = 0
 	icon = null
 	invisibility = 101
 	for(var/t in bodyparts)	//this really should not be necessary
@@ -204,7 +202,8 @@
 		unEquip(W)
 
 	regenerate_icons()
-	notransform = TRUE
+	notransform = 1
+	canmove = 0
 	icon = null
 	invisibility = 101
 
@@ -242,7 +241,8 @@
 	for(var/obj/item/W in src)
 		unEquip(W)
 	regenerate_icons()
-	notransform = TRUE
+	notransform = 1
+	canmove = 0
 	icon = null
 	invisibility = 101
 	for(var/t in bodyparts)	//this really should not be necessary
@@ -260,3 +260,42 @@
 	to_chat(pai, "<B>You have become a pAI! Your name is [pai.name].</B>")
 	pai.update_pipe_vision()
 	qdel(src)
+
+/mob/proc/safe_respawn(MP)
+	if(!MP)
+		return 0
+
+	if(!GAMEMODE_IS_NUCLEAR)
+		if(ispath(MP, /mob/living/simple_animal/pet/cat/Syndi))
+			return 0
+	if(ispath(MP, /mob/living/simple_animal/pet/cat))
+		return 1
+	if(ispath(MP, /mob/living/simple_animal/pet/dog/corgi))
+		return 1
+	if(ispath(MP, /mob/living/simple_animal/crab))
+		return 1
+	if(ispath(MP, /mob/living/simple_animal/chicken))
+		return 1
+	if(ispath(MP, /mob/living/simple_animal/cow))
+		return 1
+	if(ispath(MP, /mob/living/simple_animal/parrot))
+		return 1
+	if(!GAMEMODE_IS_NUCLEAR)
+		if(ispath(MP, /mob/living/simple_animal/pet/dog/fox/Syndifox))
+			return 0
+	if(ispath(MP, /mob/living/simple_animal/pet/dog/fox))
+		return 1
+	if(ispath(MP, /mob/living/simple_animal/chick))
+		return 1
+	if(ispath(MP, /mob/living/simple_animal/pet/dog/pug))
+		return 1
+	if(ispath(MP, /mob/living/simple_animal/butterfly))
+		return 1
+
+	if(ispath(MP, /mob/living/simple_animal/borer) && !jobban_isbanned(src, ROLE_BORER) && !jobban_isbanned(src, ROLE_SYNDICATE))
+		return 1
+
+	if(ispath(MP, /mob/living/simple_animal/diona) && !jobban_isbanned(src, ROLE_NYMPH))
+		return 1
+
+	return 0

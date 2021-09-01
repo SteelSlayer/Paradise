@@ -64,17 +64,17 @@
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 50
 	active_power_usage = 300
-	interact_offline = TRUE
+	interact_offline = 1
 	var/locked = FALSE
 	var/mob/living/carbon/occupant = null
 	var/obj/item/reagent_containers/glass/beaker = null
-	var/opened = FALSE
+	var/opened = 0
 	var/damage_coeff
 	var/scan_level
 	var/precision_coeff
 
-/obj/machinery/dna_scannernew/Initialize(mapload)
-	. = ..()
+/obj/machinery/dna_scannernew/New()
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/clonescanner(null)
 	component_parts += new /obj/item/stock_parts/scanning_module(null)
@@ -85,8 +85,8 @@
 	component_parts += new /obj/item/stack/cable_coil(null, 1)
 	RefreshParts()
 
-/obj/machinery/dna_scannernew/upgraded/Initialize(mapload)
-	. = ..()
+/obj/machinery/dna_scannernew/upgraded/New()
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/clonescanner(null)
 	component_parts += new /obj/item/stock_parts/scanning_module/phasic(null)
@@ -156,7 +156,7 @@
 		to_chat(usr, "<span class='boldnotice'>[src] is already occupied!</span>")
 		return
 	if(usr.abiotic())
-		to_chat(usr, "<span class='boldnotice'>Subject may not hold anything in their hands.</span>")
+		to_chat(usr, "<span class='boldnotice'>Subject cannot have abiotic items on.</span>")
 		return
 	if(usr.has_buckled_mobs()) //mob attached to us
 		to_chat(usr, "<span class='warning'>[usr] will not fit into [src] because [usr.p_they()] [usr.p_have()] a slime latched onto [usr.p_their()] head.</span>")
@@ -167,12 +167,6 @@
 	icon_state = "scanner_occupied"
 	add_fingerprint(usr)
 	SStgui.update_uis(src)
-
-/obj/machinery/dna_scannernew/update_icon_state()
-	if(occupant)
-		icon_state = "scanner_occupied"
-	else
-		icon_state = "scanner_open"
 
 /obj/machinery/dna_scannernew/MouseDrop_T(atom/movable/O, mob/user)
 	if(!istype(O))
@@ -200,7 +194,7 @@
 	if(!istype(L) || L.buckled)
 		return
 	if(L.abiotic())
-		to_chat(user, "<span class='danger'>Subject may not hold anything in their hands.</span>")
+		to_chat(user, "<span class='danger'>Subject cannot have abiotic items on.</span>")
 		return
 	if(L.has_buckled_mobs()) //mob attached to us
 		to_chat(user, "<span class='warning'>[L] will not fit into [src] because [L.p_they()] [L.p_have()] a slime latched onto [L.p_their()] head.</span>")
@@ -238,7 +232,7 @@
 			to_chat(user, "<span class='boldnotice'>The scanner is already occupied!</span>")
 			return
 		if(G.affecting.abiotic())
-			to_chat(user, "<span class='boldnotice'>Subject may not hold anything in their hands.</span>")
+			to_chat(user, "<span class='boldnotice'>Subject cannot have abiotic items on.</span>")
 			return
 		if(G.affecting.has_buckled_mobs()) //mob attached to us
 			to_chat(user, "<span class='warning'>[G] will not fit into [src] because [G.affecting.p_they()] [G.affecting.p_have()] a slime latched onto [G.affecting.p_their()] head.</span>")
@@ -272,7 +266,7 @@
 /obj/machinery/dna_scannernew/proc/put_in(mob/M)
 	M.forceMove(src)
 	occupant = M
-	update_icon(UPDATE_ICON_STATE)
+	icon_state = "scanner_occupied"
 	SStgui.update_uis(src)
 
 	// search for ghosts, if the corpse is empty and the scanner is connected to a cloner
@@ -294,7 +288,7 @@
 		return
 	occupant.forceMove(loc)
 	occupant = null
-	update_icon(UPDATE_ICON_STATE)
+	icon_state = "scanner_open"
 	SStgui.update_uis(src)
 
 /obj/machinery/dna_scannernew/force_eject_occupant(mob/target)
@@ -310,7 +304,7 @@
 	if(A == occupant)
 		occupant = null
 		updateUsrDialog()
-		update_icon(UPDATE_ICON_STATE)
+		update_icon()
 		SStgui.update_uis(src)
 
 // Checks if occupants can be irradiated/mutated - prevents exploits where wearing full rad protection would still let you gain mutations
@@ -321,7 +315,7 @@
 	if(HAS_TRAIT(occupant, TRAIT_GENELESS))
 		return TRUE
 
-	var/radiation_protection = occupant.run_armor_check(null, RAD)
+	var/radiation_protection = occupant.run_armor_check(null, "rad")
 	if(radiation_protection > NEGATE_MUTATION_THRESHOLD)
 		return TRUE
 	return FALSE
@@ -365,20 +359,17 @@
 	else
 		return ..()
 
-/obj/machinery/computer/scan_consolenew/Initialize(mapload)
-	. = ..()
+/obj/machinery/computer/scan_consolenew/New()
+	..()
 	for(var/i=0;i<3;i++)
 		buffers[i+1]=new /datum/dna2/record
-	addtimer(CALLBACK(src, .proc/find_machine), 1 SECONDS)
-	addtimer(CALLBACK(src, .proc/ready), 25 SECONDS)
-
-/obj/machinery/computer/scan_consolenew/proc/find_machine()
-	for(var/obj/machinery/dna_scannernew/scanner in orange(1, src))
-		connected = scanner
-		return
-
-/obj/machinery/computer/scan_consolenew/proc/ready()
-	injector_ready = TRUE
+	spawn(5)
+		for(dir in list(NORTH,EAST,SOUTH,WEST))
+			connected = locate(/obj/machinery/dna_scannernew, get_step(src, dir))
+			if(!isnull(connected))
+				break
+		spawn(250)
+			injector_ready = TRUE
 
 /obj/machinery/computer/scan_consolenew/proc/all_dna_blocks(list/buffer)
 	var/list/arr = list()

@@ -7,17 +7,18 @@
 	nodamage = 1
 	impact_effect_type = /obj/effect/temp_visual/impact_effect/ion
 	flag = "energy"
-	var/strong_emp = 1
-	var/weak_emp = 1
 
 /obj/item/projectile/ion/on_hit(atom/target, blocked = 0)
 	..()
-	empulse(target, strong_emp, weak_emp, TRUE, cause = "[type] fired by [key_name(firer)]")
+	empulse(target, 1, 1, 1, cause = "[type] fired by [key_name(firer)]")
 	return 1
 
 /obj/item/projectile/ion/weak
-	strong_emp = 0
-	weak_emp = 0
+
+/obj/item/projectile/ion/weak/on_hit(atom/target, blocked = 0)
+	..()
+	empulse(target, 0, 0, 1, cause = "[type] fired by [key_name(firer)]")
+	return 1
 
 /obj/item/projectile/bullet/gyro
 	name ="explosive bolt"
@@ -148,7 +149,7 @@
 	if(ishuman(target))
 		var/mob/living/carbon/human/M = target
 		M.adjustBrainLoss(20)
-		M.AdjustHallucinate(20 SECONDS)
+		M.AdjustHallucinate(20)
 
 /obj/item/projectile/clown
 	name = "snap-pop"
@@ -192,13 +193,14 @@
 
 /obj/item/projectile/bullet/frag12
 	name ="explosive slug"
-	damage = 15
+	damage = 25
+	weaken = 5
 	alwayslog = TRUE
 
 /obj/item/projectile/bullet/frag12/on_hit(atom/target, blocked = 0)
 	..()
 	explosion(target, -1, 0, 1)
-	return TRUE
+	return 1
 
 /obj/item/projectile/plasma
 	name = "plasma blast"

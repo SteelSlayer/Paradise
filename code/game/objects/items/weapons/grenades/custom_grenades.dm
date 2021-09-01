@@ -3,17 +3,15 @@
 	desc = "From the makers of BLAM! brand foaming space cleaner, this bomb guarantees steady work for any janitor."
 	stage = 2
 
-/obj/item/grenade/chem_grenade/dirt/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/dirt/New()
+	..()
 	var/obj/item/reagent_containers/glass/beaker/B1 = new(src)
-	var/list/muck = list("blood","carbon","flour")
-	var/filth = pick(muck)
-	muck -= filth
+	var/list/muck = list("blood","carbon","flour","radium")
+	var/filth = pick(muck - "radium") // not usually radioactive
 
-	B1.reagents.add_reagent(filth, 25)
+	B1.reagents.add_reagent(filth,25)
 	if(prob(25))
-		muck += "radium"
-		B1.reagents.add_reagent(pick(muck), 25)
+		B1.reagents.add_reagent(pick(muck - filth,25)) // but sometimes...
 
 	beakers += B1
 
@@ -24,8 +22,8 @@
 	stage = 2
 
 
-/obj/item/grenade/chem_grenade/meat/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/meat/New()
+	..()
 	var/obj/item/reagent_containers/glass/beaker/large/B1 = new(src)
 	var/obj/item/reagent_containers/glass/beaker/large/B2 = new(src)
 
@@ -43,8 +41,8 @@
 	stage = 2
 	det_time = 30
 
-/obj/item/grenade/chem_grenade/holywater/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/holywater/New()
+	..()
 	var/obj/item/reagent_containers/glass/beaker/large/B = new(src)
 	B.reagents.add_reagent("holywater",100)
 	beakers += B
@@ -55,8 +53,8 @@
 	stage = 2
 	det_time = 30
 
-/obj/item/grenade/chem_grenade/hellwater/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/hellwater/New()
+	..()
 	var/obj/item/reagent_containers/glass/beaker/large/B1 = new(src)
 	var/obj/item/reagent_containers/glass/beaker/large/B2 = new(src)
 	B1.reagents.add_reagent("hell_water",80)
@@ -71,8 +69,8 @@
 	desc = "How does it work?"
 	stage = 2
 
-/obj/item/grenade/chem_grenade/drugs/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/drugs/New()
+	..()
 	var/obj/item/reagent_containers/glass/beaker/large/B1 = new(src)
 	var/obj/item/reagent_containers/glass/beaker/large/B2 = new(src)
 
@@ -91,8 +89,8 @@
 	desc = "Ach, that hits the spot."
 	stage = 2
 
-/obj/item/grenade/chem_grenade/ethanol/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/ethanol/New()
+	..()
 	var/obj/item/reagent_containers/glass/beaker/large/B1 = new(src)
 	var/obj/item/reagent_containers/glass/beaker/large/B2 = new(src)
 
@@ -113,22 +111,22 @@
 	payload_name = "lubricant"
 	stage = 2
 
-/obj/item/grenade/chem_grenade/lube/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/lube/New()
+	..()
 	var/obj/item/reagent_containers/glass/beaker/B1 = new(src)
 	B1.reagents.add_reagent("lube",50)
 	beakers += B1
 
-/obj/item/grenade/chem_grenade/lube/remote/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/lube/remote/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/signaler)
 
-/obj/item/grenade/chem_grenade/lube/prox/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/lube/prox/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/prox_sensor)
 
-/obj/item/grenade/chem_grenade/lube/tripwire/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/lube/tripwire/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/infra)
 
 
@@ -137,8 +135,8 @@
 	payload_name = "conventional"
 	stage = 2
 
-/obj/item/grenade/chem_grenade/explosion/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/explosion/New()
+	..()
 	var/obj/item/reagent_containers/glass/beaker/B1 = new(src)
 	var/obj/item/reagent_containers/glass/beaker/B2 = new(src)
 	B1.reagents.add_reagent("glycerol",30) // todo: someone says NG is overpowered, test.
@@ -149,20 +147,20 @@
 	beakers += B2
 
 // Assembly Variants
-/obj/item/grenade/chem_grenade/explosion/remote/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/explosion/remote/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/signaler)
 
-/obj/item/grenade/chem_grenade/explosion/prox/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/explosion/prox/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/prox_sensor)
 
-/obj/item/grenade/chem_grenade/explosion/mine/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/explosion/mine/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/mousetrap)
 
-/obj/item/grenade/chem_grenade/explosion/mine_armed/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/explosion/mine_armed/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/mousetrap/armed)
 
 
@@ -172,8 +170,8 @@
 	payload_name = "chem explosive"
 	stage = 2
 
-/obj/item/grenade/chem_grenade/waterpotassium/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/waterpotassium/New()
+	..()
 	var/obj/item/reagent_containers/glass/beaker/large/B1 = new(src)
 	var/obj/item/reagent_containers/glass/beaker/large/B2 = new(src)
 	B1.reagents.add_reagent("water",100)
@@ -181,25 +179,25 @@
 	beakers += B1
 	beakers += B2
 
-/obj/item/grenade/chem_grenade/waterpotassium/remote/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/waterpotassium/remote/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/signaler)
 
-/obj/item/grenade/chem_grenade/waterpotassium/prox/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/waterpotassium/prox/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/prox_sensor)
 
 
-/obj/item/grenade/chem_grenade/waterpotassium/tripwire/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/waterpotassium/tripwire/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/infra)
 
-/obj/item/grenade/chem_grenade/waterpotassium/tripwire_armed/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/waterpotassium/tripwire_armed/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/infra/armed)
 
-/obj/item/grenade/chem_grenade/waterpotassium/tripwire_armed_stealth/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/waterpotassium/tripwire_armed_stealth/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/infra/armed/stealth)
 
 
@@ -210,8 +208,8 @@
 	payload_name = "EMP"
 	stage = 2
 
-/obj/item/grenade/chem_grenade/emp/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/emp/New()
+	..()
 	var/obj/item/reagent_containers/glass/beaker/B1 = new(src)
 	var/obj/item/reagent_containers/glass/beaker/B2 = new(src)
 	B1.reagents.add_reagent("uranium",50)
@@ -220,16 +218,16 @@
 	beakers += B2
 
 // Assembly Variants
-/obj/item/grenade/chem_grenade/emp/remote/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/emp/remote/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/signaler)
 
-/obj/item/grenade/chem_grenade/emp/prox/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/emp/prox/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/prox_sensor)
 
-/obj/item/grenade/chem_grenade/emp/mine/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/emp/mine/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/mousetrap)
 
 /obj/item/grenade/chem_grenade/large/monster
@@ -237,8 +235,8 @@
 	desc = "A standard grenade containing weaponized slime extract."
 	stage = 2
 
-/obj/item/grenade/chem_grenade/large/monster/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/large/monster/New()
+	..()
 	var/obj/item/slime_extract/gold/B1 = new(src)
 	B1.Uses = rand(1,3)
 	var/obj/item/reagent_containers/glass/beaker/B2 = new(src)
@@ -246,16 +244,16 @@
 	beakers += B1
 	beakers += B2
 
-/obj/item/grenade/chem_grenade/large/monster/prox/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/large/monster/prox/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/prox_sensor)
 
-/obj/item/grenade/chem_grenade/large/monster/mine/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/large/monster/mine/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/mousetrap)
 
-/obj/item/grenade/chem_grenade/large/monster/remote/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/large/monster/remote/New()
+	..()
 	CreateDefaultTrigger(/obj/item/assembly/signaler)
 
 /obj/item/grenade/chem_grenade/large/feast
@@ -263,8 +261,8 @@
 	desc = "A standard grenade containing weaponized slime extract."
 	stage = 2
 
-/obj/item/grenade/chem_grenade/large/feast/Initialize(mapload)
-	. = ..()
+/obj/item/grenade/chem_grenade/large/feast/New()
+	..()
 	var/obj/item/slime_extract/silver/B1 = new(src)
 	B1.Uses = rand(1,3)
 	var/obj/item/reagent_containers/glass/beaker/B2 = new(src)
@@ -277,25 +275,31 @@
 // --------------------------------------
 
 /obj/item/storage/box/syndie_kit/remotegrenade
-	name = "remote grenade kit"
+	name = "Remote Grenade Kit"
 
-/obj/item/storage/box/syndie_kit/remotegrenade/populate_contents()
+/obj/item/storage/box/syndie_kit/remotegrenade/New()
+	..()
 	new /obj/item/grenade/chem_grenade/explosion/remote(src)
 	new /obj/item/multitool(src) // used to adjust the chemgrenade's signaller
 	new /obj/item/assembly/signaler(src)
+	return
 
 /obj/item/storage/box/syndie_kit/remoteemp
-	name = "remote EMP kit"
+	name = "Remote EMP Kit"
 
-/obj/item/storage/box/syndie_kit/remoteemp/populate_contents()
+/obj/item/storage/box/syndie_kit/remoteemp/New()
+	..()
 	new /obj/item/grenade/chem_grenade/emp/remote(src)
 	new /obj/item/multitool(src) // used to adjust the chemgrenade's signaller
 	new /obj/item/assembly/signaler(src)
+	return
 
 /obj/item/storage/box/syndie_kit/remotelube
-	name = "remote lube kit"
+	name = "Remote Lube Kit"
 
-/obj/item/storage/box/syndie_kit/remotelube/populate_contents()
+/obj/item/storage/box/syndie_kit/remotelube/New()
+	..()
 	new /obj/item/grenade/chem_grenade/lube(src)
 	new /obj/item/multitool(src) // used to adjust the chemgrenade's signaller
 	new /obj/item/assembly/signaler(src)
+	return

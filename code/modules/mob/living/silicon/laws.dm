@@ -1,7 +1,3 @@
-/mob/living/silicon
-	var/datum/ai_laws/laws = null
-	var/list/additional_law_channels = list("State" = "")
-
 /mob/living/silicon/proc/laws_sanity_check()
 	if(!src.laws)
 		laws = new BASE_LAW_TYPE
@@ -15,11 +11,6 @@
 	laws.set_zeroth_law(law, law_borg)
 	if(!isnull(usr) && law)
 		log_and_message_admins("has given [src] the zeroth laws: [law]/[law_borg ? law_borg : "N/A"]")
-
-/mob/living/silicon/robot/set_zeroth_law(law, law_borg)
-	..()
-	if(tracking_entities)
-		to_chat(src, "<span class='warning'>Internal camera is currently being accessed.</span>")
 
 /mob/living/silicon/proc/add_ion_law(law)
 	throw_alert("newlaw", /obj/screen/alert/newlaw)
@@ -79,7 +70,7 @@
 
 /mob/living/silicon/proc/statelaws(datum/ai_laws/laws)
 	var/prefix = ""
-	if(MAIN_CHANNEL == lawchannel)
+	if(lawchannel == MAIN_CHANNEL)
 		prefix = ";"
 	else if(lawchannel in additional_law_channels)
 		prefix = additional_law_channels[lawchannel]
@@ -116,8 +107,7 @@
 /mob/living/silicon/proc/law_channels()
 	var/list/channels = new()
 	channels += MAIN_CHANNEL
-	var/obj/item/radio/radio = get_radio()
-	channels += radio.channels
+	channels += common_radio.channels
 	channels += additional_law_channels
 	return channels
 
@@ -126,6 +116,8 @@
 	laws.sort_laws()
 
 /mob/living/silicon/proc/make_laws()
+	if(law_type_override)
+		laws = new law_type_override()
 	if(GLOB.configuration.general.random_ai_lawset)
 		laws = get_random_lawset()
 	else

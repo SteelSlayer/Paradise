@@ -94,12 +94,14 @@
 
 	var/list/turf/synd_spawn = list()
 
-	for(var/obj/effect/landmark/spawner/syndie/S in GLOB.landmarks_list)
-		synd_spawn += get_turf(S)
-		qdel(S)
-		continue
+	for(var/thing in GLOB.landmarks_list)
+		var/obj/effect/landmark/A = thing
+		if(A.name == "Syndicate-Spawn")
+			synd_spawn += get_turf(A)
+			qdel(A)
+			continue
 
-	var/obj/effect/landmark/nuke_spawn = locate(/obj/effect/landmark/spawner/nuclear_bomb)
+	var/obj/effect/landmark/nuke_spawn = locate("landmark*Nuclear-Bomb")
 
 	var/nuke_code = rand(10000, 99999)
 	var/leader_selected = 0
@@ -108,7 +110,7 @@
 
 	var/obj/machinery/nuclearbomb/syndicate/the_bomb
 	if(nuke_spawn && length(synd_spawn))
-		the_bomb = new /obj/machinery/nuclearbomb/syndicate(get_turf(nuke_spawn))
+		the_bomb = new /obj/machinery/nuclearbomb/syndicate(nuke_spawn.loc)
 		the_bomb.r_code = nuke_code
 
 	for(var/datum/mind/synd_mind in syndicates)
@@ -277,10 +279,18 @@
 	synd_mob.equip_to_slot_or_del(U, slot_in_backpack)
 
 	if(synd_mob.dna.species)
+
+		/*
+		Incase anyone ever gets the burning desire to have nukeops with randomized apperances. -- Dave
+		synd_mob.gender = pick(MALE, FEMALE) // Randomized appearances for the nukeops.
+		var/datum/preferences/pref = new()
+		A.randomize_appearance_for(synd_mob)
+		*/
+
 		var/race = synd_mob.dna.species.name
 
 		switch(race)
-			if("Vox", "Vox Armalis")
+			if("Vox" || "Vox Armalis")
 				synd_mob.equip_to_slot_or_del(new /obj/item/clothing/mask/gas/syndicate(synd_mob), slot_wear_mask)
 				synd_mob.equip_to_slot_or_del(new /obj/item/tank/internals/emergency_oxygen/double/vox(synd_mob), slot_l_hand)
 				synd_mob.internal = synd_mob.l_hand
@@ -388,7 +398,7 @@
 
 		for(var/datum/mind/syndicate in syndicates)
 
-			text += "<br><b>[syndicate.get_display_key()]</b> was <b>[syndicate.name]</b> ("
+			text += "<br><b>[syndicate.key]</b> was <b>[syndicate.name]</b> ("
 			if(syndicate.current)
 				if(syndicate.current.stat == DEAD)
 					text += "died"

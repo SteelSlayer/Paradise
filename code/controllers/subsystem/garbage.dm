@@ -41,26 +41,25 @@ SUBSYSTEM_DEF(garbage)
 		pass_counts[i] = 0
 		fail_counts[i] = 0
 
-/datum/controller/subsystem/garbage/get_stat_details()
-	var/list/msg = list()
+/datum/controller/subsystem/garbage/stat_entry(msg)
 	var/list/counts = list()
 	for(var/list/L in queues)
 		counts += length(L)
-	msg += "Q:[counts.Join(", ")] | D:[delslasttick] | S:[gcedlasttick] |"
-	msg += "GCR:"
+	msg += "Queue:[counts.Join(",")] | Del's:[delslasttick] | Soft:[gcedlasttick] |"
+	msg += "GR:"
 	if(!(delslasttick + gcedlasttick))
 		msg += "n/a|"
 	else
 		msg += "[round((gcedlasttick / (delslasttick + gcedlasttick)) * 100, 0.01)]% |"
 
-	msg += "TD:[totaldels] | TS:[totalgcs] |"
+	msg += "Total Dels:[totaldels] | Soft:[totalgcs] |"
 	if(!(totaldels + totalgcs))
 		msg += "n/a|"
 	else
-		msg += "TGCR:[round((totalgcs / (totaldels + totalgcs)) * 100, 0.01)]% |"
-	msg += " P:[pass_counts.Join(",")]"
-	msg += " | F:[fail_counts.Join(",")]"
-	return msg.Join("")
+		msg += "TGR:[round((totalgcs / (totaldels + totalgcs)) * 100, 0.01)]% |"
+	msg += " Pass:[pass_counts.Join(",")]"
+	msg += " | Fail:[fail_counts.Join(",")]"
+	..(msg)
 
 /datum/controller/subsystem/garbage/get_metrics()
 	. = ..()

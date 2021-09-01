@@ -91,14 +91,16 @@
 	if(node4)
 		node4.update_underlays()
 
-/obj/machinery/atmospherics/pipe/manifold4w/update_overlays()
-	. = ..()
-	alpha = 255
-	. += SSair.icon_manager.get_atmos_icon("manifold", , pipe_color, "4way" + icon_connect_type)
-	. += SSair.icon_manager.get_atmos_icon("manifold", , , "clamps_4way" + icon_connect_type)
-	update_underlays()
+/obj/machinery/atmospherics/pipe/manifold4w/update_icon(safety = 0)
+	..()
 
-/obj/machinery/atmospherics/pipe/manifold4w/update_underlays()
+	if(!check_icon_cache())
+		return
+
+	alpha = 255
+	overlays.Cut()
+	overlays += SSair.icon_manager.get_atmos_icon("manifold", , pipe_color, "4way" + icon_connect_type)
+	overlays += SSair.icon_manager.get_atmos_icon("manifold", , , "clamps_4way" + icon_connect_type)
 	underlays.Cut()
 
 	var/turf/T = get_turf(src)
@@ -118,6 +120,11 @@
 
 	for(var/D in directions)
 		add_underlay(T,,D,icon_connect_type)
+
+/obj/machinery/atmospherics/pipe/manifold4w/update_underlays()
+	..()
+	update_icon()
+
 
 // A check to make sure both nodes exist - self-delete if they aren't present
 /obj/machinery/atmospherics/pipe/manifold4w/check_nodes_exist()
@@ -158,8 +165,7 @@
 				break
 
 	var/turf/T = src.loc			// hide if turf is not intact
-	if(!T.transparent_floor)
-		hide(T.intact)
+	hide(T.intact)
 	update_icon()
 
 /obj/machinery/atmospherics/pipe/manifold4w/visible
@@ -170,7 +176,7 @@
 	name="4-way scrubbers pipe manifold"
 	desc = "A manifold composed of scrubbers pipes"
 	icon_state = "map_4way-scrubbers"
-	connect_types = list(CONNECT_TYPE_SCRUBBER)
+	connect_types = list(3)
 	layer = 2.38
 	icon_connect_type = "-scrubbers"
 	color = PIPE_COLOR_RED
@@ -183,7 +189,7 @@
 	name="4-way air supply pipe manifold"
 	desc = "A manifold composed of supply pipes"
 	icon_state = "map_4way-supply"
-	connect_types = list(CONNECT_TYPE_SUPPLY)
+	connect_types = list(2)
 	layer = 2.39
 	icon_connect_type = "-supply"
 	color = PIPE_COLOR_BLUE
@@ -213,7 +219,7 @@
 	name="4-way scrubbers pipe manifold"
 	desc = "A manifold composed of scrubbers pipes"
 	icon_state = "map_4way-scrubbers"
-	connect_types = list(CONNECT_TYPE_SCRUBBER)
+	connect_types = list(3)
 	layer = 2.38
 	icon_connect_type = "-scrubbers"
 	color = PIPE_COLOR_RED
@@ -226,7 +232,7 @@
 	name="4-way air supply pipe manifold"
 	desc = "A manifold composed of supply pipes"
 	icon_state = "map_4way-supply"
-	connect_types = list(CONNECT_TYPE_SUPPLY)
+	connect_types = list(2)
 	layer = 2.39
 	icon_connect_type = "-supply"
 	color = PIPE_COLOR_BLUE

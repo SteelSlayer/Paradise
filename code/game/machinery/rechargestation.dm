@@ -2,8 +2,8 @@
 	name = "cyborg recharging station"
 	icon = 'icons/obj/objects.dmi'
 	icon_state = "borgcharger0"
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1.0
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 5
 	active_power_usage = 1000
@@ -24,8 +24,8 @@
 	go_out()
 	return ..()
 
-/obj/machinery/recharge_station/Initialize(mapload)
-	. = ..()
+/obj/machinery/recharge_station/New()
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/cyborgrecharger(null)
 	component_parts += new /obj/item/stock_parts/capacitor(null)
@@ -33,10 +33,10 @@
 	component_parts += new /obj/item/stock_parts/manipulator(null)
 	component_parts += new /obj/item/stock_parts/cell/high(null)
 	RefreshParts()
-	update_icon(UPDATE_ICON_STATE)
+	build_icon()
 
-/obj/machinery/recharge_station/upgraded/Initialize(mapload)
-	. = ..()
+/obj/machinery/recharge_station/upgraded/New()
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/cyborgrecharger(null)
 	component_parts += new /obj/item/stock_parts/capacitor/super(null)
@@ -87,7 +87,7 @@
 	if(A == occupant)
 		occupant = null
 		updateUsrDialog()
-		update_icon(UPDATE_ICON_STATE)
+		update_icon()
 
 /obj/machinery/recharge_station/narsie_act()
 	go_out()
@@ -116,9 +116,9 @@
 		go_out()
 	..(severity)
 
-/obj/machinery/recharge_station/update_icon_state()
+/obj/machinery/recharge_station/proc/build_icon()
 	if(NOPOWER|BROKEN)
-		if(occupant)
+		if(src.occupant)
 			icon_state = "borgcharger1"
 		else
 			icon_state = "borgcharger0"
@@ -164,12 +164,9 @@
 		return
 	occupant.forceMove(loc)
 	occupant = null
-	update_icon(UPDATE_ICON_STATE)
+	build_icon()
 	use_power = IDLE_POWER_USE
 	return
-
-/obj/machinery/recharge_station/force_eject_occupant(mob/target)
-	go_out()
 
 /obj/machinery/recharge_station/verb/move_eject()
 	set category = "Object"
@@ -234,6 +231,6 @@
 	occupant = user
 
 	add_fingerprint(user)
-	update_icon(UPDATE_ICON_STATE)
+	build_icon()
 	update_use_power(1)
 	return

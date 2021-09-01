@@ -71,21 +71,21 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 			S.message = "[uppertext(S.message)]!!!"
 			verb = pick("yells", "roars", "hollers")
 
-		if(AmountSluring())
+		if(slurring)
 			if(robot)
 				S.message = slur(S.message, list("@", "!", "#", "$", "%", "&", "?"))
 			else
 				S.message = slur(S.message)
 			verb = "slurs"
 
-		if(AmountStuttering())
+		if(stuttering)
 			if(robot)
 				S.message = robostutter(S.message)
 			else
 				S.message = stutter(S.message)
 			verb = "stammers"
 
-		if(AmountCultSlurring())
+		if(cultslurring)
 			S.message = cultslur(S.message)
 			verb = "slurs"
 
@@ -110,9 +110,9 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 
 /mob/living/say(message, verb = "says", sanitize = TRUE, ignore_speech_problems = FALSE, ignore_atmospherics = FALSE, ignore_languages = FALSE)
 	if(client)
-		if(check_mute(client.ckey, MUTE_IC))
+		if(client.prefs.muted & MUTE_IC)
 			to_chat(src, "<span class='danger'>You cannot speak in IC (Muted).</span>")
-			return FALSE
+			return
 
 	if(sanitize)
 		message = trim_strip_html_properly(message)
@@ -120,12 +120,12 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 	if(stat)
 		if(stat == DEAD)
 			return say_dead(message)
-		return FALSE
+		return
 
 	var/message_mode = parse_message_mode(message, "headset")
 
 	if(copytext(message, 1, 2) == "*")
-		return emote(copytext(message, 2), intentional = TRUE)
+		return emote(copytext(message, 2))
 
 	//parse the radio code and consume it
 	if(message_mode)
@@ -150,8 +150,8 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 
 
 	if(!LAZYLEN(message_pieces))
-		. = FALSE
-		CRASH("Message failed to generate pieces. [message] - [json_encode(message_pieces)]")
+		log_runtime(EXCEPTION("Message failed to generate pieces. [message] - [json_encode(message_pieces)]"))
+		return 0
 
 	if(message_mode == "cords")
 		if(iscarbon(src))
@@ -160,7 +160,7 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 			if(V && V.can_speak_with())
 				C.say(V.handle_speech(message), sanitize = FALSE, ignore_speech_problems = TRUE, ignore_atmospherics = TRUE)
 				V.speak_with(message) //words come before actions
-		return TRUE
+		return 1
 
 	var/datum/multilingual_say_piece/first_piece = message_pieces[1]
 	verb = say_quote(message, first_piece.speaking)
@@ -184,7 +184,7 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 
 	var/list/used_radios = list()
 	if(handle_message_mode(message_mode, message_pieces, verb, used_radios))
-		return TRUE
+		return 1
 
 	// Log of what we've said, plain message, no spans or junk
 	// handle_message_mode should have logged this already if it handled it
@@ -201,7 +201,7 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 
 	//speaking into radios
 	if(used_radios.len)
-		italics = TRUE
+		italics = 1
 		message_range = 1
 		if(first_piece.speaking)
 			message_range = first_piece.speaking.get_talkinto_msg_range(message)
@@ -283,17 +283,55 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 		speech_bubble("[bubble_icon][speech_bubble_test]", src, speech_bubble_recipients)
 
 	for(var/obj/O in listening_obj)
-		spawn(0) // KILL THIS
+		spawn(0)
 			if(O) //It's possible that it could be deleted in the meantime.
 				O.hear_talk(src, message_pieces, verb)
 
-	return TRUE
+	return 1
 
 /obj/effect/speech_bubble
 	var/mob/parent
 
 /mob/living/proc/GetVoice()
 	return name
+
+/mob/living/emote(act, type, message, force) //emote code is terrible, this is so that anything that isn't already snowflaked to shit can call the parent and handle emoting sanely
+	if(client)
+		if(client.prefs.muted & MUTE_IC)
+			to_chat(src, "<span class='danger'>You cannot speak in IC (Muted).</span>")
+			return
+
+	if(stat)
+		return 0
+
+	if(..())
+		return 1
+
+	if(act && type && message) //parent call
+		log_emote(message, src)
+
+		for(var/mob/M in GLOB.dead_mob_list)
+			if(!M.client)
+				continue //skip monkeys and leavers
+
+			if(isnewplayer(M))
+				continue
+
+			if(isobserver(M) && M.get_preference(PREFTOGGLE_CHAT_GHOSTSIGHT) && !(M in viewers(src, null)) && client) // The client check makes sure people with ghost sight don't get spammed by simple mobs emoting.
+				M.show_message(message)
+
+		switch(type)
+			if(1) //Visible
+				visible_message(message)
+				return 1
+			if(2) //Audible
+				audible_message(message)
+				return 1
+
+	else //everything else failed, emote is probably invalid
+		if(act == "help")
+			return //except help, because help is handled individually
+		to_chat(src, "<span class='notice'>Unusable emote '[act]'. Say *help for a list.</span>")
 
 /mob/living/whisper(message as text)
 	message = trim_strip_html_properly(message)
@@ -314,7 +352,7 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 
 /mob/living/proc/whisper_say(list/message_pieces, verb = "whispers")
 	if(client)
-		if(check_mute(client.ckey, MUTE_IC))
+		if(client.prefs.muted & MUTE_IC)
 			to_chat(src, "<span class='danger'>You cannot speak in IC (Muted).</span>")
 			return
 

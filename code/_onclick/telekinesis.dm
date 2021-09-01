@@ -4,7 +4,7 @@
 	This needs more thinking out, but I might as well.
 */
 #define TK_MAXRANGE 15
-#define TK_COOLDOWN 1.5 SECONDS
+
 /*
 	Telekinetic attack:
 
@@ -68,7 +68,6 @@
 	layer = ABOVE_HUD_LAYER
 	plane = ABOVE_HUD_PLANE
 
-	blocks_emissive = FALSE
 	var/last_throw = 0
 	var/atom/movable/focus = null
 	var/mob/living/host = null
@@ -102,10 +101,10 @@
 	afterattack(target, user)
 	return TRUE
 
-/obj/item/tk_grab/afterattack(atom/target , mob/living/user, proximity, params)
+/obj/item/tk_grab/afterattack(atom/target , mob/living/user, proximity, params)//TODO: go over this
 	if(!target || !user)
 		return
-	if(last_throw + TK_COOLDOWN > world.time)
+	if(last_throw+3 > world.time)
 		return
 	if(!host || host != user)
 		qdel(src)
@@ -165,7 +164,7 @@
 		qdel(src)
 		return
 	focus = target
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 	apply_focus_overlay()
 	// Make it behave like other equipment
 	if(istype(target, /obj/item))
@@ -181,7 +180,7 @@
 		// Delete the key/value pair of item to TK grab
 		host.tkgrabbed_objects -= focus
 	focus = null
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 
 /obj/item/tk_grab/proc/apply_focus_overlay()
 	if(!focus)
@@ -194,9 +193,7 @@
 	focus_object(target, user)
 
 
-/obj/item/tk_grab/update_overlays()
-	. = ..()
+/obj/item/tk_grab/update_icon()
+	overlays.Cut()
 	if(focus && focus.icon && focus.icon_state)
-		. += icon(focus.icon,focus.icon_state)
-
-#undef TK_COOLDOWN
+		overlays += icon(focus.icon,focus.icon_state)

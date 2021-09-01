@@ -27,7 +27,7 @@
 	speak_emote = list("yarrs")
 	loot = list(/obj/effect/mob_spawn/human/corpse/pirate,
 			/obj/item/melee/energy/sword/pirate)
-	del_on_death = TRUE
+	del_on_death = 1
 	faction = list("pirate")
 	sentience_type = SENTIENCE_OTHER
 	footstep_type = FOOTSTEP_MOB_SHOE
@@ -38,7 +38,7 @@
 	icon_living = "pirateranged"
 	icon_dead = "piratemelee_dead" // Does not actually exist. del_on_death.
 	projectilesound = 'sound/weapons/laser.ogg'
-	ranged = TRUE
+	ranged = 1
 	rapid = 2
 	retreat_distance = 5
 	minimum_distance = 5

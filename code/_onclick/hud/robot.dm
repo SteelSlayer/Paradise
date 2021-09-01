@@ -48,7 +48,7 @@
 /obj/screen/robot/radio/Click()
 	if(issilicon(usr))
 		var/mob/living/silicon/robot/R = usr
-		R.radio_menu()
+		R.radio.interact(R)
 
 /obj/screen/robot/store
 	name = "store"
@@ -85,6 +85,9 @@
 /obj/screen/robot/mov_intent/Click()
 	usr.toggle_move_intent()
 
+/obj/screen/robot/module_background
+	icon = 'icons/mob/screen_gen.dmi'
+	icon_state = "block"
 
 /mob/living/silicon/robot/create_mob_hud()
 	if(client && !hud_used)
@@ -148,23 +151,21 @@
 	infodisplay += mymob.healths
 
 //Installed Module
-	mymobR.hands = new /obj/screen/robot/module()
-	mymobR.hands.screen_loc = ui_borg_module
-	static_inventory += mymobR.hands
+	mymob.hands = new /obj/screen/robot/module()
+	mymob.hands.screen_loc = ui_borg_module
+	static_inventory += mymob.hands
 
 	module_store_icon = new /obj/screen/robot/store()
 	module_store_icon.screen_loc = ui_borg_store
 
 	mymob.pullin = new /obj/screen/pull()
 	mymob.pullin.icon = 'icons/mob/screen_robot.dmi'
-	mymob.pullin.hud = src
-	mymob.pullin.update_icon(UPDATE_ICON_STATE)
+	mymob.pullin.update_icon(mymob)
 	mymob.pullin.screen_loc = ui_borg_pull
 	hotkeybuttons += mymob.pullin
 
 	zone_select = new /obj/screen/zone_sel/robot()
-	zone_select.hud = src
-	zone_select.update_icon(UPDATE_OVERLAYS)
+	zone_select.update_icon(mymob)
 	static_inventory += zone_select
 
 //Headlamp
@@ -177,17 +178,6 @@
 	using.screen_loc = ui_borg_thrusters
 	static_inventory += using
 	mymobR.thruster_button = using
-
-/datum/hud/robot/Destroy()
-	var/mob/living/silicon/robot/myrob = mymob
-	myrob.inv1 = null
-	myrob.hands = null
-	myrob.inv2 = null
-	myrob.inv3 = null
-	myrob.lamp_button = null
-	myrob.thruster_button = null
-
-	return ..()
 
 /datum/hud/proc/toggle_show_robot_modules()
 	if(!isrobot(mymob))
@@ -218,12 +208,12 @@
 			to_chat(usr, "<span class='danger'>Selected module has no modules to select.</span>")
 			return
 
-		if(!R.robot_modules_background)
+		if(!R.module_backgrounds)
 			return
 
 		var/display_rows = CEILING(R.module.modules.len / 8, 1)
-		R.robot_modules_background.screen_loc = "CENTER-4:16,SOUTH+1:7 to CENTER+3:16,SOUTH+[display_rows]:7"
-		R.client.screen += R.robot_modules_background
+		R.module_backgrounds.screen_loc = "CENTER-4:16,SOUTH+1:7 to CENTER+3:16,SOUTH+[display_rows]:7"
+		R.client.screen += R.module_backgrounds
 
 		var/x = -4	//Start at CENTER-4,SOUTH+1
 		var/y = 1
@@ -252,5 +242,5 @@
 			if( (A != R.module_state_1) && (A != R.module_state_2) && (A != R.module_state_3) )
 				//Module is not currently active
 				R.client.screen -= A
-		R.shown_robot_modules = FALSE
-		R.client.screen -= R.robot_modules_background
+		R.shown_robot_modules = 0
+		R.client.screen -= R.module_backgrounds

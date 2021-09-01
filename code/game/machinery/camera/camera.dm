@@ -9,14 +9,14 @@
 	layer = WALL_OBJ_LAYER
 	resistance_flags = FIRE_PROOF
 	damage_deflection = 12
-	armor = list(MELEE = 50, BULLET = 20, LASER = 20, ENERGY = 20, BOMB = 0, BIO = 0, RAD = 0, FIRE = 90, ACID = 50)
+	armor = list("melee" = 50, "bullet" = 20, "laser" = 20, "energy" = 20, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 90, "acid" = 50)
 	var/datum/wires/camera/wires = null // Wires datum
 	max_integrity = 100
 	integrity_failure = 50
 	var/list/network = list("SS13")
 	var/c_tag = null
 	var/c_tag_order = 999
-	var/status = TRUE
+	var/status = 1
 	anchored = TRUE
 	var/start_active = FALSE //If it ignores the random chance to start broken on round start
 	var/invuln = null
@@ -31,15 +31,15 @@
 	var/busy = FALSE
 	var/emped = FALSE  //Number of consecutive EMP's on this camera
 
+	var/in_use_lights = 0 // TO BE IMPLEMENTED
 	var/toggle_sound = 'sound/items/wirecutter.ogg'
-	blocks_emissive = EMISSIVE_BLOCK_GENERIC
 
 /obj/machinery/camera/Initialize(mapload)
 	. = ..()
 	wires = new(src)
 	assembly = new(src)
 	assembly.state = 4
-	assembly.anchored = TRUE
+	assembly.anchored = 1
 	assembly.update_icon()
 
 	GLOB.cameranet.cameras += src
@@ -74,26 +74,27 @@
 		return
 	if(!isEmpProof())
 		if(prob(150/severity))
-			update_icon(UPDATE_ICON_STATE)
+			update_icon()
 			var/list/previous_network = network
 			network = list()
 			GLOB.cameranet.removeCamera(src)
 			stat |= EMPED
 			set_light(0)
 			emped = emped+1  //Increase the number of consecutive EMP's
-			update_icon(UPDATE_ICON_STATE)
+			update_icon()
 			var/thisemp = emped //Take note of which EMP this proc is for
 			spawn(900)
 				if(!QDELETED(src))
 					if(emped == thisemp) //Only fix it if the camera hasn't been EMP'd again
 						network = previous_network
 						stat &= ~EMPED
-						update_icon(UPDATE_ICON_STATE)
+						update_icon()
 						if(can_use())
 							GLOB.cameranet.addCamera(src)
 						emped = 0 //Resets the consecutive EMP count
 			for(var/mob/M in GLOB.player_list)
 				if(M.client && M.client.eye == src)
+					M.unset_machine()
 					M.reset_perspective(null)
 					to_chat(M, "The screen bursts into static.")
 			..()
@@ -242,7 +243,7 @@
 			new /obj/item/stack/cable_coil(loc, 2)
 	qdel(src)
 
-/obj/machinery/camera/update_icon_state()
+/obj/machinery/camera/update_icon()
 	if(!status)
 		icon_state = "[initial(icon_state)]1"
 	else if(stat & EMPED)
@@ -276,13 +277,14 @@
 			visible_message("<span class='danger'>\The [src] [change_msg]!</span>")
 
 		playsound(loc, toggle_sound, 100, 1)
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
 	// now disconnect anyone using the camera
 	//Apparently, this will disconnect anyone even if the camera was re-activated.
 	//I guess that doesn't matter since they can't use it anyway?
 	for(var/mob/O in GLOB.player_list)
 		if(O.client && O.client.eye == src)
+			O.unset_machine()
 			O.reset_perspective(null)
 			to_chat(O, "The screen bursts into static.")
 
@@ -383,10 +385,17 @@
 /obj/machinery/camera/portable/Initialize(mapload)
 	. = ..()
 	assembly.state = 0 //These cameras are portable, and so shall be in the portable state if removed.
-	assembly.anchored = FALSE
+	assembly.anchored = 0
 	assembly.update_icon()
 
 /obj/machinery/camera/portable/process() //Updates whenever the camera is moved.
 	if(GLOB.cameranet && get_turf(src) != prev_turf)
 		GLOB.cameranet.updatePortableCamera(src)
 		prev_turf = get_turf(src)
+
+/obj/machinery/camera/cyborg
+	network = list("SS13", "Robots")
+
+/obj/machinery/camera/cyborg/Initialize(mapload, mob/living/silicon/robot/R)
+	. = ..()
+	c_tag = R.real_name

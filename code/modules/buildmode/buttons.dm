@@ -26,7 +26,7 @@
 	update_icon()
 	return TRUE
 
-/obj/screen/buildmode/mode/update_icon_state()
+/obj/screen/buildmode/mode/update_icon()
 	icon_state = bd.mode.get_button_iconstate()
 
 /obj/screen/buildmode/help
@@ -43,9 +43,8 @@
 	screen_loc = "NORTH,WEST+2"
 	name = "Change Dir"
 
-/obj/screen/buildmode/bdir/update_icon(updates=UPDATE_ICON_STATE)
+/obj/screen/buildmode/bdir/update_icon()
 	dir = bd.build_dir
-	..()
 
 /obj/screen/buildmode/bdir/Click()
 	bd.toggle_dirswitch()

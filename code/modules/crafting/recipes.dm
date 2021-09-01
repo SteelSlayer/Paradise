@@ -66,158 +66,6 @@
 	category = CAT_WEAPONRY
 	subcategory = CAT_WEAPON
 
-/datum/crafting_recipe/advancedegun
-	name = "Advanced Energy Gun"
-	tools = list(TOOL_SCREWDRIVER, TOOL_WIRECUTTER)
-	result = list(/obj/item/gun/energy/gun/nuclear)
-	reqs = list(/obj/item/gun/energy/gun = 1,
-				/obj/item/stack/cable_coil = 5,
-				/obj/item/weaponcrafting/gunkit/nuclear = 1)
-	time = 20 SECONDS
-	category = CAT_WEAPONRY
-	subcategory = CAT_WEAPON
-
-/datum/crafting_recipe/advancedegun/New()
-	..()
-	blacklist += subtypesof(/obj/item/gun/energy/gun)
-
-/datum/crafting_recipe/tempgun
-	name = "Temperature Gun"
-	tools = list(TOOL_SCREWDRIVER, TOOL_WIRECUTTER)
-	result = list(/obj/item/gun/energy/temperature)
-	reqs = list(/obj/item/gun/energy/gun = 1,
-				/obj/item/stack/cable_coil = 5,
-				/obj/item/weaponcrafting/gunkit/temperature = 1)
-	time = 20 SECONDS
-	category = CAT_WEAPONRY
-	subcategory = CAT_WEAPON
-
-/datum/crafting_recipe/tempgun/New()
-	..()
-	blacklist += subtypesof(/obj/item/gun/energy/gun)
-
-/datum/crafting_recipe/decloner
-	name = "Biological Demolecularisor"
-	tools = list(TOOL_SCREWDRIVER, TOOL_WIRECUTTER)
-	result = list(/obj/item/gun/energy/decloner)
-	reqs = list(/obj/item/gun/energy/gun = 1,
-				/obj/item/stack/cable_coil = 5,
-				/obj/item/weaponcrafting/gunkit/decloner = 1,
-				/datum/reagent/mutagen = 40)
-	time = 20 SECONDS
-	category = CAT_WEAPONRY
-	subcategory = CAT_WEAPON
-
-/datum/crafting_recipe/decloner/New()
-	..()
-	blacklist += subtypesof(/obj/item/gun/energy/gun)
-
-/datum/crafting_recipe/ioncarbine
-	name = "Ion Carbine"
-	tools = list(TOOL_SCREWDRIVER, TOOL_WIRECUTTER)
-	result = list(/obj/item/gun/energy/ionrifle/carbine)
-	reqs = list(/obj/item/gun/energy/gun = 1,
-				/obj/item/stack/cable_coil = 5,
-				/obj/item/weaponcrafting/gunkit/ion = 1)
-	time = 20 SECONDS
-	category = CAT_WEAPONRY
-	subcategory = CAT_WEAPON
-
-/datum/crafting_recipe/ioncarbine/New()
-	..()
-	blacklist += subtypesof(/obj/item/gun/energy/gun)
-
-/datum/crafting_recipe/ebow
-	name = "Energy Crossbow"
-	tools = list(TOOL_SCREWDRIVER, TOOL_WIRECUTTER)
-	result = list(/obj/item/gun/energy/kinetic_accelerator/crossbow/large)
-	reqs = list(/obj/item/gun/energy/laser = 1,
-				/obj/item/stack/cable_coil = 5,
-				/obj/item/weaponcrafting/gunkit/ebow = 1,
-				/datum/reagent/radium = 15)
-	time = 20 SECONDS
-	category = CAT_WEAPONRY
-	subcategory = CAT_WEAPON
-
-/datum/crafting_recipe/ebow/New()
-	..()
-	blacklist += subtypesof(/obj/item/gun/energy/laser)
-
-/datum/crafting_recipe/xraylaser
-	name = "X-ray Laser Gun"
-	tools = list(TOOL_SCREWDRIVER, TOOL_WIRECUTTER)
-	result = list(/obj/item/gun/energy/xray)
-	reqs = list(/obj/item/gun/energy/laser = 1,
-				/obj/item/stack/cable_coil = 5,
-				/obj/item/weaponcrafting/gunkit/xray = 1)
-	time = 20 SECONDS
-	category = CAT_WEAPONRY
-	subcategory = CAT_WEAPON
-
-/datum/crafting_recipe/xraylaser/New()
-	..()
-	blacklist += subtypesof(/obj/item/gun/energy/laser)
-
-/datum/crafting_recipe/immolator
-	name = "Immolator Laser Gun"
-	tools = list(TOOL_SCREWDRIVER, TOOL_WIRECUTTER)
-	result = list(/obj/item/gun/energy/immolator)
-	reqs = list(/obj/item/gun/energy/laser = 1,
-				/obj/item/stack/cable_coil = 5,
-				/obj/item/weaponcrafting/gunkit/immolator = 1)
-	time = 20 SECONDS
-	category = CAT_WEAPONRY
-	subcategory = CAT_WEAPON
-
-/datum/crafting_recipe/immolator/New()
-	..()
-	blacklist += subtypesof(/obj/item/gun/energy/laser)
-
-/datum/crafting_recipe/plasma
-	name = "Plasma Pistol"
-	tools = list(TOOL_SCREWDRIVER, TOOL_WIRECUTTER)
-	result = list(/obj/item/gun/energy/plasma_pistol)
-	reqs = list(/obj/item/gun/energy/laser = 1,
-				/obj/item/stack/cable_coil = 5,
-				/obj/item/weaponcrafting/gunkit/plasma = 1)
-	time = 20 SECONDS
-	category = CAT_WEAPONRY
-	subcategory = CAT_WEAPON
-
-/datum/crafting_recipe/plasma/New()
-	..()
-	blacklist += subtypesof(/obj/item/gun/energy/laser)
-
-/datum/crafting_recipe/teslarevolver
-	name = "Tesla Revolver"
-	tools = list(TOOL_SCREWDRIVER, TOOL_WIRECUTTER)
-	result = list(/obj/item/gun/energy/shock_revolver)
-	reqs = list(/obj/item/gun/energy/laser = 1,
-				/obj/item/stack/cable_coil = 5,
-				/obj/item/weaponcrafting/gunkit/tesla = 1)
-	time = 20 SECONDS
-	category = CAT_WEAPONRY
-	subcategory = CAT_WEAPON
-
-/datum/crafting_recipe/teslarevolver/New()
-	..()
-	blacklist += subtypesof(/obj/item/gun/energy/laser)
-
-/datum/crafting_recipe/accelerator
-	name = "Accelerator Laser Cannon"
-	tools = list(TOOL_SCREWDRIVER, TOOL_WIRECUTTER)
-	result = list(/obj/item/gun/energy/lasercannon)
-	reqs = list(/obj/item/gun/energy/laser = 1,
-				/obj/item/stack/cable_coil = 5,
-				/obj/item/weaponcrafting/gunkit/accelerator = 1)
-	time = 20 SECONDS
-	category = CAT_WEAPONRY
-	subcategory = CAT_WEAPON
-
-/datum/crafting_recipe/accelerator/New()
-	..()
-	blacklist += subtypesof(/obj/item/gun/energy/laser)
-
 /datum/crafting_recipe/ed209
 	name = "ED209"
 	result = list(/mob/living/simple_animal/bot/ed209)
@@ -228,7 +76,7 @@
 				/obj/item/robot_parts/r_leg = 1,
 				/obj/item/stack/sheet/metal = 1,
 				/obj/item/stack/cable_coil = 1,
-				/obj/item/gun/energy/disabler = 1,
+				/obj/item/gun/energy/gun/advtaser = 1,
 				/obj/item/stock_parts/cell = 1,
 				/obj/item/assembly/prox_sensor = 1)
 	tools = list(TOOL_WELDER, TOOL_SCREWDRIVER)
@@ -510,7 +358,7 @@
 	result = list(/obj/item/bikehorn/golden)
 	time = 20
 	reqs = list(/obj/item/stack/sheet/mineral/bananium = 5,
-				/obj/item/bikehorn = 1)
+				/obj/item/bikehorn)
 	category = CAT_MISC
 
 /datum/crafting_recipe/sad_trombone
@@ -523,73 +371,9 @@
 /datum/crafting_recipe/blackcarpet
 	name = "Black Carpet"
 	result = list(/obj/item/stack/tile/carpet/black)
-	time = 10
-	reqs = list(/obj/item/stack/tile/carpet = 1)
-	pathtools = list(/obj/item/toy/crayon/black)
-	category = CAT_MISC
-
-/datum/crafting_recipe/bluecarpet
-	name = "Blue Carpet"
-	result = list(/obj/item/stack/tile/carpet/blue)
-	time = 10
-	reqs = list(/obj/item/stack/tile/carpet = 1)
-	pathtools = list(/obj/item/toy/crayon/blue)
-	category = CAT_MISC
-
-/datum/crafting_recipe/cyancarpet
-	name = "Cyan Carpet"
-	result = list(/obj/item/stack/tile/carpet/cyan)
-	time = 10
-	reqs = list(/obj/item/stack/tile/carpet = 1)
-	pathtools = list(/obj/item/toy/crayon/blue, /obj/item/toy/crayon/green)
-	category = CAT_MISC
-
-/datum/crafting_recipe/greencarpet
-	name = "Green Carpet"
-	result = list(/obj/item/stack/tile/carpet/green)
-	time = 10
-	reqs = list(/obj/item/stack/tile/carpet = 1)
-	pathtools = list(/obj/item/toy/crayon/green)
-	category = CAT_MISC
-
-/datum/crafting_recipe/orangecarpet
-	name = "Orange Carpet"
-	result = list(/obj/item/stack/tile/carpet/orange)
-	time = 10
-	reqs = list(/obj/item/stack/tile/carpet = 1)
-	pathtools = list(/obj/item/toy/crayon/orange)
-	category = CAT_MISC
-
-/datum/crafting_recipe/purplecarpet
-	name = "Purple Carpet"
-	result = list(/obj/item/stack/tile/carpet/purple)
-	time = 10
-	reqs = list(/obj/item/stack/tile/carpet = 1)
-	pathtools = list(/obj/item/toy/crayon/purple)
-	category = CAT_MISC
-
-/datum/crafting_recipe/redcarpet
-	name = "Red Carpet"
-	result = list(/obj/item/stack/tile/carpet/red)
-	time = 10
-	reqs = list(/obj/item/stack/tile/carpet = 1)
-	pathtools = list(/obj/item/toy/crayon/red)
-	category = CAT_MISC
-
-/datum/crafting_recipe/royalblackcarpet
-	name = "Royal Black Carpet"
-	result = list(/obj/item/stack/tile/carpet/royalblack/ten)
 	time = 20
-	reqs = list(/obj/item/stack/tile/carpet/black = 10,
-				/obj/item/stack/sheet/mineral/gold = 1)
-	category = CAT_MISC
-
-/datum/crafting_recipe/royalbluecarpet
-	name = "Royal Blue Carpet"
-	result = list(/obj/item/stack/tile/carpet/royalblue/ten)
-	time = 20
-	reqs = list(/obj/item/stack/tile/carpet/blue = 10,
-				/obj/item/stack/sheet/mineral/gold = 1)
+	reqs = list(/obj/item/stack/tile/carpet = 1)
+	pathtools = list(/obj/item/toy/crayon)
 	category = CAT_MISC
 
 /datum/crafting_recipe/showercurtain
@@ -724,22 +508,6 @@
 	time = 30
 	reqs = list(/obj/item/stack/sheet/bone = 4,
 				 /obj/item/stack/sheet/sinew = 1)
-	category = CAT_PRIMAL
-
-/datum/crafting_recipe/bonepickaxe
-	name = "Bone Pickaxe"
-	result = list(/obj/item/pickaxe/bone)
-	time = 40
-	reqs = list(/obj/item/stack/sheet/bone = 4,
-				 /obj/item/stack/sheet/sinew = 2)
-	category = CAT_PRIMAL
-
-/datum/crafting_recipe/bonescythe
-	name = "Bone Scythe"
-	result = list(/obj/item/scythe/bone)
-	time = 40
-	reqs = list(/obj/item/stack/sheet/bone = 5,
-				 /obj/item/stack/sheet/sinew = 2)
 	category = CAT_PRIMAL
 
 /datum/crafting_recipe/boneaxe

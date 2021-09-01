@@ -11,31 +11,33 @@ using metal and glass, it uses glass and reagents (usually sulfuric acis).
 	container_type = OPENCONTAINER
 
 	categories = list(
-		"AI Modules",
-		"Computer Boards",
-		"Engineering Machinery",
-		"Exosuit Modules",
-		"Hydroponics Machinery",
-		"Medical Machinery",
-		"Misc. Machinery",
-		"Research Machinery",
-		"Subspace Telecomms",
-		"Teleportation Machinery"
-	)
+								"AI Modules",
+								"Computer Boards",
+								"Engineering Machinery",
+								"Exosuit Modules",
+								"Hydroponics Machinery",
+								"Medical Machinery",
+								"Misc. Machinery",
+								"Research Machinery",
+								"Subspace Telecomms",
+								"Teleportation Machinery"
+								)
 
-/obj/machinery/r_n_d/circuit_imprinter/Initialize(mapload)
-	. = ..()
+	reagents = new()
+
+/obj/machinery/r_n_d/circuit_imprinter/New()
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/circuit_imprinter(null)
 	component_parts += new /obj/item/stock_parts/matter_bin(null)
 	component_parts += new /obj/item/stock_parts/manipulator(null)
 	component_parts += new /obj/item/reagent_containers/glass/beaker(null)
 	component_parts += new /obj/item/reagent_containers/glass/beaker(null)
-	create_reagents()
 	RefreshParts()
+	reagents.my_atom = src
 
-/obj/machinery/r_n_d/circuit_imprinter/upgraded/Initialize(mapload)
-	. = ..()
+/obj/machinery/r_n_d/circuit_imprinter/upgraded/New()
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/circuit_imprinter(null)
 	component_parts += new /obj/item/stock_parts/matter_bin/super(null)
@@ -43,11 +45,7 @@ using metal and glass, it uses glass and reagents (usually sulfuric acis).
 	component_parts += new /obj/item/reagent_containers/glass/beaker/large(null)
 	component_parts += new /obj/item/reagent_containers/glass/beaker/large(null)
 	RefreshParts()
-
-/obj/machinery/r_n_d/circuit_imprinter/Destroy()
-	if(linked_console)
-		linked_console.linked_imprinter = null
-	return ..()
+	reagents.my_atom = src
 
 /obj/machinery/r_n_d/circuit_imprinter/RefreshParts()
 	reagents.maximum_volume = 0
@@ -75,6 +73,9 @@ using metal and glass, it uses glass and reagents (usually sulfuric acis).
 	return round(A / max(1, (all_materials[M] * efficiency_coeff)))
 
 /obj/machinery/r_n_d/circuit_imprinter/attackby(obj/item/O as obj, mob/user as mob, params)
+	if(shocked)
+		if(shock(user,50))
+			return TRUE
 	if(default_deconstruction_screwdriver(user, "circuit_imprinter_t", "circuit_imprinter", O))
 		if(linked_console)
 			linked_console.linked_imprinter = null

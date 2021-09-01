@@ -23,10 +23,10 @@
 	a_intent = INTENT_HARM
 	unsuitable_atmos_damage = 15
 	faction = list("syndicate")
-	check_friendly_fire = TRUE
+	check_friendly_fire = 1
 	status_flags = CANPUSH
 	loot = list(/obj/effect/mob_spawn/human/corpse/syndicatesoldier)
-	del_on_death = TRUE
+	del_on_death = 1
 	sentience_type = SENTIENCE_OTHER
 	footstep_type = FOOTSTEP_MOB_SHOE
 
@@ -39,8 +39,7 @@
 	icon_living = "syndicate_sword"
 	attacktext = "slashes"
 	attack_sound = 'sound/weapons/bladeslice.ogg'
-	armour_penetration_percentage = 40
-	armour_penetration_flat = 10
+	armour_penetration = 28
 	status_flags = 0
 	loot = list(/obj/effect/mob_spawn/human/corpse/syndicatesoldier, /obj/item/melee/energy/sword/saber/red, /obj/item/shield/energy)
 	var/melee_block_chance = 20
@@ -83,14 +82,14 @@
 /mob/living/simple_animal/hostile/syndicate/melee/autogib/depot
 	name = "Syndicate Operative"
 	force_threshold = 6 // Prevents people using punches to bypass eshield
-	robust_searching = TRUE // Together with stat_attack, ensures dionae/etc that regen are killed properly
+	robust_searching = 1 // Together with stat_attack, ensures dionae/etc that regen are killed properly
 	stat_attack = UNCONSCIOUS
-	universal_speak = TRUE
+	universal_speak = 1
 	icon_state = "syndicate_swordonly"
 	icon_living = "syndicate_swordonly"
 	melee_block_chance = 0
 	ranged_block_chance = 0
-	del_on_death = TRUE
+	del_on_death = 1
 	var/area/syndicate_depot/core/depotarea
 	var/raised_alert = FALSE
 	var/alert_on_death = FALSE
@@ -140,6 +139,8 @@
 		seen_enemy_name = target.name
 		if(istype(target, /obj/mecha))
 			depotarea.saw_mech(target)
+		if(istype(target, /obj/spacepod))
+			depotarea.saw_pod(target)
 		if(depotarea.list_includes(target, depotarea.dead_list))
 			seen_revived_enemy = TRUE
 			raise_alert("[name] reports intruder [target] has returned from death!")
@@ -237,7 +238,7 @@
 		melee_damage_upper = 10
 		attacktext = "punches"
 		attack_sound = 'sound/weapons/punch1.ogg'
-		ranged = TRUE
+		ranged = 1
 		rapid = 3
 		retreat_distance = 3
 		minimum_distance = 3
@@ -267,7 +268,7 @@
 		melee_damage_upper = 10
 		attacktext = "punches"
 		attack_sound = 'sound/weapons/punch1.ogg'
-		ranged = TRUE
+		ranged = 1
 		retreat_distance = 3
 		minimum_distance = 3
 		melee_block_chance = 0
@@ -296,7 +297,7 @@
 	icon_state = "syndicate_space_sword"
 	icon_living = "syndicate_space_sword"
 	speed = 1
-	wander = FALSE
+	wander = 0
 	alert_on_spacing = FALSE
 
 /mob/living/simple_animal/hostile/syndicate/melee/autogib/depot/space/Process_Spacemove(movement_dir = 0)
@@ -318,7 +319,7 @@
 
 
 /mob/living/simple_animal/hostile/syndicate/ranged
-	ranged = TRUE
+	ranged = 1
 	rapid = 2
 	retreat_distance = 5
 	minimum_distance = 5
@@ -366,7 +367,7 @@
 	flying = TRUE
 	bubble_icon = "syndibot"
 	gold_core_spawnable = HOSTILE_SPAWN
-	del_on_death = TRUE
+	del_on_death = 1
 	deathmessage = "is smashed into pieces!"
 
 /mob/living/simple_animal/hostile/viscerator/Initialize(mapload)

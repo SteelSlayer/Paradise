@@ -24,8 +24,10 @@ GLOBAL_LIST_INIT(unused_trade_stations, list("sol"))
 		return
 
 	var/list/spawnlocs = list()
-	for(var/obj/effect/landmark/spawner/soltrader/S in GLOB.landmarks_list)
-		spawnlocs += get_turf(S)
+	for(var/thing in GLOB.landmarks_list)
+		var/obj/effect/landmark/landmark = thing
+		if(landmark.name == "traderstart_[station]")
+			spawnlocs += get_turf(landmark)
 	if(!spawnlocs.len)
 		return
 
@@ -45,7 +47,7 @@ GLOBAL_LIST_INIT(unused_trade_stations, list("sol"))
 		var/mob/C = pick_n_take(candidates)
 		spawn_count--
 		if(C)
-			C.remove_from_respawnable_list()
+			GLOB.respawnable_list -= C.client
 			var/mob/living/carbon/human/M = new /mob/living/carbon/human(picked_loc)
 			M.ckey = C.ckey // must be before equipOutfit, or that will runtime due to lack of mind
 			M.equipOutfit(/datum/outfit/admin/sol_trader)

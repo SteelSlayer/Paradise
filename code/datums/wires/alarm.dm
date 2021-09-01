@@ -31,7 +31,7 @@
 	switch(wire)
 		if(WIRE_IDSCAN)
 			if(!mend)
-				A.locked = TRUE
+				A.locked = 1
 
 		if(WIRE_MAIN_POWER1)
 			A.shock(usr, 50)

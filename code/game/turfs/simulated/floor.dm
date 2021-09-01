@@ -19,16 +19,14 @@ GLOBAL_LIST_INIT(icons_to_ignore_at_floor_init, list("damaged1","damaged2","dama
 	var/icon_plating = "plating"
 	thermal_conductivity = 0.040
 	heat_capacity = 10000
-	flags = NO_SCREENTIPS
 	var/lava = 0
-	var/broken = FALSE
-	var/burnt = FALSE
+	var/broken = 0
+	var/burnt = 0
 	var/current_overlay = null
 	var/floor_tile = null //tile that this floor drops
 	var/list/broken_states = list("damaged1", "damaged2", "damaged3", "damaged4", "damaged5")
 	var/list/burnt_states = list("floorscorched1", "floorscorched2")
 	var/list/prying_tool_list = list(TOOL_CROWBAR) //What tool/s can we use to pry up the tile?
-	var/keep_dir = TRUE //When false, resets dir to default on changeturf()
 
 	var/footstep = FOOTSTEP_FLOOR
 	var/barefootstep = FOOTSTEP_HARD_BAREFOOT
@@ -83,31 +81,15 @@ GLOBAL_LIST_INIT(icons_to_ignore_at_floor_init, list("damaged1","damaged2","dama
 		if(A.level == 3)
 			return 1
 
-// Checks if the turf is safe to be on
-/turf/simulated/floor/is_safe()
-	if(!air)
-		return FALSE
-	var/datum/gas_mixture/Z = air
-	var/pressure = Z.return_pressure()
-	// Can most things breathe and tolerate the temperature and pressure?
-	if(Z.oxygen < 16 || Z.toxins >= 0.05 || Z.carbon_dioxide >= 10 || Z.sleeping_agent >= 1 || (Z.temperature <= 270) || (Z.temperature >= 360) || (pressure <= 20) || (pressure >= 550))
-		return FALSE
-	return TRUE
-
-// Checks if there is foothold over the turf
-/turf/simulated/floor/proc/find_safeties()
-	var/static/list/safeties_typecache = typecacheof(list(/obj/structure/lattice/catwalk, /obj/structure/stone_tile))
-	var/list/found_safeties = typecache_filter_list(contents, safeties_typecache)
-	return LAZYLEN(found_safeties)
-
 /turf/simulated/floor/blob_act(obj/structure/blob/B)
 	return
 
-/turf/simulated/floor/update_overlays()
-	. = ..()
+/turf/simulated/floor/proc/update_icon()
 	update_visuals()
+	overlays -= current_overlay
 	if(current_overlay)
-		. += current_overlay
+		overlays.Add(current_overlay)
+	return 1
 
 /turf/simulated/floor/proc/break_tile_to_plating()
 	var/turf/simulated/floor/plating/T = make_plating()
@@ -130,7 +112,7 @@ GLOBAL_LIST_INIT(icons_to_ignore_at_floor_init, list("damaged1","damaged2","dama
 /turf/simulated/floor/proc/make_plating()
 	return ChangeTurf(/turf/simulated/floor/plating)
 
-/turf/simulated/floor/ChangeTurf(turf/simulated/floor/T, defer_change = FALSE, keep_icon = TRUE, ignore_air = FALSE, copy_existing_baseturf = TRUE)
+/turf/simulated/floor/ChangeTurf(turf/simulated/floor/T, defer_change = FALSE, keep_icon = TRUE, ignore_air = FALSE)
 	if(!istype(src, /turf/simulated/floor))
 		return ..() //fucking turfs switch the fucking src of the fucking running procs
 	if(!ispath(T, /turf/simulated/floor))
@@ -142,18 +124,11 @@ GLOBAL_LIST_INIT(icons_to_ignore_at_floor_init, list("damaged1","damaged2","dama
 
 	var/turf/simulated/floor/W = ..()
 
-	var/obj/machinery/atmospherics/R
-
 	if(keep_icon)
 		W.icon_regular_floor = old_icon
 		W.icon_plating = old_plating
-	if(W.keep_dir)
 		W.dir = old_dir
-	if(W.transparent_floor)
-		for(R in W)
-			R.update_icon()
-	for(R in W)
-		R.update_underlays()
+
 	W.update_icon()
 	return W
 
@@ -220,8 +195,8 @@ GLOBAL_LIST_INIT(icons_to_ignore_at_floor_init, list("damaged1","damaged2","dama
 
 /turf/simulated/floor/proc/remove_tile(mob/user, silent = FALSE, make_tile = TRUE)
 	if(broken || burnt)
-		broken = FALSE
-		burnt = FALSE
+		broken = 0
+		burnt = 0
 		current_overlay = null
 		if(user && !silent)
 			to_chat(user, "<span class='danger'>You remove the broken plating.</span>")

@@ -10,7 +10,7 @@ const logger = createLogger('ByondUi');
 // Stack of currently allocated BYOND UI element ids.
 const byondUiStack = [];
 
-const createByondUiElement = (elementId) => {
+const createByondUiElement = elementId => {
   // Reserve an index in the stack
   const index = byondUiStack.length;
   byondUiStack.push(null);
@@ -19,7 +19,7 @@ const createByondUiElement = (elementId) => {
   logger.log(`allocated '${id}'`);
   // Return a control structure
   return {
-    render: (params) => {
+    render: params => {
       logger.log(`rendering '${id}'`);
       byondUiStack[index] = id;
       callByond('winset', {
@@ -56,11 +56,17 @@ window.addEventListener('beforeunload', () => {
 /**
  * Get the bounding box of the DOM element.
  */
-const getBoundingBox = (element) => {
+const getBoundingBox = element => {
   const rect = element.getBoundingClientRect();
   return {
-    pos: [rect.left, rect.top],
-    size: [rect.right - rect.left, rect.bottom - rect.top],
+    pos: [
+      rect.left,
+      rect.top,
+    ],
+    size: [
+      rect.right - rect.left,
+      rect.bottom - rect.top,
+    ],
   };
 };
 
@@ -75,12 +81,16 @@ export class ByondUi extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    const { params: prevParams = {}, ...prevRest } = this.props;
-    const { params: nextParams = {}, ...nextRest } = nextProps;
-    return (
-      shallowDiffers(prevParams, nextParams) ||
-      shallowDiffers(prevRest, nextRest)
-    );
+    const {
+      params: prevParams = {},
+      ...prevRest
+    } = this.props;
+    const {
+      params: nextParams = {},
+      ...nextRest
+    } = nextProps;
+    return shallowDiffers(prevParams, nextParams)
+      || shallowDiffers(prevRest, nextRest);
   }
 
   componentDidMount() {
@@ -97,7 +107,9 @@ export class ByondUi extends Component {
     if (IS_IE8) {
       return;
     }
-    const { params = {} } = this.props;
+    const {
+      params = {},
+    } = this.props;
     const box = getBoundingBox(this.containerRef.current);
     logger.log('bounding box', box);
     this.byondUiElement.render({
@@ -117,11 +129,17 @@ export class ByondUi extends Component {
   }
 
   render() {
-    const { parent, params, ...rest } = this.props;
+    const {
+      parent,
+      params,
+      ...rest
+    } = this.props;
     const type = params?.type;
     const boxProps = computeBoxProps(rest);
     return (
-      <div ref={this.containerRef} {...boxProps}>
+      <div
+        ref={this.containerRef}
+        {...boxProps}>
         {type === 'button' && <ButtonMock />}
       </div>
     );
@@ -132,6 +150,5 @@ const ButtonMock = () => (
   <div
     style={{
       'min-height': '22px',
-    }}
-  />
+    }} />
 );

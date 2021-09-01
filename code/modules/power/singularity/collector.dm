@@ -144,7 +144,7 @@ GLOBAL_LIST_EMPTY(rad_collectors)
 	if(stat & (NOPOWER|BROKEN))
 		return
 	if(active)
-		add_overlay(loaded_tank ? "on" : "error")
+		add_overlay("on")
 
 
 /obj/machinery/power/rad_collector/proc/toggle_power()

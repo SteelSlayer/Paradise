@@ -54,7 +54,7 @@
 
 	if(istype(M))
 		for(var/atom/A in M.contents)
-			if(istype(A, /obj/item/holder))
+			if(istype(A,/mob/living/simple_animal/borer) || istype(A,/obj/item/holder))
 				return
 		M.status_flags &= ~PASSEMOTES
 
@@ -63,17 +63,14 @@
 //Mob procs and vars for scooping up
 /mob/living/var/holder_type
 
-/mob/living/proc/get_scooped(mob/living/carbon/grabber, has_variant = FALSE)
-	if(!holder_type)
-		return
+/mob/living/proc/get_scooped(mob/living/carbon/grabber)
+	if(!holder_type)	return
 
 	var/obj/item/holder/H = new holder_type(loc)
-	forceMove(H)
+	src.forceMove(H)
 	H.name = name
-	if(has_variant)
-		H.icon_state = icon_state
-	if(desc)
-		H.desc = desc
+	if(istype(H, /obj/item/holder/mouse))	H.icon_state = icon_state
+	if(desc)	H.desc = desc
 	H.attack_hand(grabber)
 
 	to_chat(grabber, "<span class='notice'>You scoop up \the [src].")
@@ -107,15 +104,3 @@
 	desc = "It's a small, disease-ridden rodent."
 	icon = 'icons/mob/animal.dmi'
 	icon_state = "mouse_gray"
-
-/obj/item/holder/bunny
-	name = "bunny"
-	desc = "Awww a cute bunny"
-	icon = 'icons/mob/animal.dmi'
-	icon_state = "m_bunny"
-
-/obj/item/holder/chicken
-	name = "chicken"
-	desc = "Hopefully the eggs are good this season."
-	icon = 'icons/mob/animal.dmi'
-	icon_state = "chicken_brown"

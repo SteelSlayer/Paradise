@@ -6,10 +6,10 @@
 	icon = 'icons/effects/spacevines.dmi'
 	icon_state = "flower_bud"
 	layer = MOB_LAYER + 0.9
-	opacity = FALSE
-	canSmoothWith = null
-	smoothing_flags = NONE
-	var/growth_time = 120 SECONDS
+	opacity = 0
+	canSmoothWith = list()
+	smooth = SMOOTH_FALSE
+	var/growth_time = 1200
 
 /obj/structure/alien/resin/flower_bud_enemy/New()
 	..()
@@ -54,7 +54,7 @@
 	layer = MOB_LAYER + 0.9
 	health = 50
 	maxHealth = 50
-	ranged = TRUE
+	ranged = 1
 	harm_intent_damage = 5
 	obj_damage = 60
 	melee_damage_lower = 25
@@ -69,7 +69,7 @@
 	var/grasp_chance = 20
 	var/grasp_pull_chance = 85
 	var/grasp_range = 4
-	del_on_death = TRUE
+	del_on_death = 1
 
 /mob/living/simple_animal/hostile/venus_human_trap/handle_automated_action()
 	if(..())
@@ -87,7 +87,7 @@
 				if(prob(grasp_pull_chance))
 					dir = get_dir(src,L) //staaaare
 					step(L,get_dir(L,src)) //reel them in
-					L.Weaken(6 SECONDS) //you can't get away now~
+					L.Weaken(3) //you can't get away now~
 
 		if(grasping.len < max_grasps)
 			grasping:

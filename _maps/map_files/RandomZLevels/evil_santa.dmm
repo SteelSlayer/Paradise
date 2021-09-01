@@ -242,8 +242,7 @@
 	},
 /area/awaymission/challenge/main)
 "aM" = (
-/obj/effect/spawner/random_spawners/wall_rusted_always,
-/turf/simulated/wall,
+/turf/simulated/wall/rust,
 /area/awaymission/challenge/main)
 "aN" = (
 /obj/structure/inflatable/door,
@@ -500,7 +499,9 @@
 /turf/simulated/floor/plasteel,
 /area/awaymission/challenge/start)
 "bK" = (
-/obj/effect/landmark/awaystart,
+/obj/effect/landmark{
+	name = "awaystart"
+	},
 /turf/simulated/floor/greengrid,
 /area/awaymission/challenge/start)
 "bL" = (

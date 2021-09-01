@@ -4,14 +4,14 @@
 	desc = "A machine which exchanges tickets for a variety of fabulous prizes!"
 	icon = 'icons/obj/arcade.dmi'
 	icon_state = "prize_counter-on"
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 40
 	var/tickets = 0
 
-/obj/machinery/prize_counter/Initialize(mapload)
-	. = ..()
+/obj/machinery/prize_counter/New()
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/prize_counter(null)
 	component_parts += new /obj/item/stock_parts/matter_bin(null)
@@ -20,7 +20,7 @@
 	component_parts += new /obj/item/stack/sheet/glass(null)
 	RefreshParts()
 
-/obj/machinery/prize_counter/update_icon_state()
+/obj/machinery/prize_counter/update_icon()
 	if(stat & BROKEN)
 		icon_state = "prize_counter-broken"
 	else if(panel_open)
@@ -29,6 +29,7 @@
 		icon_state = "prize_counter-off"
 	else
 		icon_state = "prize_counter-on"
+	return
 
 /obj/machinery/prize_counter/attackby(obj/item/O as obj, mob/user as mob, params)
 	if(istype(O, /obj/item/stack/tickets))
@@ -43,7 +44,7 @@
 		playsound(src.loc, O.usesound, 50, 1)
 		panel_open = !panel_open
 		to_chat(user, "You [panel_open ? "open" : "close"] the maintenance panel.")
-		update_icon(UPDATE_ICON_STATE)
+		update_icon()
 		return
 	if(panel_open)
 		if(istype(O, /obj/item/wrench))

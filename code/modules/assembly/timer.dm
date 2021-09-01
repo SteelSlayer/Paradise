@@ -14,12 +14,10 @@
 	var/repeat = FALSE
 	var/set_time = 10
 
-/obj/item/assembly/timer/examine(mob/user)
-	. = ..()
+/obj/item/assembly/timer/describe()
 	if(timing)
-		. += "The timer is counting down from [time]!"
-	else
-		. += "The timer is set for [time] seconds."
+		return "The timer is counting down from [time]!"
+	return "The timer is set for [time] seconds."
 
 /obj/item/assembly/timer/activate()
 	if(!..())
@@ -55,11 +53,11 @@
 		timer_end()
 		time = set_time
 
-/obj/item/assembly/timer/update_overlays()
-	. = ..()
+/obj/item/assembly/timer/update_icon()
+	overlays.Cut()
 	attached_overlays = list()
 	if(timing)
-		. += "timer_timing"
+		overlays += "timer_timing"
 		attached_overlays += "timer_timing"
 	if(holder)
 		holder.update_icon()

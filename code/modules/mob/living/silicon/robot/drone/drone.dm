@@ -11,6 +11,7 @@
 	flags_2 = RAD_PROTECT_CONTENTS_2 | RAD_NO_CONTAMINATE_2
 	braintype = "Robot"
 	lawupdate = FALSE
+	auto_snyc_to_AI = FALSE
 	density = FALSE
 	has_camera = FALSE
 	req_one_access = list(ACCESS_ENGINE, ACCESS_ROBOTICS)
@@ -18,7 +19,10 @@
 	magpulse = TRUE
 	mob_size = MOB_SIZE_SMALL
 	pull_force = MOVE_FORCE_VERY_WEAK // Can only drag small items
-	modules_break = FALSE
+	additional_law_channels = list("Drone" = ":b ")
+	creation_sound = 'sound/machines/twobeep.ogg'
+	ai_camera_type = /obj/item/camera/siliconcam/drone_camera
+	law_type_override = /datum/ai_laws/drone
 	/// Cooldown for law syncs
 	var/sync_cooldown = 0
 
@@ -95,17 +99,8 @@
 
 	//Some tidying-up.
 	flavor_text = "It's a tiny little repair drone. The casing is stamped with an NT logo and the subscript: 'Nanotrasen Recursive Repair Systems: Fixing Tomorrow's Problem, Today!'"
-	scanner.Grant(src)
 	update_icons()
 
-/mob/living/silicon/robot/drone/init(alien = FALSE, mob/living/silicon/ai/ai_to_sync_to = null)
-	laws = new /datum/ai_laws/drone()
-	connected_ai = null
-
-	aiCamera = new /obj/item/camera/siliconcam/drone_camera(src)
-	additional_law_channels["Drone"] = ";"
-
-	playsound(loc, 'sound/machines/twobeep.ogg', 50)
 
 //Redefining some robot procs...
 /mob/living/silicon/robot/drone/rename_character(oldname, newname)
@@ -127,6 +122,11 @@
 
 /mob/living/silicon/robot/drone/pick_module()
 	return
+
+/mob/living/silicon/robot/drone/can_be_revived()
+	. = ..()
+	if(emagged)
+		return FALSE
 
 /mob/living/silicon/robot/drone/detailed_examine()
 	return "Drones are player-controlled synthetics which are lawed to maintain the station and not \
@@ -242,7 +242,7 @@
 /mob/living/silicon/robot/drone/updatehealth(reason = "none given")
 	if(status_flags & GODMODE)
 		health = 35
-		set_stat(CONSCIOUS)
+		stat = CONSCIOUS
 		return
 	health = 35 - (getBruteLoss() + getFireLoss() + getOxyLoss())
 	update_stat("updatehealth([reason])")
@@ -323,6 +323,7 @@
 	var/icontype
 	icontype = input(player,"Pick an icon") in sprite
 	icon_state = sprite[icontype]
+	updateicon()
 
 	choose_icon(6,sprite)
 */
@@ -358,6 +359,10 @@
 /mob/living/silicon/robot/drone/remove_robot_verbs()
 	verbs -= silicon_subsystems
 
+/mob/living/silicon/robot/drone/update_canmove(delay_action_updates = FALSE)
+	. = ..()
+	density = emagged //this is reset every canmove update otherwise
+
 /mob/living/silicon/robot/drone/add_ventcrawl(obj/machinery/atmospherics/starting_machine)
 	..()
 	update_headlamp(TRUE, 0, FALSE)
@@ -382,3 +387,7 @@
 		qdel(src)
 		return TRUE
 	return ..()
+
+// Drones don't suffer module failure.
+/mob/living/silicon/robot/drone/check_module_damage(makes_sound)
+	return

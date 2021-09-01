@@ -2,7 +2,7 @@
 // The 4 damage
 /datum/reagent/blob
 	description = ""
-	var/complementary_color = COLOR_BLACK
+	var/complementary_color = "#000000"
 	var/message = "The blob strikes you" //message sent to any mob hit by the blob
 	var/message_living = null //extension to first mob sent to only living mobs i.e. silicons have no skin to be burnt
 	can_synth = FALSE
@@ -17,8 +17,8 @@
 	name = "Ripping Tendrils"
 	description = "Deals High Brute damage, as well as Stamina damage."
 	id = "ripping_tendrils"
-	color = COLOR_RIPPING_TENDRILS
-	complementary_color = COMPLEMENTARY_COLOR_RIPPING_TENDRILS
+	color = "#7F0000"
+	complementary_color = "#a15656"
 	message_living = ", and you feel your skin ripping and tearing off"
 
 /datum/reagent/blob/ripping_tendrils/reaction_mob(mob/living/M, method=REAGENT_TOUCH, volume)
@@ -33,8 +33,8 @@
 	name = "Boiling Oil"
 	description = "Deals High Burn damage, and sets the victim aflame."
 	id = "boiling_oil"
-	color = COLOR_BOILING_OIL
-	complementary_color = COMPLEMENTARY_COLOR_BOILING_OIL
+	color = "#B68D00"
+	complementary_color = "#c0a856"
 	message = "The blob splashes you with burning oil"
 	message_living = ", and you feel your skin char and melt"
 
@@ -50,15 +50,15 @@
 	name = "Envenomed Filaments"
 	description = "Deals High Toxin damage, causes Hallucinations, and injects Spores into the bloodstream."
 	id = "envenomed_filaments"
-	color = COLOR_ENVENOMED_FILAMENTS
-	complementary_color = COMPLEMENTARY_COLOR_ENVENOMED_FILAMENTS
+	color = "#9ACD32"
+	complementary_color = "#b0cd73"
 	message_living = ", and you feel sick and nauseated"
 
 /datum/reagent/blob/envenomed_filaments/reaction_mob(mob/living/M, method=REAGENT_TOUCH, volume)
 	if(method == REAGENT_TOUCH)
 		volume = ..()
-		M.apply_damage(0.6 * volume, TOX)
-		M.AdjustHallucinate(0.6 SECONDS * volume)
+		M.apply_damage(0.6*volume, TOX)
+		M.hallucination += 0.6*volume
 		if(M.reagents)
 			M.reagents.add_reagent("spore", 0.4*volume)
 
@@ -66,8 +66,8 @@
 	name = "Lexorin Jelly"
 	description = "Deals Medium Brute damage, but massive amounts of Respiration Damage."
 	id = "lexorin_jelly"
-	color = COLOR_LEXORIN_JELLY
-	complementary_color = COMPLEMENTARY_COLOR_LEXORIN_JELLY
+	color = "#00FFC5"
+	complementary_color = "#56ebc9"
 	message_living = ", and your lungs feel heavy and weak"
 
 /datum/reagent/blob/lexorin_jelly/reaction_mob(mob/living/M, method=REAGENT_TOUCH, volume)
@@ -75,15 +75,15 @@
 		volume = ..()
 		M.apply_damage(0.4*volume, BRUTE)
 		M.apply_damage(1*volume, OXY)
-		M.AdjustLoseBreath(round(0.6 SECONDS * volume))
+		M.AdjustLoseBreath(round(0.3*volume))
 
 
 /datum/reagent/blob/kinetic //does semi-random brute damage
 	name = "Kinetic Gelatin"
 	description = "Deals Randomized damage, between 0.33 to 2.33 times the standard amount."
 	id = "kinetic"
-	color = COLOR_KINETIC_GELATIN
-	complementary_color = COMPLEMENTARY_COLOR_KINETIC_GELATIN
+	color = "#FFA500"
+	complementary_color = "#ebb756"
 	message = "The blob pummels you"
 
 /datum/reagent/blob/kinetic/reaction_mob(mob/living/M, method=REAGENT_TOUCH, volume)
@@ -96,8 +96,8 @@
 	name = "Cryogenic Liquid"
 	description = "Deals Medium Brute damage, Stamina Damage, and injects Frost Oil into its victims, freezing them to death."
 	id = "cryogenic_liquid"
-	color = COLOR_CRYOGENIC_LIQUID
-	complementary_color = COMPLEMENTARY_COLOR_CRYOGENIC_LIQUID
+	color = "#8BA6E9"
+	complementary_color = "#a8b7df"
 	message = "The blob splashes you with an icy liquid"
 	message_living = ", and you feel cold and tired"
 
@@ -113,8 +113,8 @@
 	name = "Sorium"
 	description = "Deals High Brute damage, and sends people flying away."
 	id = "b_sorium"
-	color = COLOR_SORIUM
-	complementary_color = COMPLEMENTARY_COLOR_SORIUM
+	color = "#808000"
+	complementary_color = "#a2a256"
 	message = "The blob slams into you, and sends you flying"
 
 /datum/reagent/blob/b_sorium/reaction_mob(mob/living/M, method=REAGENT_TOUCH, volume)
@@ -156,8 +156,8 @@
 	name = "Radioactive gel"
 	description = "Deals medium toxin damage and a little brute damage, but irradiates those struck."
 	id = "radioactive_gel"
-	color = COLOR_RADIOACTIVE_GEL
-	complementary_color = COMPLEMENTARY_COLOR_RADIOACTIVE_GEL
+	color = "#2476f0"
+	complementary_color = "#24f0f0"
 	message_living = ", and you feel a strange warmth from within"
 
 /datum/reagent/blob/radioactive_gel/reaction_mob(mob/living/M, method = REAGENT_TOUCH, volume)
@@ -172,8 +172,8 @@
 	name = "Teslium paste"
 	description = "Deals medium burn damage, and shocks those struck over time"
 	id = "teslium_paste"
-	color = COLOR_TESLIUM_PASTE
-	complementary_color = COMPLEMENTARY_COLOR_TESLIUM_PASTE
+	color = "#20324D"
+	complementary_color = "#412968"
 	message_living = ", and you feel a static shock"
 
 /datum/reagent/blob/teslium_paste/reaction_mob(mob/living/M, method=REAGENT_TOUCH, volume)

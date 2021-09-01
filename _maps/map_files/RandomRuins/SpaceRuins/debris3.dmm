@@ -78,7 +78,7 @@
 /turf/space,
 /area/template_noop)
 "x" = (
-/obj/structure/bookcase/random,
+/obj/structure/bookcase/random/fiction,
 /turf/simulated/floor/plating/damaged,
 /area/template_noop)
 "y" = (

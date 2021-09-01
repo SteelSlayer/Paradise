@@ -1,5 +1,27 @@
 //Hardsuit toggle code
+/obj/item/clothing/suit/space/hardsuit/New()
+	MakeHelmet()
+	..()
 
+/obj/item/clothing/suit/space/hardsuit/Destroy()
+	if(helmet)
+		helmet.suit = null
+		QDEL_NULL(helmet)
+	QDEL_NULL(jetpack)
+	return ..()
+
+/obj/item/clothing/head/helmet/space/hardsuit/Destroy()
+	if(suit)
+		suit.helmet = null
+	return ..()
+
+/obj/item/clothing/suit/space/hardsuit/proc/MakeHelmet()
+	if(!helmettype)
+		return
+	if(!helmet)
+		var/obj/item/clothing/head/helmet/space/hardsuit/W = new helmettype(src)
+		W.suit = src
+		helmet = W
 
 /obj/item/clothing/suit/space/hardsuit/ui_action_click()
 	..()
@@ -15,7 +37,7 @@
 /obj/item/clothing/suit/space/hardsuit/proc/RemoveHelmet()
 	if(!helmet)
 		return
-	suit_toggled = FALSE
+	suittoggled = FALSE
 	if(ishuman(helmet.loc))
 		var/mob/living/carbon/H = helmet.loc
 		if(helmet.on)
@@ -38,7 +60,7 @@
 		return
 	if(!helmet)
 		return
-	if(!suit_toggled)
+	if(!suittoggled)
 		if(ishuman(src.loc))
 			if(H.wear_suit != src)
 				to_chat(H, "<span class='warning'>You must be wearing [src] to engage the helmet!</span>")
@@ -48,7 +70,7 @@
 				return
 			else if(H.equip_to_slot_if_possible(helmet, slot_head, FALSE, FALSE))
 				to_chat(H, "<span class='notice'>You engage the helmet on the hardsuit.</span>")
-				suit_toggled = TRUE
+				suittoggled = TRUE
 				H.update_inv_wear_suit()
 				playsound(src.loc, 'sound/mecha/mechmove03.ogg', 50, 1)
 	else

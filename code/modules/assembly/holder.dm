@@ -50,8 +50,10 @@
 	A2.holder = src
 	a_left = A1
 	a_right = A2
+	if(has_prox_sensors())
+		AddComponent(/datum/component/proximity_monitor)
 	name = "[A1.name]-[A2.name] assembly"
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 	return TRUE
 
 /obj/item/assembly_holder/proc/has_prox_sensors()
@@ -59,16 +61,16 @@
 		return TRUE
 	return FALSE
 
-/obj/item/assembly_holder/update_overlays()
-	. = ..()
+/obj/item/assembly_holder/update_icon()
+	overlays.Cut()
 	if(a_left)
-		. += "[a_left.icon_state]_left"
+		overlays += "[a_left.icon_state]_left"
 		for(var/O in a_left.attached_overlays)
-			. += "[O]_l"
+			overlays += "[O]_l"
 	if(a_right)
-		. += "[a_right.icon_state]_right"
+		overlays += "[a_right.icon_state]_right"
 		for(var/O in a_right.attached_overlays)
-			. += "[O]_r"
+			overlays += "[O]_r"
 	if(master)
 		master.update_icon()
 
@@ -181,10 +183,10 @@
 			return FALSE
 		if(a_left)
 			a_left.holder = null
-			a_left.forceMove(T)
+			a_left.loc = T
 		if(a_right)
 			a_right.holder = null
-			a_right.forceMove(T)
+			a_right.loc = T
 		qdel(src)
 
 
@@ -194,7 +196,7 @@
 	if(normal && a_right && a_left)
 		if(a_right != D)
 			a_right.pulsed(0)
-		if(a_left && a_left != D)  // the right pools might have sent us boom, so `a_left` can be null here
+		if(a_left != D)
 			a_left.pulsed(0)
 	if(master)
 		master.receive_signal()

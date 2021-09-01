@@ -5,21 +5,23 @@
 	w_class = 100
 	item_state = "electronic"
 	flags = CONDUCT
-
-	/// Has the AI hacked the borg module, allowing access to the malf AI exclusive item.
-	var/malfhacked = FALSE
-
+	/**
+	 * An associative list of module sprites this module has access to.
+	 * The key is what the player will see when choosing sprites. The value is the actual sprite name.
+	 * Example: list("Black Knight" = "securityrobot")
+	 */
+	var/list/module_sprites = list()
+	///
+	var/list/camera_networks
 	/// A list of all currently usable and created modules the robot currently has access too.
 	var/list/modules = list()
 	/// A list of module-specific, non-emag modules the borg will gain when this module is chosen.
 	var/list/basic_modules = list()
 	/// A list of modules the robot gets when emagged.
 	var/list/emag_modules = list()
-	/// A list of modules that the robot gets when malf AI buys it.
-	var/list/malf_modules = list()
 	/// A list of modules that require special recharge handling. Examples include things like flashes, sprays and welding tools.
 	var/list/special_rechargables = list()
-	/// A list of all "energy stacks", i.e metal, glass, brute kits, splints, etc.
+	/// A list of all [energy stacks][/datum/robot_energy_storage], i.e metal, glass, brute kits, splints, etc.
 	var/list/storages = list()
 	/// Special actions this module will gain when chosen such as meson vision, or thermal vision.
 	var/list/module_actions = list()
@@ -33,8 +35,15 @@
 	var/module_type = "NoMod"
 
 
-/obj/item/robot_module/New()
-	..()
+/obj/item/robot_module/Initialize(mapload)
+	. = ..()
+
+	var/mob/living/silicon/robot/R = loc
+	add_languages(R)
+	add_subsystems_and_actions(R)
+
+	for(var/network in camera_networks)
+		R.camera.network += network
 
 	// Creates new objects from the type lists.
 	for(var/i in basic_modules)
@@ -48,17 +57,12 @@
 		emag_modules += I
 		emag_modules -= i
 
-	for(var/i in malf_modules)
-		var/obj/item/I = new i(src)
-		malf_modules += I
-		malf_modules -= i
-
 	// Flashes need a special recharge, and since basically every module uses it, add it here.
 	// Even if the module doesn't use a flash, it wont cause any issues to have it in this list.
 	special_rechargables += /obj/item/flash/cyborg
 
 	// This is done so we can loop through this list later and call cyborg_recharge() on the items while the borg is recharging.
-	var/all_modules = basic_modules | emag_modules | malf_modules
+	var/all_modules = basic_modules | emag_modules
 	for(var/path in special_rechargables)
 		var/obj/item/I = locate(path) in all_modules
 		if(I) // If it exists, add the object reference.
@@ -76,11 +80,13 @@
 		O.emp_act(severity)
 
 /obj/item/robot_module/Destroy()
+	var/mob/living/silicon/robot/R = loc
+	remove_subsystems_and_actions(R)
+
 	// These can all contain actual objects, so we need to null them out.
 	QDEL_LIST(modules)
 	QDEL_LIST(basic_modules)
 	QDEL_LIST(emag_modules)
-	QDEL_LIST(malf_modules)
 	QDEL_LIST(storages)
 	QDEL_LIST(special_rechargables)
 	return ..()
@@ -99,7 +105,6 @@
 	var/list/lists = list(
 		basic_modules,
 		emag_modules,
-		malf_modules,
 		storages,
 		special_rechargables
 	)
@@ -167,27 +172,19 @@
 	return I
 
 /**
- * Builds the usable module list from the modules we have in `basic_modules`, `emag_modules` and `malf_modules`
+ * Builds the usable module list from the modules we have in `basic_modules` and `emag_modules`
  */
 /obj/item/robot_module/proc/rebuild_modules()
 	var/mob/living/silicon/robot/R = loc
 	R.uneq_all()
 	modules = list()
 
-	if(!malfhacked && R.connected_ai)
-		if(type in R.connected_ai.purchased_modules)
-			malfhacked = TRUE
-
 	// By this point these lists should only contain items. It's safe to use typeless loops here.
 	for(var/item in basic_modules)
 		add_module(item, FALSE)
 
-	if(R.emagged || R.weapons_unlock)
+	if(R.emagged || R.upgrades[/obj/item/borg/upgrade/syndicate])
 		for(var/item in emag_modules)
-			add_module(item, FALSE)
-
-	if(malfhacked)
-		for(var/item in malf_modules)
 			add_module(item, FALSE)
 
 	if(R.hud_used)
@@ -261,7 +258,6 @@
 	R.add_language("Bubblish", 0)
 	R.add_language("Orluum", 0)
 	R.add_language("Clownish", 0)
-	R.add_language("Tkachi", 0)
 
 /// Adds anything in `subsystems` to the robot's verbs, and grants any actions that are in `module_actions`.
 /obj/item/robot_module/proc/add_subsystems_and_actions(mob/living/silicon/robot/R)
@@ -269,15 +265,15 @@
 	for(var/A in module_actions)
 		var/datum/action/act = new A()
 		act.Grant(R)
-		R.module_actions += act
+		module_actions -= A
+		module_actions += act
 
 /// Removes any verbs from the robot that are in `subsystems`, and removes any actions that are in `module_actions`.
 /obj/item/robot_module/proc/remove_subsystems_and_actions(mob/living/silicon/robot/R)
 	R.verbs -= subsystems
-	for(var/datum/action/A in R.module_actions)
+	for(var/datum/action/A in module_actions)
 		A.Remove(R)
 		qdel(A)
-	R.module_actions.Cut()
 
 // Return true in an overridden subtype to prevent normal removal handling
 /obj/item/robot_module/proc/handle_custom_removal(component_id, mob/living/user, obj/item/W)
@@ -286,10 +282,74 @@
 /obj/item/robot_module/proc/handle_death(mob/living/silicon/robot/R, gibbed)
 	return
 
+/**
+ * # Generalist module
+ *
+ * The Role of a Generalist:
+ *
+ * If station is fine, assist with constructing station goal room, cleaning, and repairing cables chewed by rats.
+ * If medical crisis, assist by providing basic healthcare, retrieving corpses, and monitoring crew lifesigns.
+ * If eng crisis, assist by helping repair hull breaches.
+ * If sec crisis, assist by opening doors for sec and providing backup zipties on patrols.
+ */
+/obj/item/robot_module/generalist
+	name = "generalist robot module"
+	module_type = "Standard"
+	channels = list("Engineering" = 1, "Medical" = 1, "Security" = 1, "Service" = 1, "Supply" = 1)
+	module_sprites = list(
+		"Basic" = "robot_old",
+		"Android" = "droid",
+		"Default" = "Standard",
+		"Noble-STD" = "Noble-STD"
+	)
+	subsystems = list(/mob/living/silicon/proc/subsystem_power_monitor, /mob/living/silicon/proc/subsystem_crew_monitor)
+	basic_modules = list(
+		// Security.
+		/obj/item/flash/cyborg,
+		/obj/item/restraints/handcuffs/cable/zipties/cyborg,
+		// Janitorial.
+		/obj/item/soap/nanotrasen,
+		/obj/item/lightreplacer/cyborg,
+		// Engineering.
+		/obj/item/crowbar/cyborg,
+		/obj/item/wrench/cyborg,
+		/obj/item/extinguisher, // for firefighting, and propulsion in space
+		/obj/item/weldingtool/largetank/cyborg,
+		// Mining.
+		/obj/item/pickaxe,
+		/obj/item/t_scanner/adv_mining_scanner,
+		/obj/item/storage/bag/ore/cyborg,
+		// Medical.
+		/obj/item/healthanalyzer,
+		/obj/item/reagent_containers/borghypo/basic,
+		/obj/item/roller_holder, // for taking the injured to medbay without worsening their injuries or leaving a blood trail the whole way
+		/obj/item/stack/sheet/metal/cyborg,
+		/obj/item/stack/cable_coil/cyborg,
+		/obj/item/stack/rods/cyborg,
+		/obj/item/stack/tile/plasteel/cyborg
+	)
+	emag_modules = list(/obj/item/melee/energy/sword/cyborg)
+	special_rechargables = list(
+		/obj/item/extinguisher,
+		/obj/item/weldingtool/largetank/cyborg,
+		/obj/item/lightreplacer/cyborg
+	)
+
 // Medical cyborg module.
 /obj/item/robot_module/medical
 	name = "medical robot module"
 	module_type = "Medical"
+	channels = list("Medical" = 1)
+	camera_networks = list("Medical")
+	module_sprites = list(
+		"Basic" = "Medbot",
+		"Surgeon" = "surgeon",
+		"Advanced Droid" = "droid-medical",
+		"Needles" = "medicalrobot",
+		"Standard" = "Standard-Medi",
+		"Noble-MED" = "Noble-MED",
+		"Cricket" = "Cricket-MEDI"
+	)
 	subsystems = list(/mob/living/silicon/proc/subsystem_crew_monitor)
 	basic_modules = list(
 		/obj/item/flash/cyborg,
@@ -299,7 +359,6 @@
 		/obj/item/borg_defib,
 		/obj/item/handheld_defibrillator,
 		/obj/item/roller_holder,
-		/obj/item/borg/cyborghug,
 		/obj/item/reagent_containers/borghypo,
 		/obj/item/scalpel/laser/laser1,
 		/obj/item/hemostat,
@@ -347,6 +406,16 @@
 /obj/item/robot_module/engineering
 	name = "engineering robot module"
 	module_type = "Engineer"
+	channels = list("Engineering" = 1)
+	camera_networks = list("Engineering")
+	module_sprites = list(
+		"Basic" = "Engineering",
+		"Antique" = "engineerrobot",
+		"Landmate" = "landmate",
+		"Standard" = "Standard-Engi",
+		"Noble-ENG" = "Noble-ENG",
+		"Cricket" = "Cricket-ENGI"
+	)
 	subsystems = list(/mob/living/silicon/proc/subsystem_power_monitor)
 	module_actions = list(/datum/action/innate/robot_sight/meson)
 	basic_modules = list(
@@ -375,9 +444,8 @@
 		/obj/item/stack/sheet/glass/cyborg,
 		/obj/item/stack/sheet/rglass/cyborg
 	)
-	emag_modules = list(/obj/item/borg/stun, /obj/item/restraints/handcuffs/cable/zipties/cyborg)
-	malf_modules = list(/obj/item/gun/energy/emitter/cyborg)
-	special_rechargables = list(/obj/item/extinguisher, /obj/item/weldingtool/largetank/cyborg, /obj/item/gun/energy/emitter/cyborg)
+	emag_modules = list(/obj/item/borg/stun)
+	special_rechargables = list(/obj/item/extinguisher, /obj/item/weldingtool/largetank/cyborg)
 
 /obj/item/robot_module/engineering/handle_death(mob/living/silicon/robot/R, gibbed)
 	var/obj/item/gripper/G = locate(/obj/item/gripper) in modules
@@ -388,6 +456,16 @@
 /obj/item/robot_module/security
 	name = "security robot module"
 	module_type = "Security"
+	channels = list("Security" = 1)
+	module_sprites = list(
+		"Basic" = "secborg",
+		"Red Knight" = "Security",
+		"Black Knight" = "securityrobot",
+		"Bloodhound" = "bloodhound",
+		"Standard" = "Standard-Secy",
+		"Noble-SEC" = "Noble-SEC",
+		"Cricket" = "Cricket-SEC"
+	)
 	subsystems = list(/mob/living/silicon/proc/subsystem_crew_monitor)
 	basic_modules = list(
 		/obj/item/flash/cyborg,
@@ -413,16 +491,25 @@
 /obj/item/robot_module/janitor
 	name = "janitorial robot module"
 	module_type = "Janitor"
+	channels = list("Service" = 1)
+	module_sprites = list(
+		"Basic" = "JanBot2",
+		"Mopbot" = "janitorrobot",
+		"Mop Gear Rex" = "mopgearrex",
+		"Standard" = "Standard-Jani",
+		"Noble-CLN" = "Noble-CLN",
+		"Cricket" = "Cricket-JANI"
+	)
 	basic_modules = list(
 		/obj/item/flash/cyborg,
 		/obj/item/soap/nanotrasen,
 		/obj/item/storage/bag/trash/cyborg,
 		/obj/item/mop/advanced/cyborg,
 		/obj/item/lightreplacer/cyborg,
-		/obj/item/holosign_creator/janitor,
+		/obj/item/holosign_creator,
 		/obj/item/extinguisher/mini
 	)
-	emag_modules = list(/obj/item/reagent_containers/spray/cyborg_lube, /obj/item/restraints/handcuffs/cable/zipties/cyborg)
+	emag_modules = list(/obj/item/reagent_containers/spray/cyborg_lube)
 	special_rechargables = list(
 		/obj/item/lightreplacer,
 		/obj/item/reagent_containers/spray/cyborg_lube,
@@ -432,28 +519,33 @@
 /obj/item/robot_module/janitor/Initialize(mapload)
 	. = ..()
 	var/mob/living/silicon/robot/R = loc
-	RegisterSignal(R, COMSIG_MOVABLE_MOVED, .proc/on_cyborg_move)
+	R.RegisterSignal(R, COMSIG_MOVABLE_MOVED, .proc/on_cyborg_move)
+
+/obj/item/robot_module/janitor/Destroy()
+	var/mob/living/silicon/robot/R = loc
+	R.UnregisterSignal(R, COMSIG_MOVABLE_MOVED)
+	return ..()
 
 /**
- * Proc called after the janitor cyborg has moved, in order to clean atoms at it's new location.
+ * Proc which is used by the janitor cyborg whenever it moves, in order to clean atoms at it's new location.
  *
  * Arguments:
- * * mob/living/silicon/robot/R - The cyborg who moved.
+ * * datum/source - The cyborg who moved.
  */
-/obj/item/robot_module/janitor/proc/on_cyborg_move(mob/living/silicon/robot/R)
-	SIGNAL_HANDLER
+/obj/item/robot_module/janitor/proc/on_cyborg_move(datum/source)
+	var/mob/living/silicon/robot/R = source
 
-	if(R.stat == DEAD || !isturf(R.loc))
+	if(R.stat == DEAD || !isturf(loc))
 		return
-	var/turf/tile = R.loc
-	for(var/A in tile)
+
+	for(var/A in loc)
 		if(iseffect(A))
 			var/obj/effect/E = A
 			if(!E.is_cleanable())
 				continue
 			var/obj/effect/decal/cleanable/blood/B = E
 			if(istype(B) && B.off_floor)
-				tile.clean_blood()
+				loc.clean_blood()
 			else
 				qdel(E)
 		else if(isitem(A))
@@ -461,7 +553,7 @@
 			I.clean_blood()
 		else if(ishuman(A))
 			var/mob/living/carbon/human/cleaned_human = A
-			if(!IS_HORIZONTAL(cleaned_human))
+			if(!cleaned_human.lying)
 				continue
 			cleaned_human.clean_blood()
 			to_chat(cleaned_human, "<span class='danger'>[src] cleans your face!</span>")
@@ -478,6 +570,17 @@
 /obj/item/robot_module/butler
 	name = "service robot module"
 	module_type = "Service"
+	channels = list("Service" = 1)
+	module_sprites = list(
+		"Waitress" = "Service",
+		"Kent" = "toiletbot",
+		"Bro" = "Brobot",
+		"Rich" = "maximillion",
+		"Default" = "Service2",
+		"Standard" = "Standard-Serv",
+		"Noble-SRV" = "Noble-SRV",
+		"Cricket" = "Cricket-SERV"
+	)
 	basic_modules = list(
 		/obj/item/flash/cyborg,
 		/obj/item/handheld_chem_dispenser/booze,
@@ -493,7 +596,7 @@
 		/obj/item/storage/bag/tray/cyborg,
 		/obj/item/reagent_containers/food/drinks/shaker
 	)
-	emag_modules = list(/obj/item/reagent_containers/food/drinks/cans/beer/sleepy_beer, /obj/item/restraints/handcuffs/cable/zipties/cyborg)
+	emag_modules = list(/obj/item/reagent_containers/food/drinks/cans/beer/sleepy_beer)
 	special_rechargables = list(
 		/obj/item/reagent_containers/food/condiment/enzyme,
 		/obj/item/reagent_containers/food/drinks/cans/beer/sleepy_beer
@@ -528,7 +631,6 @@
 	R.add_language("Bubblish", 1)
 	R.add_language("Clownish",1)
 	R.add_language("Neo-Russkiya", 1)
-	R.add_language("Tkachi", 1)
 
 /obj/item/robot_module/butler/handle_death(mob/living/silicon/robot/R, gibbed)
 	var/obj/item/storage/bag/tray/cyborg/T = locate(/obj/item/storage/bag/tray/cyborg) in modules
@@ -539,8 +641,19 @@
 /obj/item/robot_module/miner
 	name = "miner robot module"
 	module_type = "Miner"
+	channels = list("Supply" = 1)
+	camera_networks = list("Mining Outpost")
 	module_actions = list(/datum/action/innate/robot_sight/meson)
 	custom_removals = list("KA modkits")
+	module_sprites = list(
+		"Basic" = "Miner_old",
+		"Advanced Droid" = "droid-miner",
+		"Treadhead" = "Miner",
+		"Standard" = "Standard-Mine",
+		"Noble-DIG" = "Noble-DIG",
+		"Cricket" = "Cricket-MINE",
+		"Lavaland" = "lavaland"
+	)
 	basic_modules = list(
 		/obj/item/flash/cyborg,
 		/obj/item/storage/bag/ore/cyborg,
@@ -553,7 +666,7 @@
 		/obj/item/gun/energy/kinetic_accelerator/cyborg,
 		/obj/item/gps/cyborg
 	)
-	emag_modules = list(/obj/item/borg/stun, /obj/item/pickaxe/drill/cyborg/diamond, /obj/item/restraints/handcuffs/cable/zipties/cyborg)
+	emag_modules = list(/obj/item/borg/stun, /obj/item/pickaxe/drill/cyborg/diamond)
 	special_rechargables = list(/obj/item/extinguisher/mini, /obj/item/weldingtool/mini)
 
 // Replace their normal drill with a diamond drill.
@@ -596,6 +709,7 @@
 /obj/item/robot_module/syndicate
 	name = "syndicate assault robot module"
 	module_type = "Malf" // cuz it looks cool
+	channels = list("Security" = 1)
 	basic_modules = list(
 		/obj/item/flash/cyborg,
 		/obj/item/melee/energy/sword/cyborg,

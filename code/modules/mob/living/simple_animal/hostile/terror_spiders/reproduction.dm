@@ -7,7 +7,7 @@
 	name = "spiderling"
 	desc = "A fast-moving tiny spider, prone to making aggressive hissing sounds. Hope it doesn't grow up."
 	icon_state = "spiderling"
-	anchored = FALSE
+	anchored = 0
 	layer = 2.75
 	max_integrity = 3
 	var/stillborn = FALSE
@@ -101,7 +101,7 @@
 		return
 	if(travelling_in_vent)
 		if(isturf(loc))
-			travelling_in_vent = FALSE
+			travelling_in_vent = 0
 			entry_vent = null
 	else if(entry_vent)
 		if(get_dist(src, entry_vent) <= 1)
@@ -179,7 +179,7 @@
 // --------------------------------------------------------------------------------
 
 /mob/living/simple_animal/hostile/poison/terror_spider/proc/DoLayTerrorEggs(lay_type, lay_number)
-	stop_automated_movement = TRUE
+	stop_automated_movement = 1
 	var/obj/structure/spider/eggcluster/terror_eggcluster/C = new /obj/structure/spider/eggcluster/terror_eggcluster(get_turf(src), lay_type)
 	C.spiderling_number = lay_number
 	C.spider_myqueen = spider_myqueen
@@ -189,7 +189,7 @@
 		C.amount_grown = 250
 		C.spider_growinstantly = TRUE
 	spawn(10)
-		stop_automated_movement = FALSE
+		stop_automated_movement = 0
 
 /obj/structure/spider/eggcluster/terror_eggcluster
 	name = "terror egg cluster"

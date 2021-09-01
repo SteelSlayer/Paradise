@@ -89,6 +89,10 @@
 	button_icon_state = "choose_module"
 	auto_use_uses = FALSE // This is an infinite ability.
 
+/datum/action/innate/ai/choose_modules/Grant(mob/living/L)
+	. = ..()
+	owner_AI.malf_picker = new /datum/module_picker
+
 /datum/action/innate/ai/choose_modules/Trigger()
 	. = ..()
 	owner_AI.malf_picker.use(owner_AI)
@@ -124,7 +128,7 @@
 
 /datum/module_picker/proc/use(mob/user)
 	var/dat
-	dat += {"<B>Select use of processing time: (currently [processing_time] left.)</B><BR>
+	dat += {"<B>Select use of processing time: (currently #[processing_time] left.)</B><BR>
 			<HR>
 			<B>Install Module:</B><BR>
 			<I>The number afterwards is the amount of processing time it consumes.</I><BR>"}
@@ -244,7 +248,7 @@
 
 /datum/action/innate/ai/nuke_station/proc/set_us_up_the_bomb()
 	to_chat(owner_AI, "<span class='notice'>Nuclear device armed.</span>")
-	GLOB.event_announcement.Announce("Hostile runtimes detected in all station systems, please deactivate your AI to prevent possible damage to its morality core.", "Anomaly Alert", 'sound/AI/aimalf.ogg')
+	GLOB.event_announcement.Announce("Hostile runtimes detected in all station systems, please deactivate your AI to prevent possible damage to its morality core.", "Anomaly Alert", new_sound = 'sound/AI/aimalf.ogg')
 	set_security_level("delta")
 	owner_AI.nuking = TRUE
 	var/obj/machinery/doomsday_device/DOOM = new /obj/machinery/doomsday_device(owner_AI)
@@ -261,11 +265,11 @@
 	name = "doomsday device"
 	icon_state = "nuclearbomb_base"
 	desc = "A weapon which disintegrates all organic life in a large area."
-	anchored = TRUE
-	density = TRUE
+	anchored = 1
+	density = 1
 	atom_say_verb = "blares"
 	speed_process = TRUE // Disgusting fix. Please remove once #12952 is merged
-	var/timing = FALSE
+	var/timing = 0
 	var/default_timer = 4500
 	var/detonation_timer
 	var/announced = 0
@@ -276,12 +280,12 @@
 	if(SSshuttle.emergency.mode == SHUTTLE_STRANDED)
 		SSshuttle.emergency.mode = SHUTTLE_DOCKED
 		SSshuttle.emergency.timer = world.time
-		GLOB.priority_announcement.Announce("Hostile environment resolved. You have 3 minutes to board the Emergency Shuttle.", "Priority Announcement", 'sound/AI/eshuttle_dock.ogg')
+		GLOB.priority_announcement.Announce("Hostile environment resolved. You have 3 minutes to board the Emergency Shuttle.", "Priority Announcement", 'sound/AI/shuttledock.ogg')
 	return ..()
 
 /obj/machinery/doomsday_device/proc/start()
 	detonation_timer = world.time + default_timer
-	timing = TRUE
+	timing = 1
 	START_PROCESSING(SSfastprocess, src)
 	SSshuttle.emergencyNoEscape = 1
 
@@ -296,14 +300,14 @@
 		if(SSshuttle.emergency.mode == SHUTTLE_STRANDED)
 			SSshuttle.emergency.mode = SHUTTLE_DOCKED
 			SSshuttle.emergency.timer = world.time
-			GLOB.priority_announcement.Announce("Hostile environment resolved. You have 3 minutes to board the Emergency Shuttle.", "Priority Announcement", 'sound/AI/eshuttle_dock.ogg')
+			GLOB.priority_announcement.Announce("Hostile environment resolved. You have 3 minutes to board the Emergency Shuttle.", "Priority Announcement", 'sound/AI/shuttledock.ogg')
 		qdel(src)
 	if(!timing)
 		STOP_PROCESSING(SSfastprocess, src)
 		return
 	var/sec_left = seconds_remaining()
 	if(sec_left <= 0)
-		timing = FALSE
+		timing = 0
 		detonate(T.z)
 		qdel(src)
 	else
@@ -318,8 +322,16 @@
 	for(var/explodee in GLOB.player_list)
 		SEND_SOUND(explodee, doomsday_alarm)
 	sleep(100)
-	SSticker.station_explosion_cinematic(null, "AI malfunction")
+	for(var/mob/living/L in GLOB.mob_list)
+		var/turf/T = get_turf(L)
+		if(!T || T.z != z_level)
+			continue
+		if(issilicon(L))
+			continue
+		to_chat(L, "<span class='danger'><B>The blast wave from [src] tears you atom from atom!</B></span>")
+		L.dust()
 	to_chat(world, "<B>The AI cleansed the station of life with the doomsday device!</B>")
+	SSticker.force_ending = TRUE
 	SSticker.mode.station_was_nuked = TRUE
 
 //AI Turret Upgrade: Increases the health and damage of all turrets.
@@ -493,9 +505,6 @@
 	if(!istype(target))
 		to_chat(ranged_ability_user, "<span class='warning'>You can only overload machines!</span>")
 		return
-	if(target.flags_2 & NO_MALF_EFFECT_2)
-		to_chat(ranged_ability_user, "<span class='warning'>That machine can't be overloaded!</span>")
-		return
 
 	ranged_ability_user.playsound_local(ranged_ability_user, "sparks", 50, FALSE, use_reverb = FALSE)
 	attached_action.adjust_uses(-1)
@@ -548,7 +557,7 @@
 	if(!istype(target))
 		to_chat(ranged_ability_user, "<span class='warning'>You can only animate machines!</span>")
 		return
-	if(target.flags_2 & NO_MALF_EFFECT_2)
+	if(!target.can_be_overridden())
 		to_chat(ranged_ability_user, "<span class='warning'>That machine can't be overridden!</span>")
 		return
 
@@ -777,24 +786,3 @@
 /datum/AI_Module/large/cameracrack/upgrade(mob/living/silicon/ai/AI)
 	if(AI.builtInCamera)
 		QDEL_NULL(AI.builtInCamera)
-
-/datum/AI_Module/large/engi_upgrade
-	module_name = "Engineering Cyborg Emitter Upgrade"
-	mod_pick_name = "emitter"
-	description = "Downloads firmware that activates the built in emitter in all engineering cyborgs linked to you. Cyborgs built after this upgrade will have it pre-installed."
-	cost = 50 // IDK look into this
-	one_purchase = TRUE
-	upgrade = TRUE
-	unlock_text = "<span class='notice'>Firmware downloaded. Bugs removed. Built in emitters operating at 73% efficiency.</span>"
-	unlock_sound = 'sound/items/rped.ogg'
-
-/datum/AI_Module/large/engi_upgrade/upgrade(mob/living/silicon/ai/AI)
-	AI.purchased_modules += /obj/item/robot_module/engineering
-	log_game("[key_name(usr)] purchased emitters for all engineering cyborgs.")
-	message_admins("<span class='notice'>[key_name_admin(usr)] purchased emitters for all engineering cyborgs!</span>")
-	for(var/mob/living/silicon/robot/R in AI.connected_robots)
-		if(!istype(R.module, /obj/item/robot_module/engineering))
-			continue
-		R.module.malfhacked = TRUE
-		R.module.rebuild_modules()
-		to_chat(R, "<span class='notice'>New firmware downloaded. Emitter is now online.</span>")

@@ -3,47 +3,39 @@
 	desc = "Talk through this."
 	icon_state = "intercom"
 	layer = ABOVE_WINDOW_LAYER
-	anchored = TRUE
+	anchored = 1
 	w_class = WEIGHT_CLASS_BULKY
 	canhear_range = 2
 	flags = CONDUCT
-	blocks_emissive = FALSE
 	var/circuitry_installed = 1
 	var/buildstage = 0
-	var/custom_name
 	dog_fashion = null
 
 /obj/item/radio/intercom/custom
 	name = "station intercom (Custom)"
-	custom_name = TRUE
-	broadcasting = FALSE
-	listening = FALSE
+	broadcasting = 0
+	listening = 0
 
 /obj/item/radio/intercom/interrogation
 	name = "station intercom (Interrogation)"
-	custom_name = TRUE
 	frequency  = AIRLOCK_FREQ
 
 /obj/item/radio/intercom/private
 	name = "station intercom (Private)"
-	custom_name = TRUE
 	frequency = AI_FREQ
 
 /obj/item/radio/intercom/command
 	name = "station intercom (Command)"
-	custom_name = TRUE
 	frequency = COMM_FREQ
 
 /obj/item/radio/intercom/specops
 	name = "\improper Special Operations intercom"
-	custom_name = TRUE
 	frequency = ERT_FREQ
 
 /obj/item/radio/intercom/department
 	canhear_range = 5
-	custom_name = TRUE
-	broadcasting = FALSE
-	listening = TRUE
+	broadcasting = 0
+	listening = 1
 
 /obj/item/radio/intercom/department/medbay
 	name = "station intercom (Medbay)"
@@ -62,15 +54,10 @@
 		if(direction)
 			setDir(direction)
 			set_pixel_offsets_from_dir(28, -28, 28, -28)
-		b_stat = TRUE
-		on = FALSE
+		b_stat=1
+		on = 0
 	GLOB.global_intercoms.Add(src)
-	update_icon(UPDATE_ICON_STATE | UPDATE_OVERLAYS)
-
-/obj/item/radio/intercom/Initialize()
-	. = ..()
-	if(!custom_name)
-		name = "station intercom (General)"
+	update_icon()
 
 /obj/item/radio/intercom/department/medbay/New()
 	..()
@@ -185,12 +172,12 @@
 		return
 	if(!I.use_tool(src, user, 10, volume = I.tool_volume) || buildstage != 2)
 		return
-	update_icon(UPDATE_ICON_STATE)
-	on = TRUE
-	b_stat = FALSE
+	update_icon()
+	on = 1
+	b_stat = 0
 	buildstage = 3
 	to_chat(user, "<span class='notice'>You secure the electronics!</span>")
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 	update_operating_status()
 	for(var/i, i<= 5, i++)
 		wires.on_cut(i, 1)
@@ -203,10 +190,10 @@
 		return
 	WIRECUTTER_SNIP_MESSAGE
 	new /obj/item/stack/cable_coil(get_turf(src),5)
-	on = FALSE
-	b_stat = TRUE
+	on = 0
+	b_stat = 1
 	buildstage = 1
-	update_icon(UPDATE_ICON_STATE | UPDATE_OVERLAYS)
+	update_icon()
 	update_operating_status(FALSE)
 
 /obj/item/radio/intercom/welder_act(mob/user, obj/item/I)
@@ -221,18 +208,11 @@
 		new /obj/item/mounted/frame/intercom(get_turf(src))
 		qdel(src)
 
-/obj/item/radio/intercom/update_icon_state()
+/obj/item/radio/intercom/update_icon()
 	if(!circuitry_installed)
 		icon_state="intercom-frame"
-	else
-		icon_state = "intercom[!on?"-p":""][b_stat ? "-open":""]"
-
-/obj/item/radio/intercom/update_overlays()
-	. = ..()
-	underlays.Cut()
-
-	if(on && buildstage == 3)
-		underlays += emissive_appearance(icon, "intercom_lightmask")
+		return
+	icon_state = "intercom[!on?"-p":""][b_stat ? "-open":""]"
 
 /obj/item/radio/intercom/proc/update_operating_status(on = TRUE)
 	var/area/current_area = get_area(src)
@@ -255,11 +235,9 @@
 	var/area/current_area = get_area(src)
 	if(!current_area)
 		on = FALSE
-		set_light(0)
 	else
 		on = current_area.powered(EQUIP) // set "on" to the equipment power status of our area.
-		set_light(1, LIGHTING_MINIMUM_POWER)
-	update_icon(UPDATE_ICON_STATE | UPDATE_OVERLAYS)
+	update_icon()
 
 /obj/item/intercom_electronics
 	name = "intercom electronics"
@@ -274,7 +252,6 @@
 
 /obj/item/radio/intercom/locked
 	freqlock = TRUE
-	custom_name = TRUE
 
 /obj/item/radio/intercom/locked/ai_private
 	name = "\improper AI intercom"

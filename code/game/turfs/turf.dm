@@ -6,10 +6,6 @@
 	var/intact = TRUE
 	var/turf/baseturf = /turf/space
 	var/slowdown = 0 //negative for faster, positive for slower
-	var/transparent_floor = FALSE //used to check if pipes should be visible under the turf or not
-
-	///Icon-smoothing variable to map a diagonal wall corner with a fixed underlay.
-	var/list/fixed_underlay = null
 
 	///Properties for open tiles (/floor)
 	/// All the gas vars, on the turf, are meant to be utilized for initializing a gas datum and setting its first gas values; the turf vars are never further modified at runtime; it is never directly used for calculations by the atmospherics system.
@@ -27,7 +23,7 @@
 	//Properties for both
 	var/temperature = T20C
 
-	var/blocks_air = FALSE
+	var/blocks_air = 0
 
 	var/datum/pathnode/PNode = null //associated PathNode in the A* algorithm
 
@@ -49,16 +45,8 @@
 	vis_contents.Cut()
 
 	levelupdate()
-	if(length(smoothing_groups))
-		sortTim(smoothing_groups) //In case it's not properly ordered, let's avoid duplicate entries with the same values.
-		SET_BITFLAG_LIST(smoothing_groups)
-	if(length(canSmoothWith))
-		sortTim(canSmoothWith)
-		if(canSmoothWith[length(canSmoothWith)] > MAX_S_TURF) //If the last element is higher than the maximum turf-only value, then it must scan turf contents for smoothing targets.
-			smoothing_flags |= SMOOTH_OBJ
-		SET_BITFLAG_LIST(canSmoothWith)
-	if(smoothing_flags & (SMOOTH_CORNERS|SMOOTH_BITMASK))
-		QUEUE_SMOOTH(src)
+	if(smooth)
+		queue_smooth(src)
 	visibilityChanged()
 
 	for(var/atom/movable/AM in src)
@@ -88,7 +76,6 @@
 		for(var/A in B.contents)
 			qdel(A)
 		return
-	REMOVE_FROM_SMOOTH_QUEUE(src)
 	// Adds the adjacent turfs to the current atmos processing
 	for(var/turf/simulated/T in atmos_adjacent_turfs)
 		SSair.add_to_active(T)
@@ -208,7 +195,7 @@
 	return ChangeTurf(path, defer_change, keep_icon, ignore_air)
 
 //Creates a new turf
-/turf/proc/ChangeTurf(path, defer_change = FALSE, keep_icon = TRUE, ignore_air = FALSE, copy_existing_baseturf = TRUE)
+/turf/proc/ChangeTurf(path, defer_change = FALSE, keep_icon = TRUE, ignore_air = FALSE)
 	if(!path)
 		return
 	if(!GLOB.use_preloader && path == type) // Don't no-op if the map loader requires it to be reconstructed
@@ -229,8 +216,7 @@
 	changing_turf = TRUE
 	qdel(src)	//Just get the side effects and call Destroy
 	var/turf/W = new path(src)
-	if(copy_existing_baseturf)
-		W.baseturf = old_baseturf
+	W.baseturf = old_baseturf
 
 	if(!defer_change)
 		W.AfterChange(ignore_air)
@@ -262,15 +248,12 @@
 /turf/proc/BeforeChange()
 	return
 
-/turf/proc/is_safe()
-	return FALSE
-
 // I'm including `ignore_air` because BYOND lacks positional-only arguments
 /turf/proc/AfterChange(ignore_air = FALSE, keep_cabling = FALSE) //called after a turf has been replaced in ChangeTurf()
 	levelupdate()
 	CalculateAdjacentTurfs()
 
-	if(!ignore_air)
+	if(SSair && !ignore_air)
 		SSair.add_to_active(src)
 
 	//update firedoor adjacency
@@ -300,10 +283,10 @@
 		var/asleep = 0
 		var/ab = 0
 		var/atemp = 0
-
 		var/turf_count = 0
 
-		for(var/turf/T in atmos_adjacent_turfs)
+		for(var/direction in GLOB.cardinal)//Only use cardinals to cut down on lag
+			var/turf/T = get_step(src, direction)
 			if(istype(T, /turf/space))//Counted as no air
 				turf_count++//Considered a valid turf for air calcs
 				continue
@@ -490,7 +473,10 @@
 /turf/proc/acid_melt()
 	return
 
-/turf/handle_fall()
+/turf/handle_fall(mob/faller, forced)
+	faller.lying = pick(90, 270)
+	if(!forced)
+		return
 	if(has_gravity(src))
 		playsound(src, "bodyfall", 50, TRUE)
 

@@ -13,58 +13,6 @@
 	return 0
 
 /mob/proc/get_screen_colour()
-	SHOULD_CALL_PARENT(TRUE)
-	// OOC Colourblind setting takes priority over everything else.
-	if(client?.prefs)
-		switch(client.prefs.colourblind_mode)
-			if(COLOURBLIND_MODE_NONE)
-				. = null
-
-			/*
-				Also it goes without saying
-
-				For the love of god, do NOT mess with the matricies below.
-				The values may look arbitrary as hell, but they follow colour filtering rules
-				to accent specific colours and block out others, which helps different
-				forms of colourblindness. Its not perfect but it helps.
-
-				If you ever want to modify these matricies, test them with someone who
-				suffers that form of colourblindness, and ask if its an improvement or a hinderance.
-				I cannot stress this enough
-
-				-aa07
-			*/
-			if(COLOURBLIND_MODE_DEUTER)
-				// Red-green (green weak, deuteranopia)
-				// Below is a colour matrix to account for that
-				. = list(
-					 1.8,  0, -0.14, 0,
-					-1.05, 1,  0.1,  0,
-					 0.3,  0,  1,    0,
-					 0,    0,  0,    1
-				) // Time spent creating this matrix: 1 hour 32 minutes
-
-			if(COLOURBLIND_MODE_PROT)
-				// Red-green (red weak, protanopia)
-				// Below is a colour matrix to account for that
-				. = list(
-					1, 0.475, 0.594, 0,
-					0, 0.482, -0.68, 0,
-					0, 0.044, 1.087, 0,
-					0, 0,     0,     1
-				) // Time spent creating this matrix: 57 minutes
-
-			if(COLOURBLIND_MODE_TRIT)
-				// Blue-yellow (tritanopia)
-				// Below is a colour matrix to account for that
-				. = list(
-					 0.74,  0.07,  0, 0,
-					-0.405, 0.593, 0, 0,
-					 0.665, 0.335, 1, 0,
-					 0,     0,     0, 1
-				) // Time spent creating this matrix: 34 minutes
-
-	return
 
 /mob/proc/update_client_colour(time = 10) //Update the mob's client.color with an animation the specified time in length.
 	if(!client) //No client_colour without client. If the player logs back in they'll be back through here anyway.
@@ -83,24 +31,15 @@
 	else if(eyes) //If they're not, check to see if their eyes got one of them there colour matrices. Will be null if eyes are robotic/the mob isn't colourblind and they have no default colour matrix.
 		return eyes.get_colourmatrix()
 
-/**
-  * Flash up a color as an overlay on a player's screen, then fade back to normal.
-  *
-  * Arguments:
-  * * flash_color - The color to overlay on the screen.
-  * * flash_time - The time it takes for the color to fade back to normal.
-  */
-/mob/proc/flash_screen_color(flash_color, flash_time)
-	if(!client)
-		return
-	if(client?.prefs.colourblind_mode != COLOURBLIND_MODE_NONE)
-		return
-	client.color = flash_color
-	INVOKE_ASYNC(client, /client/.proc/colour_transition, get_screen_colour(), flash_time)
-
 /proc/ismindshielded(A) //Checks to see if the person contains a mindshield implant, then checks that the implant is actually inside of them
 	for(var/obj/item/implant/mindshield/L in A)
 		if(L && L.implanted)
+			return 1
+	return 0
+
+/proc/ismindslave(A) //Checks to see if the person contains a mindslave implant, then checks that the implant is actually inside of them
+	for(var/obj/item/implant/traitor/T in A)
+		if(T && T.implanted)
 			return 1
 	return 0
 
@@ -127,10 +66,11 @@
 		SPECIAL_ROLE_ERT,
 		SPECIAL_ROLE_HEAD_REV,
 		SPECIAL_ROLE_REV,
+		SPECIAL_ROLE_SHADOWLING,
+		SPECIAL_ROLE_SHADOWLING_THRALL,
 		SPECIAL_ROLE_TRAITOR,
 		SPECIAL_ROLE_VAMPIRE,
-		SPECIAL_ROLE_VAMPIRE_THRALL,
-		SPECIAL_ROLE_DEATHSQUAD
+		SPECIAL_ROLE_VAMPIRE_THRALL
 	)
 	if(special_role in crew_roles)
 		return 0
@@ -273,8 +213,9 @@
 			if(1,3,5,8)	newletter="[lowertext(newletter)]"
 			if(2,4,6,15)	newletter="[uppertext(newletter)]"
 			if(7)	newletter+=pick(slurletters)
-			else
-				pass()
+			//if(9,10)	newletter="<b>[newletter]</b>"
+			//if(11,12)	newletter="<big>[newletter]</big>"
+			//if(13)	newletter="<small>[newletter]</small>"
 		newphrase+="[newletter]"
 		counter-=1
 	return newphrase
@@ -327,18 +268,18 @@
 	return sanitize(copytext(t,1,MAX_MESSAGE_LEN))
 
 
-/proc/Gibberish(t, p, replace_rate = 50)//t is the inputted message, and any value higher than 70 for p will cause letters to be replaced instead of added. replace_rate is the chance a letter is corrupted.
+/proc/Gibberish(t, p)//t is the inputted message, and any value higher than 70 for p will cause letters to be replaced instead of added
 	/* Turn text into complete gibberish! */
 	var/returntext = ""
 	for(var/i = 1, i <= length(t), i++)
 
 		var/letter = copytext(t, i, i+1)
-		if(prob(replace_rate))
+		if(prob(50))
 			if(p >= 70)
 				letter = ""
 
 			for(var/j = 1, j <= rand(0, 2), j++)
-				letter += pick("#","@","*","&","%","$","/", ";","*","*","*","*","*","*","*")
+				letter += pick("#","@","*","&","%","$","/", "<", ">", ";","*","*","*","*","*","*","*")
 
 		returntext += letter
 
@@ -458,28 +399,24 @@ GLOBAL_LIST_INIT(intents, list(INTENT_HELP,INTENT_DISARM,INTENT_GRAB,INTENT_HARM
 	set name = "Sleep"
 	set category = "IC"
 
-	if(IsSleeping())
+	if(sleeping)
 		to_chat(src, "<span class='notice'>You are already sleeping.</span>")
 		return
-	if(alert(src, "You sure you want to sleep for a while?", "Sleep", "Yes", "No") == "Yes")
-		SetSleeping(40 SECONDS, voluntary = TRUE) //Short nap
+	else
+		if(alert(src, "You sure you want to sleep for a while?", "Sleep", "Yes", "No") == "Yes")
+			SetSleeping(20) //Short nap
 
-/mob/living/verb/rest()
+/mob/living/verb/lay_down()
 	set name = "Rest"
 	set category = "IC"
 
-
-	resting = !resting // this happens before the do_mob so that you can stay resting if you are stunned.
-
-	if(!do_mob(src, src, 1 SECONDS, extra_checks = list(CALLBACK(src, /mob/living/proc/cannot_stand)), only_use_extra_checks = TRUE))
-		return
-
-	if(resting)
+	if(!resting)
+		client.move_delay = world.time + 20
 		to_chat(src, "<span class='notice'>You are now resting.</span>")
-		lay_down()
-	else
-		to_chat(src, "<span class='notice'>You are now trying to get up.</span>")
-		stand_up()
+		StartResting()
+	else if(resting)
+		to_chat(src, "<span class='notice'>You are now getting up.</span>")
+		StopResting()
 
 /proc/get_multitool(mob/user as mob)
 	// Get tool
@@ -512,8 +449,8 @@ GLOBAL_LIST_INIT(intents, list(INTENT_HELP,INTENT_DISARM,INTENT_GRAB,INTENT_HARM
 			var/realname = C.mob.real_name
 			if(C.mob.mind)
 				mindname = C.mob.mind.name
-				if(C.mob.mind.original_mob_name)
-					realname = C.mob.mind.original_mob_name
+				if(C.mob.mind.original && C.mob.mind.original.real_name)
+					realname = C.mob.mind.original.real_name
 			if(mindname && mindname != realname)
 				name = "[realname] died as [mindname]"
 			else
@@ -531,12 +468,11 @@ GLOBAL_LIST_INIT(intents, list(INTENT_HELP,INTENT_DISARM,INTENT_GRAB,INTENT_HARM
 				var/mob/dead/observer/DM
 				if(istype(subject, /mob/dead/observer))
 					DM = subject
-				if(check_rights(R_ADMIN|R_MOD, FALSE, M)) 							// What admins see
-					lname = "[keyname][(DM?.client.prefs.toggles2 & PREFTOGGLE_2_ANON) ? (@"[ANON]") : (DM ? "" : "^")] ([name])"
-					//lname = "[keyname][(DM?.client.prefs.toggles2 & PREFTOGGLE_2_ANON) ? TRUE : (DM ? "" : "^")] ([name])"
+				if(check_rights(R_ADMIN|R_MOD,0,M)) 							// What admins see
+					lname = "[keyname][(DM && DM.client && DM.client.prefs.toggles2 & PREFTOGGLE_2_ANONDCHAT) ? "*" : (DM ? "" : "^")] ([name])"
 				else
-					if(DM?.client.prefs.toggles2 & PREFTOGGLE_2_ANON)	// If the person is actually observer they have the option to be anonymous
-						lname = "<i>Anon</i> ([name])"
+					if(DM && DM.client && DM.client.prefs.toggles2 & PREFTOGGLE_2_ANONDCHAT)	// If the person is actually observer they have the option to be anonymous
+						lname = "Ghost of [name]"
 					else if(DM)									// Non-anons
 						lname = "[keyname] ([name])"
 					else										// Everyone else (dead people who didn't ghost yet, etc.)
@@ -714,19 +650,15 @@ GLOBAL_LIST_INIT(intents, list(INTENT_HELP,INTENT_DISARM,INTENT_GRAB,INTENT_HARM
 				newletter="nglu"
 			if(5)
 				newletter="glor"
-			else
-				pass()
-
 		newphrase+="[newletter]";counter-=1
 	return newphrase
 
-// Why does this exist?
 /mob/proc/get_preference(toggleflag)
 	if(!client)
 		return FALSE
 	if(!client.prefs)
-		. = FALSE
-		CRASH("Mob '[src]', ckey '[ckey]' is missing a prefs datum on the client!")
+		log_runtime(EXCEPTION("Mob '[src]', ckey '[ckey]' is missing a prefs datum on the client!"))
+		return FALSE
 	// Cast to 1/0
 	return !!(client.prefs.toggles & toggleflag)
 
@@ -738,61 +670,16 @@ GLOBAL_LIST_INIT(intents, list(INTENT_HELP,INTENT_DISARM,INTENT_GRAB,INTENT_HARM
 /mob/proc/has_valid_preferences()
 	if(!client)
 		return FALSE //Not sure how this would get run without the mob having a client, but let's just be safe.
-	if(client.prefs.active_character.alternate_option != RETURN_TO_LOBBY)
+	if(client.prefs.alternate_option != RETURN_TO_LOBBY)
 		return TRUE
 	// If they have antags enabled, they're potentially doing this on purpose instead of by accident. Notify admins if so.
 	var/has_antags = FALSE
 	if(client.prefs.be_special.len > 0)
 		has_antags = TRUE
-	if(!client.prefs.active_character.check_any_job())
+	if(!client.prefs.check_any_job())
 		to_chat(src, "<span class='danger'>You have no jobs enabled, along with return to lobby if job is unavailable. This makes you ineligible for any round start role, please update your job preferences.</span>")
 		if(has_antags)
 			log_admin("[src.ckey] just got booted back to lobby with no jobs, but antags enabled.")
 			message_admins("[src.ckey] just got booted back to lobby with no jobs enabled, but antag rolling enabled. Likely antag rolling abuse.")
 		return FALSE //This is the only case someone should actually be completely blocked from antag rolling as well
 	return TRUE
-
-/**
- * Helper proc to determine if a mob can use emotes that make sound or not.
- */
-/mob/proc/can_use_audio_emote()
-	switch(audio_emote_cd_status)
-		if(EMOTE_INFINITE)  // Spam those emotes
-			return TRUE
-		if(EMOTE_ADMIN_BLOCKED)  // Cooldown emotes were disabled by an admin, prevent use
-			return FALSE
-		if(EMOTE_ON_COOLDOWN)	// Already on CD, prevent use
-			return FALSE
-		if(EMOTE_READY)
-			return TRUE
-
-	CRASH("Invalid emote type")
-
-/**
- * # Start the cooldown for an emote that plays audio.
- *
- * * cooldown: The amount of time that should be waited before any other audio emote can fire.
- */
-/mob/proc/start_audio_emote_cooldown(cooldown = AUDIO_EMOTE_COOLDOWN)
-	if(!can_use_audio_emote())
-		return FALSE
-
-	if(audio_emote_cd_status == EMOTE_READY)
-		audio_emote_cd_status = EMOTE_ON_COOLDOWN	// Starting cooldown
-		addtimer(CALLBACK(src, .proc/on_audio_emote_cooldown_end), cooldown)
-	return TRUE  // proceed with emote
-
-
-/mob/proc/on_audio_emote_cooldown_end()
-	if(audio_emote_cd_status == EMOTE_ON_COOLDOWN)
-		// only reset emotes that probably weren't set by an admin
-		audio_emote_cd_status = EMOTE_READY
-
-/proc/stat_to_text(stat)
-	switch(stat)
-		if(CONSCIOUS)
-			return "conscious"
-		if(UNCONSCIOUS)
-			return "unconscious"
-		if(DEAD)
-			return "dead"

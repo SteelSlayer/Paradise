@@ -3,29 +3,26 @@
 	icon_state = "map_valve0"
 
 	name = "manual valve"
-	desc = "A pipe valve."
+	desc = "A pipe valve"
 
-	can_unwrench = TRUE
+	can_unwrench = 1
 
-	var/open = FALSE
-	var/animating = FALSE
+	var/open = 0
 
 	req_one_access_txt = "24;10"
-
-/obj/machinery/atmospherics/binary/valve/examine(mob/user)
-	. = ..()
-	. += "It is currently [open ? "open" : "closed"]."
 
 /obj/machinery/atmospherics/binary/valve/detailed_examine()
 	return "Click this to turn the valve. If red, the pipes on each end are separated. Otherwise, they are connected."
 
 /obj/machinery/atmospherics/binary/valve/open
-	open = TRUE
+	open = 1
 	icon_state = "map_valve1"
 
-/obj/machinery/atmospherics/binary/valve/update_icon_state()
-	if(animating)
-		flick("valve[open][!open]",src)
+/obj/machinery/atmospherics/binary/valve/update_icon(animation)
+	..()
+
+	if(animation)
+		flick("valve[src.open][!src.open]",src)
 	else
 		icon_state = "valve[open]"
 
@@ -39,8 +36,8 @@
 		add_underlay(T, node2, get_dir(src, node2))
 
 /obj/machinery/atmospherics/binary/valve/proc/open()
-	open = TRUE
-	update_icon(UPDATE_ICON_STATE)
+	open = 1
+	update_icon()
 	parent1.update = 0
 	parent2.update = 0
 	parent1.reconcile_air()
@@ -48,8 +45,8 @@
 	return
 
 /obj/machinery/atmospherics/binary/valve/proc/close()
-	open = FALSE
-	update_icon(UPDATE_ICON_STATE)
+	open = 0
+	update_icon()
 	investigate_log("was closed by [usr ? key_name(usr) : "a remote signal"]", "atmos")
 	return
 
@@ -62,15 +59,12 @@
 
 /obj/machinery/atmospherics/binary/valve/attack_hand(mob/user)
 	add_fingerprint(usr)
-	animating = TRUE
-	update_icon(UPDATE_ICON_STATE)
+	update_icon(1)
 	sleep(10)
-	animating = FALSE
 	if(open)
 		close()
 	else
 		open()
-	to_chat(user, "<span class='notice'>You [open ? "open" : "close"] [src].</span>")
 
 /obj/machinery/atmospherics/binary/valve/digital		// can be controlled by AI
 	name = "digital valve"
@@ -99,20 +93,19 @@
 	..()
 
 /obj/machinery/atmospherics/binary/valve/digital/open
-	open = TRUE
+	open = 1
 	icon_state = "map_valve1"
 
 /obj/machinery/atmospherics/binary/valve/digital/power_change()
 	var/old_stat = stat
 	..()
 	if(old_stat != stat)
-		update_icon(UPDATE_ICON_STATE)
+		update_icon()
 
-/obj/machinery/atmospherics/binary/valve/digital/update_icon_state()
+/obj/machinery/atmospherics/binary/valve/digital/update_icon()
+	..()
 	if(!powered())
 		icon_state = "valve[open]nopower"
-		return
-	..()
 
 /obj/machinery/atmospherics/binary/valve/digital/atmos_init()
 	..()

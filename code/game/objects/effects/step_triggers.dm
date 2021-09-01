@@ -5,6 +5,7 @@
 	var/stopper = TRUE // stops throwers
 	var/mobs_only = FALSE
 	invisibility = INVISIBILITY_ABSTRACT // nope cant see this shit
+	anchored = TRUE
 
 /obj/effect/step_trigger/proc/Trigger(atom/movable/A)
 	return FALSE
@@ -45,6 +46,7 @@
 	var/tiles = 3	// if 0: forever until atom hits a stopper
 	var/immobilize = 1 // if nonzero: prevents mobs from moving while they're being flung
 	var/speed = 1	// delay of movement
+	var/facedir = 0 // if 1: atom faces the direction of movement
 	var/nostop = 0 // if 1: will only be stopped by teleporters
 	var/list/affecting = list()
 
@@ -58,8 +60,10 @@
 		if(AM in T.affecting)
 			return
 
-	if(immobilize)
-		ADD_TRAIT(A, TRAIT_IMMOBILIZED, "[UID()]")
+	if(isliving(AM))
+		var/mob/living/M = AM
+		if(immobilize)
+			M.canmove = FALSE
 
 	affecting.Add(AM)
 	while(AM && !stopthrow)
@@ -84,9 +88,19 @@
 					stopthrow = 1
 
 		if(AM)
+			var/predir = AM.dir
 			step(AM, direction)
+			if(!facedir)
+				AM.setDir(predir)
 
-	REMOVE_TRAIT(A, TRAIT_IMMOBILIZED, "[UID()]")
+
+
+	affecting.Remove(AM)
+
+	if(isliving(AM))
+		var/mob/living/M = AM
+		if(immobilize)
+			M.canmove = TRUE
 
 /* Stops things thrown by a thrower, doesn't do anything */
 

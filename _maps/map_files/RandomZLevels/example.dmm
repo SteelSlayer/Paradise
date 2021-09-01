@@ -649,7 +649,7 @@
 	pixel_y = 32
 	},
 /obj/item/book/manual/barman_recipes,
-/obj/item/book/manual/wiki/chef_recipes,
+/obj/item/book/manual/chef_recipes,
 /obj/item/book/manual/ripley_build_and_repair,
 /turf/simulated/floor/plasteel{
 	icon_state = "bar"
@@ -844,11 +844,15 @@
 /turf/simulated/floor/plasteel,
 /area/awaymission/example)
 "cn" = (
-/obj/effect/landmark/awaystart,
+/obj/effect/landmark{
+	name = "awaystart"
+	},
 /turf/simulated/floor/plasteel,
 /area/awaymission/example)
 "co" = (
-/obj/effect/landmark/awaystart,
+/obj/effect/landmark{
+	name = "awaystart"
+	},
 /obj/item/assembly/mousetrap/armed,
 /turf/simulated/floor/plasteel,
 /area/awaymission/example)
@@ -857,14 +861,18 @@
 /turf/simulated/floor/plasteel,
 /area/awaymission/example)
 "cq" = (
-/obj/effect/landmark/awaystart,
+/obj/effect/landmark{
+	name = "awaystart"
+	},
 /obj/machinery/light_construct/small{
 	dir = 8
 	},
 /turf/simulated/floor/plasteel,
 /area/awaymission/example)
 "cr" = (
-/obj/effect/landmark/awaystart,
+/obj/effect/landmark{
+	name = "awaystart"
+	},
 /obj/item/mop,
 /turf/simulated/floor/plasteel,
 /area/awaymission/example)
@@ -874,7 +882,9 @@
 /area/awaymission/example)
 "ct" = (
 /obj/structure/chair/stool,
-/obj/effect/landmark/awaystart,
+/obj/effect/landmark{
+	name = "awaystart"
+	},
 /turf/simulated/floor/plasteel,
 /area/awaymission/example)
 "cu" = (

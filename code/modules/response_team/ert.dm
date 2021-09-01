@@ -57,11 +57,10 @@ GLOBAL_VAR_INIT(ert_request_answered, FALSE)
 
 	return 1
 
-/proc/trigger_armed_response_team(datum/response_team/response_team_type, commander_slots, security_slots, medical_slots, engineering_slots, janitor_slots, paranormal_slots, cyborg_slots, cyborg_security)
+/proc/trigger_armed_response_team(datum/response_team/response_team_type, commander_slots, security_slots, medical_slots, engineering_slots, janitor_slots, paranormal_slots, cyborg_slots)
 	GLOB.response_team_members = list()
 	GLOB.active_team = response_team_type
 	GLOB.active_team.setSlots(commander_slots, security_slots, medical_slots, engineering_slots, janitor_slots, paranormal_slots, cyborg_slots)
-	GLOB.active_team.cyborg_security_permitted = cyborg_security
 
 	GLOB.send_emergency_team = TRUE
 	var/list/ert_candidates = shuffle(SSghost_spawns.poll_candidates("Join the Emergency Response Team?",, GLOB.responseteam_age, 60 SECONDS, TRUE, GLOB.role_playtime_requirements[ROLE_ERT]))
@@ -137,8 +136,6 @@ GLOBAL_VAR_INIT(ert_request_answered, FALSE)
 /client/proc/create_response_team(new_gender, role, turf/spawn_location)
 	if(role == "Cyborg")
 		var/mob/living/silicon/robot/ert/R = new GLOB.active_team.borg_path(spawn_location)
-		if(GLOB.active_team.cyborg_security_permitted)
-			R.force_modules = list("Security", "Engineering", "Medical")
 		return R
 
 	var/mob/living/carbon/human/M = new(null)
@@ -177,7 +174,7 @@ GLOBAL_VAR_INIT(ert_request_answered, FALSE)
 	//Creates mind stuff.
 	M.mind = new
 	M.mind.current = M
-	M.mind.set_original_mob(M)
+	M.mind.original = M
 	M.mind.assigned_role = SPECIAL_ROLE_ERT
 	M.mind.special_role = SPECIAL_ROLE_ERT
 	M.mind.offstation_role = TRUE
@@ -212,7 +209,6 @@ GLOBAL_VAR_INIT(ert_request_answered, FALSE)
 	var/janitor_outfit
 	var/paranormal_outfit
 	var/borg_path = /mob/living/silicon/robot/ert
-	var/cyborg_security_permitted = FALSE
 
 /datum/response_team/proc/setSlots(com=1, sec=4, med=0, eng=0, jan=0, par=0, cyb=0)
 	slots["Commander"] = com

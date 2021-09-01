@@ -241,14 +241,13 @@
 /datum/reagents/proc/metabolize(mob/living/M)
 	if(M)
 		temperature_reagents(M.bodytemperature - 30)
-		M.absorb_blood()
 
-	for(var/datum/reagent/R as anything in addiction_threshold_accumulated)
-		if(has_reagent(initial(R.id)))
+	for(var/thing in addiction_threshold_accumulated)
+		if(has_reagent(thing))
 			continue // if we have the reagent in our system, then don't deplete the addiction threshold
-		addiction_threshold_accumulated[R] -= initial(R.addiction_decay_rate) // Otherwise very slowly deplete the buildup (defaults to 0.01)
-		if(addiction_threshold_accumulated[R] <= 0)
-			addiction_threshold_accumulated -= R
+		addiction_threshold_accumulated[thing] -= 0.01 // Otherwise very slowly deplete the buildup
+		if(addiction_threshold_accumulated[thing] <= 0)
+			addiction_threshold_accumulated -= thing
 
 	// a bitfield filled in by each reagent's `on_mob_life` to find out which states to update
 	var/update_flags = STATUS_UPDATE_NONE
@@ -298,7 +297,7 @@
 				if(overdose_results) // to protect against poorly-coded overdose procs
 					update_flags |= overdose_results[REAGENT_OVERDOSE_FLAGS]
 				else
-					stack_trace("Reagent '[R.name]' does not return an overdose info list!")
+					log_runtime(EXCEPTION("Reagent '[R.name]' does not return an overdose info list!"))
 
 	for(var/AB in addiction_list)
 		var/datum/reagent/R = AB
@@ -328,13 +327,19 @@
 	else if(update_flags & STATUS_UPDATE_STAT)
 		// update_stat is called in updatehealth
 		M.update_stat("reagent metabolism")
+	if(update_flags & STATUS_UPDATE_CANMOVE)
+		M.update_canmove()
 	if(update_flags & STATUS_UPDATE_STAMINA)
 		M.update_stamina()
 		M.update_health_hud()
 	if(update_flags & STATUS_UPDATE_BLIND)
 		M.update_blind_effects()
+	if(update_flags & STATUS_UPDATE_BLURRY)
+		M.update_blurry_effects()
 	if(update_flags & STATUS_UPDATE_NEARSIGHTED)
 		M.update_nearsighted_effects()
+	if(update_flags & STATUS_UPDATE_DRUGGY)
+		M.update_druggy_effects()
 	update_total()
 
 /datum/reagents/proc/death_metabolize(mob/living/M)
@@ -697,10 +702,10 @@
 		// Switch between how we check the reagent type
 		if(strict)
 			if(R.type == reagent_type)
-				matches = TRUE
+				matches = FALSE
 		else
 			if(istype(R, reagent_type))
-				matches = TRUE
+				matches = FALSE
 		// We found a match, proceed to remove the reagent.	Keep looping, we might find other reagents of the same type.
 		if(matches)
 			// Have our other proc handle removement

@@ -2,11 +2,10 @@
 	icon = 'icons/atmos/vent_pump.dmi'
 	icon_state = "map_vent"
 	plane = FLOOR_PLANE
-	layer = GAS_SCRUBBER_LAYER
 	name = "passive vent"
 	desc = "A large air vent"
 
-	can_unwrench = TRUE
+	can_unwrench = 1
 
 	var/volume = 250
 
@@ -67,5 +66,3 @@
 		if(!istype(T))
 			return
 		add_underlay(T, node, dir)
-		var/icon/frame = icon('icons/atmos/vent_pump.dmi', "frame")
-		underlays += frame

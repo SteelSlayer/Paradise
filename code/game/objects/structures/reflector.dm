@@ -3,10 +3,10 @@
 	icon = 'icons/obj/stock_parts.dmi'
 	icon_state = "box_0"
 	desc = "A frame to create a reflector.\n<span class='notice'>Use <b>5</b> sheets of <b>glass</b> to create a 1 way reflector.\nUse <b>10</b> sheets of <b>reinforced glass</b> to create a 2 way reflector.\nUse <b>1 diamond</b> to create a reflector cube.</span>"
-	anchored = FALSE
-	density = TRUE
+	anchored = 0
+	density = 1
 	layer = 3
-	var/finished = FALSE
+	var/finished = 0
 
 
 /obj/structure/reflector/bullet_act(obj/item/projectile/P)
@@ -22,14 +22,16 @@
 		new_dir = 0
 		return ..() //Hits as normal, explodes or emps or whatever
 
-	reflect_turf = get_step(loc, new_dir)
+	reflect_turf = get_step(loc,new_dir)
 
 	P.original = reflect_turf
 	P.starting = reflector_turf
+	P.current = reflector_turf
+	P.yo = reflect_turf.y - reflector_turf.y
+	P.xo = reflect_turf.x - reflector_turf.x
 	P.ignore_source_check = TRUE		//If shot by a laser, will now hit the mob that fired it
 	var/reflect_angle = dir2angle(new_dir)
-	P.set_angle_centered(reflect_angle)
-	P.trajectory.set_location(reflect_turf.x, reflect_turf.y, reflect_turf.z)
+	P.setAngle(reflect_angle)
 
 	new_dir = 0
 	return -1
@@ -135,7 +137,7 @@
 	icon = 'icons/obj/reflector.dmi'
 	icon_state = "reflector"
 	desc = "A double sided angled mirror for reflecting lasers. This one does so at a 90 degree angle."
-	finished = TRUE
+	finished = 1
 	var/static/list/rotations = list("[NORTH]" = list("[SOUTH]" = WEST, "[EAST]" = NORTH),
 "[EAST]" = list("[SOUTH]" = EAST, "[WEST]" = NORTH),
 "[SOUTH]" = list("[NORTH]" = EAST, "[WEST]" = SOUTH),
@@ -152,7 +154,7 @@
 	icon = 'icons/obj/reflector.dmi'
 	icon_state = "reflector_double"
 	desc = "A double sided angled mirror for reflecting lasers. This one does so at a 90 degree angle."
-	finished = TRUE
+	finished = 1
 	var/static/list/double_rotations = list("[NORTH]" = list("[NORTH]" = WEST, "[EAST]" = SOUTH, "[SOUTH]" = EAST, "[WEST]" = NORTH),
 "[EAST]" = list("[NORTH]" = EAST, "[WEST]" = SOUTH, "[SOUTH]" = WEST, "[EAST]" = NORTH),
 "[SOUTH]" = list("[NORTH]" = EAST, "[WEST]" = SOUTH, "[SOUTH]" = WEST, "[EAST]" = NORTH),
@@ -169,7 +171,7 @@
 	icon = 'icons/obj/reflector.dmi'
 	icon_state = "reflector_box"
 	desc = "A box with an internal set of mirrors that reflects all laser fire in a single direction."
-	finished = TRUE
+	finished = 1
 	var/static/list/box_rotations = list("[NORTH]" = list("[SOUTH]" = NORTH, "[EAST]" = NORTH, "[WEST]" = NORTH, "[NORTH]" = NORTH),
 "[EAST]" = list("[SOUTH]" = EAST, "[EAST]" = EAST, "[WEST]" = EAST, "[NORTH]" = EAST),
 "[SOUTH]" = list("[SOUTH]" = SOUTH, "[EAST]" = SOUTH, "[WEST]" = SOUTH, "[NORTH]" = SOUTH),

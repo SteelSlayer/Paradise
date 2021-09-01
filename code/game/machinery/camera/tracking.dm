@@ -173,12 +173,12 @@
 	var/mob/living/silicon/ai/U = usr
 
 	U.cameraFollow = target
-	U.tracking = TRUE
+	U.tracking = 1
 
 	to_chat(U, "<span class='notice'>Attempting to track [target.get_visible_name()]...</span>")
 	sleep(min(30, get_dist(target, U.eyeobj) / 4))
 	spawn(15) //give the AI a grace period to stop moving.
-		U.tracking = FALSE
+		U.tracking = 0
 
 	if(!target || !target.can_track(usr))
 		to_chat(U, "<span class='warning'>Target is not near any active cameras.</span>")
@@ -194,14 +194,14 @@
 				return
 
 			if(!target.can_track(usr))
-				U.tracking = TRUE
+				U.tracking = 1
 				if(!cameraticks)
 					to_chat(U, "<span class='warning'>Target is not near any active cameras. Attempting to reacquire...</span>")
 				cameraticks++
 				if(cameraticks > 9)
 					U.cameraFollow = null
 					to_chat(U, "<span class='warning'>Unable to reacquire, cancelling track...</span>")
-					U.tracking = FALSE
+					U.tracking = 0
 					return
 				else
 					sleep(10)
@@ -209,7 +209,7 @@
 
 			else
 				cameraticks = 0
-				U.tracking = FALSE
+				U.tracking = 0
 
 			if(U.eyeobj)
 				U.eyeobj.setLoc(get_turf(target))

@@ -11,7 +11,6 @@
 	barefootstep = FOOTSTEP_HARD_BAREFOOT
 	clawfootstep = FOOTSTEP_HARD_CLAW
 	heavyfootstep = FOOTSTEP_GENERIC_HEAVY
-	smoothing_groups = list(SMOOTH_GROUP_TURF)
 
 /turf/simulated/floor/plating/Initialize(mapload)
 	. = ..()
@@ -26,7 +25,9 @@
 	. = ..()
 	burn_tile()
 
-/turf/simulated/floor/plating/update_icon_state()
+/turf/simulated/floor/plating/update_icon()
+	if(!..())
+		return
 	if(!broken && !burnt)
 		icon_state = icon_plating //Because asteroids are 'platings' too.
 
@@ -69,43 +70,12 @@
 			to_chat(user, "<span class='warning'>This section is too damaged to support a tile! Use a welder to fix the damage.</span>")
 		return TRUE
 
-	else if(is_glass_sheet(C))
-		if(broken || burnt)
-			to_chat(user, "<span class='warning'>Repair the plating first!</span>")
-			return TRUE
-		var/obj/item/stack/sheet/R = C
-		if(R.get_amount() < 2)
-			to_chat(user, "<span class='warning'>You need two sheets to build a [C.name] floor!</span>")
-			return TRUE
-		to_chat(user, "<span class='notice'>You begin swapping the plating for [C]...</span>")
-		if(do_after(user, 3 SECONDS * C.toolspeed, target = src))
-			if(R.get_amount() >= 2 && !transparent_floor)
-				if(istype(C, /obj/item/stack/sheet/plasmaglass)) //So, what type of glass floor do we want today?
-					ChangeTurf(/turf/simulated/floor/transparent/glass/plasma)
-				else if(istype(C, /obj/item/stack/sheet/plasmarglass))
-					ChangeTurf(/turf/simulated/floor/transparent/glass/reinforced/plasma)
-				else if(istype(C, /obj/item/stack/sheet/glass))
-					ChangeTurf(/turf/simulated/floor/transparent/glass)
-				else if(istype(C, /obj/item/stack/sheet/rglass))
-					ChangeTurf(/turf/simulated/floor/transparent/glass/reinforced)
-				else if(istype(C, /obj/item/stack/sheet/titaniumglass))
-					ChangeTurf(/turf/simulated/floor/transparent/glass/titanium)
-				else if(istype(C, /obj/item/stack/sheet/plastitaniumglass))
-					ChangeTurf(/turf/simulated/floor/transparent/glass/titanium/plasma)
-				playsound(src, C.usesound, 80, TRUE)
-				R.use(2)
-				to_chat(user, "<span class='notice'>You swap the plating for [C].</span>")
-				new /obj/item/stack/sheet/metal(src, 2)
-			return TRUE
-
 /turf/simulated/floor/plating/screwdriver_act(mob/user, obj/item/I)
+	. = TRUE
 	if(!I.tool_use_check(user, 0))
 		return
-	. = TRUE
-	if(locate(/obj/structure/cable) in src)
-		to_chat(user, "<span class='notice'>There is a cable still attached to [src]. Remove it first!</span>")
-		return
 	to_chat(user, "<span class='notice'>You start [unfastened ? "fastening" : "unfastening"] [src].</span>")
+	. = TRUE
 	if(!I.use_tool(src, user, 20, volume = I.tool_volume))
 		return
 	to_chat(user, "<span class='notice'>You [unfastened ? "fasten" : "unfasten"] [src].</span>")
@@ -321,7 +291,7 @@
 	icon_state = "ironfoam"
 	metal = MFOAM_IRON
 
-/turf/simulated/floor/plating/metalfoam/update_icon_state()
+/turf/simulated/floor/plating/metalfoam/update_icon()
 	switch(metal)
 		if(MFOAM_ALUMINUM)
 			icon_state = "metalfoam"
@@ -375,13 +345,15 @@
 /turf/simulated/floor/plating/ice
 	name = "ice sheet"
 	desc = "A sheet of solid ice. Looks slippery."
-	icon = 'icons/turf/floors/ice_turf.dmi'
-	icon_state = "ice_turf-0"
+	icon = 'icons/turf/floors/ice_turfs.dmi'
+	icon_state = "unsmooth"
 	oxygen = 22
 	nitrogen = 82
 	temperature = 180
 	baseturf = /turf/simulated/floor/plating/ice
 	slowdown = TRUE
+	smooth = SMOOTH_TRUE
+	canSmoothWith = list(/turf/simulated/floor/plating/ice/smooth, /turf/simulated/floor/plating/ice)
 
 /turf/simulated/floor/plating/ice/Initialize(mapload)
 	. = ..()
@@ -391,11 +363,9 @@
 	return
 
 /turf/simulated/floor/plating/ice/smooth
-	icon_state = "ice_turf-255"
-	base_icon_state = "ice_turf"
-	smoothing_flags = SMOOTH_BITMASK | SMOOTH_BORDER
-	canSmoothWith = list(SMOOTH_GROUP_TURF, SMOOTH_GROUP_FLOOR_ICE)
-	smoothing_groups = list(SMOOTH_GROUP_FLOOR_ICE)
+	icon_state = "smooth"
+	smooth = SMOOTH_MORE | SMOOTH_BORDER
+	canSmoothWith = list(/turf/simulated/floor/plating/ice/smooth, /turf/simulated/floor/plating/ice)
 
 /turf/simulated/floor/plating/nitrogen
 	oxygen = 0

@@ -2,8 +2,8 @@
 	name = "machine frame"
 	icon = 'icons/obj/stock_parts.dmi'
 	icon_state = "box_0"
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1
 	use_power = NO_POWER_USE
 	max_integrity = 250
 	var/obj/item/circuitboard/circuit = null
@@ -99,9 +99,6 @@
 			if(istype(P, /obj/item/circuitboard))
 				var/obj/item/circuitboard/B = P
 				if(B.board_type == "machine")
-					if(!B.build_path)
-						to_chat(user, "<span class='warning'>This is not a functional machine board!</span>")
-						return
 					playsound(src.loc, B.usesound, 50, 1)
 					to_chat(user, "<span class='notice'>You add the circuit board to the frame.</span>")
 					circuit = P
@@ -234,7 +231,7 @@ to destroy them and players will be able to make replacements.
 	build_path = /obj/machinery/vending/boozeomat
 	req_components = list(/obj/item/vending_refill/boozeomat = 1)
 
-	var/static/list/station_vendors = list(
+	var/static/list/vending_names_paths = list(
 		"Booze-O-Mat" =							/obj/machinery/vending/boozeomat,
 		"Solar's Best Hot Drinks" =				/obj/machinery/vending/coffee,
 		"Getmore Chocolate Corp" =				/obj/machinery/vending/snack,
@@ -260,37 +257,19 @@ to destroy them and players will be able to make replacements.
 		"Robco Tool Maker" =					/obj/machinery/vending/engineering,
 		"BODA" =								/obj/machinery/vending/sovietsoda,
 		"SecTech" =								/obj/machinery/vending/security,
-		"CritterCare" =							/obj/machinery/vending/crittercare,
-		"SecDrobe" =							/obj/machinery/vending/secdrobe,
-		"DetDrobe" =							/obj/machinery/vending/detdrobe,
-		"MediDrobe" =							/obj/machinery/vending/medidrobe,
-		"ViroDrobe" =							/obj/machinery/vending/virodrobe,
-		"ChemDrobe" =							/obj/machinery/vending/chemdrobe,
-		"GeneDrobe" =							/obj/machinery/vending/genedrobe,
-		"SciDrobe" =							/obj/machinery/vending/scidrobe,
-		"RoboDrobe" =							/obj/machinery/vending/robodrobe,
-		"EngiDrobe" =							/obj/machinery/vending/engidrobe,
-		"AtmosDrobe" =							/obj/machinery/vending/atmosdrobe,
-		"CargoDrobe" =							/obj/machinery/vending/cargodrobe,
-		"ChefDrobe" =							/obj/machinery/vending/chefdrobe,
-		"BarDrobe" =							/obj/machinery/vending/bardrobe,
-		"HydroDrobe" =							/obj/machinery/vending/hydrodrobe)
-	var/static/list/unique_vendors = list(
-		"ShadyCigs Ultra" =						/obj/machinery/vending/cigarette/beach,
-		"SyndiMed Plus" =						/obj/machinery/vending/wallmed/syndicate)
+		"CritterCare" =							/obj/machinery/vending/crittercare)
 
 /obj/item/circuitboard/vendor/screwdriver_act(mob/user, obj/item/I)
 	. = TRUE
 	if(!I.use_tool(src, user, 0, volume = I.tool_volume))
 		return
-	var/choice = input(user, "Choose a new brand", "Select an Item") as null|anything in station_vendors
+	var/choice = input(user, "Choose a new brand", "Select an Item") as null|anything in vending_names_paths
 	if(!choice)
 		return
 	set_type(choice)
 
 /obj/item/circuitboard/vendor/proc/set_type(type)
-	var/static/list/buildable_vendors = station_vendors + unique_vendors
-	var/obj/machinery/vending/typepath = buildable_vendors[type]
+	var/obj/machinery/vending/typepath = vending_names_paths[type]
 	build_path = typepath
 	board_name = "[type] Vendor"
 	format_board_name()
@@ -658,33 +637,6 @@ to destroy them and players will be able to make replacements.
 							/obj/item/stock_parts/manipulator = 2,
 							/obj/item/reagent_containers/glass/beaker = 2)
 
-/obj/item/circuitboard/dish_drive
-	board_name = "Dish Drive"
-	build_path = /obj/machinery/dish_drive
-	board_type = "machine"
-	origin_tech = "programming=2"
-	req_components = list(
-							/obj/item/stock_parts/manipulator = 1,
-							/obj/item/stock_parts/matter_bin = 1,
-							/obj/item/stack/sheet/glass = 1)
-	var/suction = TRUE
-	var/transmit = TRUE
-
-/obj/item/circuitboard/dish_drive/examine(mob/user)
-	. = ..()
-	. += "<span class='notice'>Its suction function is [suction ? "enabled" : "disabled"]. Use it in-hand to switch.</span>"
-	. += "<span class='notice'>Its disposal auto-transmit function is [transmit ? "enabled" : "disabled"]. Alt-click it to switch.</span>"
-
-/obj/item/circuitboard/dish_drive/attack_self(mob/living/user)
-	suction = !suction
-	to_chat(user, "<span class='notice'>You [suction ? "enable" : "disable"] the board's suction function.</span>")
-
-/obj/item/circuitboard/dish_drive/AltClick(mob/living/user)
-	if(!user.Adjacent(src))
-		return
-	transmit = !transmit
-	to_chat(user, "<span class='notice'>You [transmit ? "enable" : "disable"] the board's automatic disposal transmission.</span>")
-
 /obj/item/circuitboard/chem_dispenser/soda
 	board_name = "Soda Machine"
 	build_path = /obj/machinery/chem_dispenser/soda
@@ -743,6 +695,18 @@ to destroy them and players will be able to make replacements.
 							/obj/item/stock_parts/manipulator = 1,
 							/obj/item/stock_parts/micro_laser = 1,
 							/obj/item/stack/sheet/glass = 1)
+
+/obj/item/circuitboard/podfab
+	board_name = "Spacepod Fabricator"
+	build_path = /obj/machinery/mecha_part_fabricator/spacepod
+	board_type = "machine"
+	origin_tech = "programming=2;engineering=2"
+	req_components = list(
+							/obj/item/stock_parts/matter_bin = 2,
+							/obj/item/stock_parts/manipulator = 1,
+							/obj/item/stock_parts/micro_laser = 1,
+							/obj/item/stack/sheet/glass = 1)
+
 
 /obj/item/circuitboard/clonepod
 	board_name = "Clone Pod"
@@ -875,13 +839,6 @@ to destroy them and players will be able to make replacements.
 							/obj/item/stock_parts/matter_bin = 1,
 							/obj/item/stack/cable_coil = 1,
 							/obj/item/stack/sheet/glass = 4)
-
-/obj/item/circuitboard/cell_charger
-	board_name = "Cell Charger"
-	build_path = /obj/machinery/cell_charger
-	board_type = "machine"
-	origin_tech = "powerstorage=3;materials=2"
-	req_components = list(/obj/item/stock_parts/capacitor = 1)
 
 /obj/item/circuitboard/cyborgrecharger
 	board_name = "Cyborg Recharger"

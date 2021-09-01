@@ -3,7 +3,7 @@
 	desc = "It charges power cells."
 	icon = 'icons/obj/power.dmi'
 	icon_state = "ccharger0"
-	anchored = TRUE
+	anchored = 1
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 5
 	active_power_usage = 60
@@ -11,14 +11,6 @@
 	pass_flags = PASSTABLE
 	var/obj/item/stock_parts/cell/charging = null
 	var/chargelevel = -1
-	var/charge_rate = 500
-
-/obj/machinery/cell_charger/Initialize(mapload)
-	. = ..()
-	component_parts = list()
-	component_parts += new /obj/item/circuitboard/cell_charger(null)
-	component_parts += new /obj/item/stock_parts/capacitor(null)
-	RefreshParts()
 
 /obj/machinery/cell_charger/deconstruct()
 	if(charging)
@@ -29,13 +21,20 @@
 	QDEL_NULL(charging)
 	return ..()
 
-/obj/machinery/cell_charger/update_icon_state()
+/obj/machinery/cell_charger/proc/updateicon()
 	icon_state = "ccharger[charging ? 1 : 0]"
 
-/obj/machinery/cell_charger/update_overlays()
-	. = ..()
 	if(charging && !(stat & (BROKEN|NOPOWER)))
-		. += "ccharger-o[chargelevel]"
+		var/newlevel = 	round(charging.percent() * 4 / 100)
+
+		if(chargelevel != newlevel)
+			chargelevel = newlevel
+
+			overlays.Cut()
+			overlays += "ccharger-o[newlevel]"
+
+	else
+		overlays.Cut()
 
 /obj/machinery/cell_charger/examine(mob/user)
 	. = ..()
@@ -44,7 +43,7 @@
 		. += "Current charge: [round(charging.percent(), 1)]%"
 
 /obj/machinery/cell_charger/attackby(obj/item/I, mob/user, params)
-	if(istype(I, /obj/item/stock_parts/cell) && !panel_open)
+	if(istype(I, /obj/item/stock_parts/cell))
 		if(stat & BROKEN)
 			to_chat(user, "<span class='warning'>[src] is broken!</span>")
 			return
@@ -67,18 +66,10 @@
 			I.forceMove(src)
 			charging = I
 			user.visible_message("[user] inserts a cell into the charger.", "<span class='notice'>You insert a cell into the charger.</span>")
-			check_level()
-			update_icon()
+			chargelevel = -1
+			updateicon()
 	else
 		return ..()
-
-/obj/machinery/cell_charger/crowbar_act(mob/user, obj/item/I)
-	if(panel_open && !charging && default_deconstruction_crowbar(user, I))
-		return TRUE
-
-/obj/machinery/cell_charger/screwdriver_act(mob/user, obj/item/I)
-	if(anchored && !charging && default_deconstruction_screwdriver(user, icon_state, icon_state, I))
-		return TRUE
 
 /obj/machinery/cell_charger/wrench_act(mob/user, obj/item/I)
 	. = TRUE
@@ -93,11 +84,12 @@
 	else
 		WRENCH_UNANCHOR_MESSAGE
 
+
 /obj/machinery/cell_charger/proc/removecell()
 	charging.update_icon()
 	charging = null
 	chargelevel = -1
-	update_icon()
+	updateicon()
 
 /obj/machinery/cell_charger/attack_hand(mob/user)
 	if(!charging)
@@ -131,10 +123,6 @@
 
 	..(severity)
 
-/obj/machinery/cell_charger/RefreshParts()
-	charge_rate = 500
-	for(var/obj/item/stock_parts/capacitor/C in component_parts)
-		charge_rate *= C.rating
 
 /obj/machinery/cell_charger/process()
 	if(!charging || !anchored || (stat & (BROKEN|NOPOWER)))
@@ -143,14 +131,7 @@
 	if(charging.percent() >= 100)
 		return
 
-	use_power(charge_rate)
-	charging.give(charge_rate)
+	use_power(200)		//this used to use CELLRATE, but CELLRATE is fucking awful. feel free to fix this properly!
+	charging.give(175)	//inefficiency.
 
-	if(check_level())
-		update_icon(UPDATE_OVERLAYS)
-
-/obj/machinery/cell_charger/proc/check_level()
-	var/newlevel = 	round(charging.percent() * 4 / 100)
-	if(chargelevel != newlevel)
-		chargelevel = newlevel
-		return TRUE
+	updateicon()

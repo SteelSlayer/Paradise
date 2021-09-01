@@ -4,7 +4,7 @@
  */
 
 /* eslint-disable */
-(function (Proto) {
+(function(Proto) {
   'use strict';
 
   if (typeof Proto.setAttribute !== 'undefined') {
@@ -35,4 +35,5 @@
       return value;
     };
   }
+
 })(CSSStyleDeclaration.prototype);

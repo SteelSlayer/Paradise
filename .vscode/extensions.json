@@ -4,8 +4,7 @@
 		"platymuus.dm-langclient",
 		"EditorConfig.EditorConfig",
 		"dbaeumer.vscode-eslint",
-		"eamodio.gitlens",
-		"usernamehw.errorlens",
-		"anturk.dmi-editor"
+		"coenraads.bracket-pair-colorizer-2",
+		"eamodio.gitlens"
     ]
 }

@@ -6,16 +6,7 @@ labels: ''
 assignees: ''
 
 ---
-<!--
-
-IMPORTANT
-
-If your issue is an ingame exploit that allows players to gain an unfair advantage, or an issue which could affect server stability or security,
-please file it at https://www.paradisestation.org/forum/179-exploit-reports/ so that it is safe from prying eyes
-
--->
-
-<!-- Write **BELOW** the headers and **ABOVE** the comments else it may not be viewable -->
+<!-- Write **BELOW** The Headers and **ABOVE** The comments else it may not be viewable -->
 **Issue Description**:
 <!---What is the problem?-->
 

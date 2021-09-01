@@ -16,34 +16,27 @@
 /obj/item/golem_shell/attackby(obj/item/I, mob/user, params)
 	..()
 	var/static/list/golem_shell_species_types = list(
-		/obj/item/stack/sheet/metal						= /datum/species/golem,
-		/obj/item/stack/sheet/glass						= /datum/species/golem/glass,
-		/obj/item/stack/sheet/plasteel					= /datum/species/golem/plasteel,
-		/obj/item/stack/ore/glass						= /datum/species/golem/sand,
-		/obj/item/stack/sheet/mineral/sandstone			= /datum/species/golem/sand,
-		/obj/item/stack/sheet/mineral/plasma			= /datum/species/golem/plasma,
-		/obj/item/stack/sheet/mineral/diamond			= /datum/species/golem/diamond,
-		/obj/item/stack/sheet/mineral/gold				= /datum/species/golem/gold,
-		/obj/item/stack/sheet/mineral/silver			= /datum/species/golem/silver,
-		/obj/item/stack/sheet/mineral/uranium			= /datum/species/golem/uranium,
-		/obj/item/stack/sheet/mineral/bananium			= /datum/species/golem/bananium,
-		/obj/item/stack/sheet/mineral/tranquillite		= /datum/species/golem/tranquillite,
-		/obj/item/stack/sheet/mineral/titanium			= /datum/species/golem/titanium,
-		/obj/item/stack/sheet/mineral/plastitanium		= /datum/species/golem/plastitanium,
-		/obj/item/stack/sheet/mineral/abductor			= /datum/species/golem/alloy,
-		/obj/item/stack/sheet/wood						= /datum/species/golem/wood,
-		/obj/item/stack/sheet/bluespace_crystal			= /datum/species/golem/bluespace,
-		/obj/item/stack/medical/bruise_pack	        	= /datum/species/golem/cloth,
-		/obj/item/stack/medical/bruise_pack/improvised	= /datum/species/golem/cloth,
-		/obj/item/stack/sheet/cloth	                	= /datum/species/golem/cloth,
-		/obj/item/stack/sheet/mineral/adamantine		= /datum/species/golem/adamantine,
-		/obj/item/stack/sheet/plastic					= /datum/species/golem/plastic)
+		/obj/item/stack/sheet/metal					= /datum/species/golem,
+		/obj/item/stack/sheet/glass					= /datum/species/golem/glass,
+		/obj/item/stack/sheet/plasteel				= /datum/species/golem/plasteel,
+		/obj/item/stack/ore/glass					= /datum/species/golem/sand,
+		/obj/item/stack/sheet/mineral/sandstone		= /datum/species/golem/sand,
+		/obj/item/stack/sheet/mineral/plasma		= /datum/species/golem/plasma,
+		/obj/item/stack/sheet/mineral/diamond		= /datum/species/golem/diamond,
+		/obj/item/stack/sheet/mineral/gold			= /datum/species/golem/gold,
+		/obj/item/stack/sheet/mineral/silver		= /datum/species/golem/silver,
+		/obj/item/stack/sheet/mineral/uranium		= /datum/species/golem/uranium,
+		/obj/item/stack/sheet/mineral/bananium		= /datum/species/golem/bananium,
+		/obj/item/stack/sheet/mineral/tranquillite	= /datum/species/golem/tranquillite,
+		/obj/item/stack/sheet/mineral/titanium		= /datum/species/golem/titanium,
+		/obj/item/stack/sheet/mineral/plastitanium	= /datum/species/golem/plastitanium,
+		/obj/item/stack/sheet/mineral/abductor		= /datum/species/golem/alloy,
+		/obj/item/stack/sheet/wood					= /datum/species/golem/wood,
+		/obj/item/stack/sheet/bluespace_crystal		= /datum/species/golem/bluespace,
+		/obj/item/stack/sheet/mineral/adamantine	= /datum/species/golem/adamantine,
+		/obj/item/stack/sheet/plastic				= /datum/species/golem/plastic)
 
 	if(istype(I, /obj/item/stack))
-		if(!ishuman(user))
-			to_chat(user, "<span class='warning'>You don't have the dexterity to do this!</span>")
-			return
-			
 		var/obj/item/stack/O = I
 		var/species = golem_shell_species_types[O.merge_type]
 		if(species)
@@ -117,8 +110,8 @@
 		else
 			H.rename_character(null, name)
 		if(is_species(H, /datum/species/golem/tranquillite) && H.mind)
-			H.mind.AddSpell(new /obj/effect/proc_holder/spell/aoe_turf/conjure/build/mime_wall(null))
-			H.mind.AddSpell(new /obj/effect/proc_holder/spell/mime/speak(null))
+			H.mind.AddSpell(new /obj/effect/proc_holder/spell/aoe_turf/conjure/mime_wall(null))
+			H.mind.AddSpell(new /obj/effect/proc_holder/spell/targeted/mime/speak(null))
 			H.mind.miming = TRUE
 
 	if(has_owner)
@@ -172,12 +165,8 @@
 		user.visible_message("<span class='notice'>As [user] applies the potion on the golem shell, a faint light leaves them, moving to [src] and animating it!</span>",
 		"<span class='notice'>You apply the potion to [src], feeling your mind leave your body!</span>")
 		message_admins("[key_name(user)] used [I] to transfer their mind into [src]")
-		var/mob/living/carbon/human/g = create() //Create the golem and prep mind transfer stuff
-		user.mind.transfer_to(g)
-		g.real_name = user.real_name
-		g.faction = user.faction
+		create(ckey = user.ckey, name = user.real_name)
 		user.death()  //Keeps brain intact to prevent forcing redtext
-		to_chat(g, "<span class='warning'>You have become the [g.dna.species]. Your allegiances, alliances, and roles are still the same as they were prior to using [I]!</span>")
 		qdel(I)
 
 /obj/effect/mob_spawn/human/golem/servant

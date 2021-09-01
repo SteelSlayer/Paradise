@@ -5,8 +5,8 @@
 	desc = "This is the alpha and omega of sanitation."
 	icon = 'icons/obj/janitor.dmi'
 	icon_state = "cart"
-	anchored = FALSE
-	density = TRUE
+	anchored = 0
+	density = 1
 	face_while_pulling = FALSE
 	container_type = OPENCONTAINER
 	//copypaste sorry
@@ -32,15 +32,21 @@
 	QDEL_NULL(myreplacer)
 	return ..()
 
+/obj/structure/janitorialcart/proc/wet_mop(obj/item/mop, mob/user)
+	if(reagents.total_volume < 1)
+		to_chat(user, "[src] is out of water!</span>")
+	else
+		reagents.trans_to(mop, 5)	//
+		to_chat(user, "<span class='notice'>You wet [mop] in [src].</span>")
+		playsound(loc, 'sound/effects/slosh.ogg', 25, 1)
+
 /obj/structure/janitorialcart/proc/put_in_cart(obj/item/I, mob/user)
 	user.drop_item()
-	I.forceMove(src)
+	I.loc = src
 	updateUsrDialog()
 	to_chat(user, "<span class='notice'>You put [I] into [src].</span>")
 	return
 
-/obj/structure/janitorialcart/on_reagent_change()
-	update_icon(UPDATE_OVERLAYS)
 
 /obj/structure/janitorialcart/attackby(obj/item/I, mob/user, params)
 	var/fail_msg = "<span class='notice'>There is already one of those in [src].</span>"
@@ -49,7 +55,7 @@
 		if(istype(I, /obj/item/mop))
 			var/obj/item/mop/m=I
 			if(m.reagents.total_volume < m.reagents.maximum_volume)
-				m.wet_mop(src, user)
+				wet_mop(m, user)
 				return
 			if(!mymop)
 				m.janicart_insert(user, src)
@@ -66,7 +72,7 @@
 			if(!myspray)
 				put_in_cart(I, user)
 				myspray=I
-				update_icon(UPDATE_OVERLAYS)
+				update_icon()
 			else
 				to_chat(user, fail_msg)
 		else if(istype(I, /obj/item/lightreplacer))
@@ -79,7 +85,7 @@
 			if(signs < max_signs)
 				put_in_cart(I, user)
 				signs++
-				update_icon(UPDATE_OVERLAYS)
+				update_icon()
 			else
 				to_chat(user, "<span class='notice'>[src] can't hold any more signs.</span>")
 		else if(istype(I, /obj/item/crowbar))
@@ -95,14 +101,14 @@
 					"[user] tightens \the [src]'s casters.", \
 					"<span class='notice'> You have tightened \the [src]'s casters.</span>", \
 					"You hear ratchet.")
-				anchored = TRUE
+				anchored = 1
 			else if(anchored)
 				playsound(src.loc, I.usesound, 50, 1)
 				user.visible_message( \
 					"[user] loosens \the [src]'s casters.", \
 					"<span class='notice'> You have loosened \the [src]'s casters.</span>", \
 					"You hear ratchet.")
-				anchored = FALSE
+				anchored = 0
 		else if(mybag)
 			mybag.attackby(I, user, params)
 	else
@@ -163,33 +169,19 @@
 				WARNING("Signs ([signs]) didn't match contents")
 				signs = 0
 
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 	updateUsrDialog()
 
 
-/obj/structure/janitorialcart/update_overlays()
-	. = ..()
+/obj/structure/janitorialcart/update_icon()
+	overlays = null
 	if(mybag)
-		. += "cart_garbage"
+		overlays += "cart_garbage"
 	if(mymop)
-		. += "cart_mop"
+		overlays += "cart_mop"
 	if(myspray)
-		. += "cart_spray"
+		overlays += "cart_spray"
 	if(myreplacer)
-		. += "cart_replacer"
+		overlays += "cart_replacer"
 	if(signs)
-		. += "cart_sign[signs]"
-	if(reagents.total_volume > 0)
-		var/image/reagentsImage = image(icon,src,"cart_reagents0")
-		reagentsImage.alpha = 150
-		switch((reagents.total_volume/reagents.maximum_volume)*100)
-			if(1 to 25)
-				reagentsImage.icon_state = "cart_reagents1"
-			if(26 to 50)
-				reagentsImage.icon_state = "cart_reagents2"
-			if(51 to 75)
-				reagentsImage.icon_state = "cart_reagents3"
-			if(76 to 100)
-				reagentsImage.icon_state = "cart_reagents4"
-		reagentsImage.icon += mix_color_from_reagents(reagents.reagent_list)
-		. += reagentsImage
+		overlays += "cart_sign[signs]"

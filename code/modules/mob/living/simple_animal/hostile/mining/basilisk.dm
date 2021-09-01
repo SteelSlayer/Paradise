@@ -12,7 +12,7 @@
 	move_to_delay = 20
 	projectiletype = /obj/item/projectile/temp/basilisk
 	projectilesound = 'sound/weapons/pierce.ogg'
-	ranged = TRUE
+	ranged = 1
 	ranged_message = "stares"
 	ranged_cooldown_time = 30
 	throw_message = "does nothing against the hard shell of"
@@ -41,7 +41,7 @@
 	damage = 0
 	damage_type = BURN
 	nodamage = TRUE
-	flag = ENERGY
+	flag = "energy"
 	temperature = 50
 
 /mob/living/simple_animal/hostile/asteroid/basilisk/GiveTarget(new_target)
@@ -77,7 +77,7 @@
 	attack_sound = 'sound/weapons/bladeslice.ogg'
 	stat_attack = UNCONSCIOUS
 	flying = TRUE
-	robust_searching = TRUE
+	robust_searching = 1
 	crusher_loot = /obj/item/crusher_trophy/watcher_wing
 	loot = list()
 	butcher_results = list(/obj/item/stack/ore/diamond = 2, /obj/item/stack/sheet/sinew = 2, /obj/item/stack/sheet/bone = 1)

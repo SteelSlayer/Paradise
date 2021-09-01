@@ -2,7 +2,6 @@
 	name = "flashbang"
 	icon_state = "flashbang"
 	item_state = "flashbang"
-	belt_icon = "flashbang"
 	origin_tech = "materials=2;combat=3"
 	light_power = 10
 	light_color = LIGHT_COLOR_WHITE
@@ -21,7 +20,7 @@
 		// Blob damage
 		for(var/obj/structure/blob/B in hear(range + 1, T))
 			var/damage = round(30 / (get_dist(B, T) + 1))
-			B.take_damage(damage, BURN, MELEE, FALSE)
+			B.take_damage(damage, BURN, "melee", FALSE)
 
 		// Stunning & damaging mechanic
 		bang(T, src, range)
@@ -47,20 +46,23 @@
 		M.show_message("<span class='warning'>BANG</span>", 2)
 
 		var/distance = max(1, get_dist(source_turf, get_turf(M)))
-		var/status_duration = max(10 SECONDS / distance, 4 SECONDS)
+		var/stun_amount = max(10 / distance, 3)
 
 		// Flash
 		if(flash)
 			if(M.flash_eyes(affect_silicon = TRUE))
-				M.Confused(status_duration * 2)
+				M.Stun(stun_amount)
+				M.Weaken(stun_amount)
 
 		// Bang
 		var/ear_safety = M.check_ear_prot()
 		if(bang)
 			if(!distance || A.loc == M || A.loc == M.loc) // Holding on person or being exactly where lies is significantly more dangerous and voids protection
-				M.KnockDown(10 SECONDS)
+				M.Stun(10)
+				M.Weaken(10)
 			if(!ear_safety)
-				M.KnockDown(status_duration)
+				M.Stun(stun_amount)
+				M.Weaken(stun_amount)
 				M.AdjustEarDamage(5, 15)
 				if(iscarbon(M))
 					var/mob/living/carbon/C = M

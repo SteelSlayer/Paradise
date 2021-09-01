@@ -11,7 +11,6 @@
 	if(.)
 		handle_robot_hud_updates()
 		handle_robot_cell()
-		process_locks()
 		update_items()
 
 
@@ -19,13 +18,13 @@
 	if(stat != DEAD)
 		if(!is_component_functioning("power cell"))
 			uneq_all()
-			low_power_mode = TRUE
+			low_power_mode = 1
 			update_headlamp()
 			diag_hud_set_borgcell()
 			return
 		if(low_power_mode)
 			if(is_component_functioning("power cell") && cell.charge)
-				low_power_mode = FALSE
+				low_power_mode = 0
 				update_headlamp()
 		else if(stat == CONSCIOUS)
 			use_power()
@@ -39,25 +38,25 @@
 		cell.use(amt) //Usage table: 1/tick if off/lowest setting, 4 = 4/tick, 6 = 8/tick, 8 = 12/tick, 10 = 16/tick
 	else
 		uneq_all()
-		low_power_mode = TRUE
+		low_power_mode = 1
 		update_headlamp()
 	diag_hud_set_borgcell()
 
 /mob/living/silicon/robot/proc/handle_equipment()
-	if(camera && !scrambledcodes)
+	if(camera && !visible_on_console)
 		if(stat == DEAD || wires.is_cut(WIRE_BORG_CAMERA))
-			camera.status = FALSE
+			camera.status = 0
 		else
-			camera.status = TRUE
+			camera.status = 1
 
 	//update the state of modules and components here
 	if(stat != CONSCIOUS)
 		uneq_all()
 
 	if(!is_component_functioning("radio") || stat == UNCONSCIOUS)
-		radio.on = FALSE
+		radio.on = 0
 	else
-		radio.on = TRUE
+		radio.on = 1
 
 /mob/living/silicon/robot/proc/SetEmagged(new_state)
 	emagged = new_state
@@ -122,15 +121,15 @@
 		module_state_3:screen_loc = ui_inv3
 	update_icons()
 
-/mob/living/silicon/robot/proc/process_locks()
-	if(weapon_lock)
-		uneq_all()
-		weaponlock_time --
-		if(weaponlock_time <= 0)
-			if(src.client)
-				to_chat(src, "<span class='warning'><B>Weapon Lock Timed Out!</span>")
-			weapon_lock = FALSE
-			weaponlock_time = 120
+/mob/living/silicon/robot/update_canmove(delay_action_updates = 0)
+	if(paralysis || stunned || IsWeakened() || buckled || locked_down || stat)
+		canmove = 0
+	else
+		canmove = 1
+	update_transform()
+	if(!delay_action_updates)
+		update_action_buttons_icon()
+	return canmove
 
 //Robots on fire
 /mob/living/silicon/robot/handle_fire()

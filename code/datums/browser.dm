@@ -76,7 +76,7 @@
 
 	return {"<!DOCTYPE html>
 <html>
-	<meta charset="UTF-8">
+	<meta charset=ISO-8859-1">
 	<head>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		[head_content]

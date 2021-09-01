@@ -8,8 +8,11 @@
 /obj/structure/signpost
 	icon = 'icons/obj/stationobjs.dmi'
 	icon_state = "signpost"
-	anchored = TRUE
-	density = TRUE
+	anchored = 1
+	density = 1
+
+/obj/structure/signpost/attack_hand(mob/user as mob)
+	to_chat(user, "Civilians: NT is recruiting! Please head SOUTH to the NT Recruitment office to join the station's crew!")
 
 /obj/structure/ninjatele
 
@@ -17,8 +20,8 @@
 	desc = "A console used to send a Spider Clan operative long distances rapidly."
 	icon = 'icons/obj/ninjaobjects.dmi'
 	icon_state = "teleconsole"
-	anchored = TRUE
-	density = FALSE
+	anchored = 1
+	density = 0
 
 /obj/structure/ninjatele/attack_hand(mob/user as mob)
 	if(user.mind.special_role=="Ninja")
@@ -65,8 +68,8 @@
 	desc = "A structure that draws ethereal attention when active. Use an empty hand to activate."
 	icon = 'icons/obj/lavaland/artefacts.dmi'
 	icon_state = "anomaly_crystal"
-	anchored = TRUE
-	density = TRUE
+	anchored = 1
+	density = 1
 	var/active = FALSE
 	var/ghost_alert_delay = 30 SECONDS
 	var/last_ghost_alert

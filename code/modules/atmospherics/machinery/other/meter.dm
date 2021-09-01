@@ -1,4 +1,4 @@
-/obj/machinery/atmospherics/meter
+/obj/machinery/meter
 	name = "gas flow meter"
 	desc = "It measures something."
 	icon = 'icons/obj/meter.dmi'
@@ -9,9 +9,10 @@
 	var/obj/machinery/atmospherics/pipe/target = null
 	anchored = TRUE
 	max_integrity = 150
-	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 100, BOMB = 0, BIO = 100, RAD = 100, FIRE = 40, ACID = 0)
+	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 100, "bomb" = 0, "bio" = 100, "rad" = 100, "fire" = 40, "acid" = 0)
 	power_channel = ENVIRON
 	frequency = ATMOS_DISTRO_FREQ
+	var/id
 	var/id_tag
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 2
@@ -20,59 +21,40 @@
 	Mtoollink = TRUE
 	settagwhitelist = list("id_tag")
 
-/obj/machinery/atmospherics/meter/Initialize(mapload)
-	. = ..()
+/obj/machinery/meter/New()
+	..()
+	SSair.atmos_machinery += src
 	target = locate(/obj/machinery/atmospherics/pipe) in loc
+	if(id && !id_tag)//i'm not dealing with further merge conflicts, fuck it
+		id_tag = id
+	return 1
 
-/obj/machinery/atmospherics/meter/Destroy()
+/obj/machinery/meter/Destroy()
+	SSair.atmos_machinery -= src
 	target = null
 	return ..()
 
-/obj/machinery/atmospherics/meter/detailed_examine()
+/obj/machinery/meter/Initialize()
+	..()
+	if(!target)
+		target = locate(/obj/machinery/atmospherics/pipe) in loc
+
+/obj/machinery/meter/detailed_examine()
 	return "Measures the volume and temperature of the pipe under the meter."
 
-/obj/machinery/atmospherics/meter/process_atmos()
-	if(!target || (stat & (BROKEN|NOPOWER)))
-		update_icon(UPDATE_ICON_STATE)
-		return
-
-	var/datum/gas_mixture/environment = target.return_air()
-	if(!environment)
-		update_icon(UPDATE_ICON_STATE)
-		return
-
-	update_icon(UPDATE_ICON_STATE)
-	var/env_pressure = environment.return_pressure()
-	if(frequency)
-		var/datum/radio_frequency/radio_connection = SSradio.return_frequency(frequency)
-
-		if(!radio_connection) return
-
-		var/datum/signal/signal = new
-		signal.source = src
-		signal.transmission_method = 1
-		signal.data = list(
-			"tag" = id_tag,
-			"device" = "AM",
-			"pressure" = round(env_pressure),
-			"sigtype" = "status"
-		)
-		radio_connection.post_signal(src, signal)
-
-
-/obj/machinery/atmospherics/meter/update_icon_state()
+/obj/machinery/meter/process_atmos()
 	if(!target)
 		icon_state = "meterX"
-		return
+		return 0
 
 	if(stat & (BROKEN|NOPOWER))
 		icon_state = "meter0"
-		return
+		return 0
 
 	var/datum/gas_mixture/environment = target.return_air()
 	if(!environment)
 		icon_state = "meterX"
-		return
+		return 0
 
 	var/env_pressure = environment.return_pressure()
 	if(env_pressure <= 0.15*ONE_ATMOSPHERE)
@@ -89,7 +71,23 @@
 	else
 		icon_state = "meter4"
 
-/obj/machinery/atmospherics/meter/proc/status()
+	if(frequency)
+		var/datum/radio_frequency/radio_connection = SSradio.return_frequency(frequency)
+
+		if(!radio_connection) return
+
+		var/datum/signal/signal = new
+		signal.source = src
+		signal.transmission_method = 1
+		signal.data = list(
+			"tag" = id_tag,
+			"device" = "AM",
+			"pressure" = round(env_pressure),
+			"sigtype" = "status"
+		)
+		radio_connection.post_signal(src, signal)
+
+/obj/machinery/meter/proc/status()
 	var/t = ""
 	if(target)
 		var/datum/gas_mixture/environment = target.return_air()
@@ -101,7 +99,7 @@
 		t += "The connect error light is blinking."
 	return t
 
-/obj/machinery/atmospherics/meter/examine(mob/user)
+/obj/machinery/meter/examine(mob/user)
 	var/t = "A gas flow meter. "
 
 	if(get_dist(user, src) > 3 && !(istype(user, /mob/living/silicon/ai) || istype(user, /mob/dead)))
@@ -121,14 +119,14 @@
 
 	. = list(t)
 
-/obj/machinery/atmospherics/meter/Click()
+/obj/machinery/meter/Click()
 	if(istype(usr, /mob/living/silicon/ai)) // ghosts can call ..() for examine
 		usr.examinate(src)
 		return 1
 
 	return ..()
 
-/obj/machinery/atmospherics/meter/attackby(obj/item/W as obj, mob/user as mob, params)
+/obj/machinery/meter/attackby(obj/item/W as obj, mob/user as mob, params)
 	if(istype(W, /obj/item/multitool))
 		update_multitool_menu(user)
 		return 1
@@ -144,17 +142,33 @@
 			"You hear ratchet.")
 		deconstruct(TRUE)
 
-/obj/machinery/atmospherics/meter/deconstruct(disassembled = TRUE)
+/obj/machinery/meter/deconstruct(disassembled = TRUE)
 	if(!(flags & NODECONSTRUCT))
 		new /obj/item/pipe_meter(loc)
 	qdel(src)
 
-/obj/machinery/atmospherics/meter/singularity_pull(S, current_size)
+/obj/machinery/meter/singularity_pull(S, current_size)
 	..()
 	if(current_size >= STAGE_FIVE)
 		deconstruct()
 
-/obj/machinery/atmospherics/meter/multitool_menu(mob/user, obj/item/multitool/P)
+// TURF METER - REPORTS A TILE'S AIR CONTENTS
+
+/obj/machinery/meter/turf/New()
+	..()
+	target = loc
+	return 1
+
+
+/obj/machinery/meter/turf/Initialize()
+	if(!target)
+		target = loc
+	..()
+
+/obj/machinery/meter/turf/attackby(obj/item/W as obj, mob/user as mob, params)
+	return
+
+/obj/machinery/meter/multitool_menu(mob/user, obj/item/multitool/P)
 	return {"
 	<b>Main</b>
 	<ul>

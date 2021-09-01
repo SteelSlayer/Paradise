@@ -30,7 +30,6 @@
 		to_chat(user, "<span class='notice'>You start adding [P] to [src]...</span>")
 		if(do_after(user, 50, target = src) && P.use(1))
 			make_new_table(/obj/structure/table/reinforced)
-
 	else if(istype(I, /obj/item/stack/sheet/metal))
 		var/obj/item/stack/sheet/metal/M = I
 		if(M.get_amount() < 1)
@@ -39,7 +38,6 @@
 		to_chat(user, "<span class='notice'>You start adding [M] to [src]...</span>")
 		if(do_after(user, 20, target = src) && M.use(1))
 			make_new_table(/obj/structure/table)
-
 	else if(istype(I, /obj/item/stack/sheet/glass))
 		var/obj/item/stack/sheet/glass/G = I
 		if(G.get_amount() < 1)
@@ -48,16 +46,22 @@
 		to_chat(user, "<span class='notice'>You start adding [G] to [src]...</span>")
 		if(do_after(user, 20, target = src) && G.use(1))
 			make_new_table(/obj/structure/table/glass)
-
-	else if(istype(I, /obj/item/stack/tile/carpet))
-		var/obj/item/stack/tile/carpet/C = I
+	else if(istype(I, /obj/item/stack/tile/carpet/black))
+		var/obj/item/stack/tile/carpet/black/C = I
 		if(C.get_amount() < 1)
-			to_chat(user, "<span class='warning'>You need one [C.name] sheet to do this!</span>")
+			to_chat(user, "<span class='warning'>You need one black carpet sheet to do this!</span>")
 			return
 		to_chat(user, "<span class='notice'>You start adding [C] to [src]...</span>")
 		if(do_after(user, 20, target = src) && C.use(1))
-			make_new_table(C.fancy_table_type)
-
+			make_new_table(/obj/structure/table/wood/fancy/black)
+	else if(istype(I, /obj/item/stack/tile/carpet))
+		var/obj/item/stack/tile/carpet/C = I
+		if(C.get_amount() < 1)
+			to_chat(user, "<span class='warning'>You need one carpet sheet to do this!</span>")
+			return
+		to_chat(user, "<span class='notice'>You start adding [C] to [src]...</span>")
+		if(do_after(user, 20, target = src) && C.use(1))
+			make_new_table(/obj/structure/table/wood/fancy)
 	else
 		return ..()
 

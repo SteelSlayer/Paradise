@@ -44,7 +44,7 @@
 	var/admincluwne = FALSE
 
 
-/mob/living/simple_animal/hostile/floor_cluwne/Initialize(mapload)
+/mob/living/simple_animal/hostile/floor_cluwne/New()
 	. = ..()
 	remove_from_all_data_huds()
 	var/obj/item/card/id/access_card = new (src)
@@ -59,8 +59,8 @@
 			return
 		Acquire_Victim()
 
+
 /mob/living/simple_animal/hostile/floor_cluwne/Destroy()
-	current_victim = null
 	return ..()
 
 
@@ -209,7 +209,7 @@
 		if(STAGE_HAUNT)
 
 			if(prob(5))
-				H.AdjustEyeBlurry(2 SECONDS)
+				H.AdjustEyeBlurry(1)
 
 			if(prob(5))
 				H.playsound_local(src,'sound/spookoween/insane_low_laugh.ogg', 1)
@@ -226,7 +226,7 @@
 		if(STAGE_SPOOK)
 
 			if(prob(4))
-				H.slip("???", 10 SECONDS)
+				H.slip("???", 5, 2)
 				to_chat(H, "<span class='warning'>The floor shifts underneath you!</span>")
 
 			if(prob(3))
@@ -254,7 +254,7 @@
 		if(STAGE_TORMENT)
 
 			if(prob(5))
-				H.slip("???", 10 SECONDS)
+				H.slip("???", 5, 2)
 				to_chat(H, "<span class='warning'>The floor shifts underneath you!</span>")
 
 			if(prob(5))
@@ -279,7 +279,7 @@
 				to_chat(H, "<font face='Comic Sans MS'><i>!?REHTOMKNOH eht esiarp uoy oD</i></font>")
 				to_chat(H, "<span class='warning'>Something grabs your foot!</span>")
 				H.playsound_local(src,'sound/hallucinations/i_see_you1.ogg', 25)
-				H.Stun(20 SECONDS)
+				H.Stun(10)
 
 			if(prob(5))
 				to_chat(H, "<font face='Comic Sans MS'><i>!KNOH ?od nottub siht seod tahW</i></font>")
@@ -320,7 +320,7 @@
 				manifested = TRUE
 				Manifest()
 				to_chat(H, "<span class='userdanger'>You feel the floor closing in on your feet!</span>")
-				H.Weaken(60 SECONDS)
+				H.Weaken(30)
 				H.emote("scream")
 				H.adjustBruteLoss(10)
 				if(!eating)
@@ -370,9 +370,7 @@
 /mob/living/simple_animal/hostile/floor_cluwne/proc/Kill(mob/living/carbon/human/H)
 	playsound(H, 'sound/spookoween/scary_horn2.ogg', 100, 0)
 	var/old_color = H.client?.color
-
-	if(H?.client?.prefs.colourblind_mode == COLOURBLIND_MODE_NONE)
-		client_kill_animation(H)
+	client_kill_animation(H)
 
 	for(var/turf/T in orange(H, 4))
 		H.add_splatter_floor(T)

@@ -32,24 +32,25 @@
 	return ..()
 
 /obj/item/paperplane/suicide_act(mob/living/user)
-	user.Stun(20 SECONDS)
+	user.Stun(10)
 	user.visible_message("<span class='suicide'>[user] jams [name] in [user.p_their()] nose. It looks like [user.p_theyre()] trying to commit suicide!</span>")
-	user.EyeBlurry(12 SECONDS)
+	user.EyeBlurry(6)
 	var/obj/item/organ/internal/eyes/E = user.get_int_organ(/obj/item/organ/internal/eyes)
 	if(E)
 		E.take_damage(8, 1)
 	sleep(10)
 	return BRUTELOSS
 
-/obj/item/paperplane/update_overlays()
-	. = ..()
+/obj/item/paperplane/update_icon()
+	overlays.Cut()
 	var/list/stamped = internal_paper.stamped
 	if(!stamped)
 		stamped = new
 	else if(stamped)
 		for(var/S in stamped)
 			var/obj/item/stamp = S
-			. += "paperplane_[initial(stamp.icon_state)]"
+			var/image/stampoverlay = image('icons/obj/bureaucracy.dmi', "paperplane_[initial(stamp.icon_state)]")
+			overlays += stampoverlay
 
 /obj/item/paperplane/attack_self(mob/user) // Unfold the paper plane
 	to_chat(user, "<span class='notice'>You unfold [src].</span>")
@@ -101,19 +102,14 @@
 		if(H.glasses && H.glasses.flags_cover & GLASSESCOVERSEYES)
 			return
 		visible_message("<span class='danger'>[src] hits [H] in the eye!</span>")
-		H.EyeBlurry(12 SECONDS)
-		H.Weaken(4 SECONDS)
+		H.EyeBlurry(6)
+		H.Weaken(2)
 		var/obj/item/organ/internal/eyes/E = H.get_int_organ(/obj/item/organ/internal/eyes)
 		if(E)
 			E.take_damage(8, 1)
 		H.emote("scream")
 
 /obj/item/paper/AltClick(mob/user, obj/item/I)
-	if(in_range(user, src) && !user.incapacitated())
-		if(is_pen(user.get_active_hand()))
-			rename()
-			return
-
 	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
 		I = H.is_in_hands(/obj/item/paper)

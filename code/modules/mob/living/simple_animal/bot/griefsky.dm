@@ -17,7 +17,7 @@
 	var/stun_chance = 50
 	var/spam_flag = 0
 	var/frustration_number = 15
-
+	
 /mob/living/simple_animal/bot/secbot/griefsky/toy  //A toy version of general griefsky!
 	name = "Genewul Giftskee"
 	desc = "An adorable looking secbot with four toy swords taped to its arms"
@@ -29,10 +29,13 @@
 	block_chance_melee = 1
 	block_chance_ranged = 1
 	stun_chance = 0
-	req_access = list(ACCESS_MAINT_TUNNELS, ACCESS_THEATRE, ACCESS_ROBOTICS)
+	bot_core_type = /obj/machinery/bot_core/toy
 	weapon = /obj/item/toy/sword
 	frustration_number = 5
-	locked = FALSE
+	locked = 0
+
+/obj/machinery/bot_core/toy
+	req_access = list(ACCESS_MAINT_TUNNELS, ACCESS_THEATRE, ACCESS_ROBOTICS)
 
 /mob/living/simple_animal/bot/secbot/griefsky/proc/spam_flag_false() //used for addtimer to not spam comms
 	spam_flag = 0
@@ -44,20 +47,21 @@
 /mob/living/simple_animal/bot/secbot/griefsky/emag_act(mob/user)
 	..()
 	light_color = LIGHT_COLOR_PURE_RED //if you see a red one. RUN!!
-
+	
 /mob/living/simple_animal/bot/secbot/griefsky/Crossed(atom/movable/AM, oldloc)
 	..()
 	if(ismob(AM) && AM == target)
 		var/mob/living/carbon/C = AM
 		visible_message("[src] flails his swords and pushes [C] out of it's way!" )
-		C.KnockDown(4 SECONDS)
+		C.Weaken(2)
 
-/mob/living/simple_animal/bot/secbot/griefsky/Initialize(mapload)
-	. = ..()
+/mob/living/simple_animal/bot/secbot/griefsky/New()
+	..()
 	icon_state = "[base_icon][on]"
-	var/datum/job/detective/J = new/datum/job/detective
-	access_card.access += J.get_access()
-	prev_access = access_card.access
+	spawn(3)
+		var/datum/job/detective/J = new/datum/job/detective
+		access_card.access += J.get_access()
+		prev_access = access_card.access
 
 /mob/living/simple_animal/bot/secbot/griefsky/Destroy()
 	QDEL_NULL(weapon)
@@ -79,19 +83,16 @@
 		..()
 
 /mob/living/simple_animal/bot/secbot/griefsky/proc/sword_attack(mob/living/carbon/C)     // esword attack
-	do_attack_animation(C)
+	src.do_attack_animation(C)
 	playsound(loc, 'sound/weapons/blade1.ogg', 50, 1, -1)
-	addtimer(CALLBACK(src, .proc/do_sword_attack, C), 2)
-
-/mob/living/simple_animal/bot/secbot/griefsky/proc/do_sword_attack(mob/living/carbon/C)
+	spawn(2)
 	icon_state = spin_icon
 	var/threat = C.assess_threat(src)
 	if(ishuman(C))
 		C.apply_damage(dmg, BRUTE)
-		if(prob(stun_chance))
-			C.Weaken(10 SECONDS)
-	if(dmg)
-		add_attack_logs(src, C, "sliced")
+		if(prob(stun_chance)) 
+			C.Weaken(5)
+	add_attack_logs(src, C, "sliced")
 	if(declare_arrests)
 		var/area/location = get_area(src)
 		if(!spam_flag)
@@ -134,9 +135,9 @@
 							frustration++
 						else
 							frustration = 0
-				else
+				else 
 					back_to_idle()
-					speak("You fool")
+					speak("You fool")			
 			else
 				back_to_idle()
 
@@ -151,7 +152,7 @@
 	return
 
 /mob/living/simple_animal/bot/secbot/griefsky/look_for_perp()
-	anchored = FALSE
+	anchored = 0
 	for (var/mob/living/carbon/C in view(7,src)) //Let's find us a criminal
 		if((C.stat) || (C.handcuffed))
 			continue
@@ -210,7 +211,7 @@
 		playsound(loc, 'sound/weapons/blade1.ogg', 50, 1, 0)
 	else
 		..()
-
+	
 /mob/living/simple_animal/bot/secbot/griefsky/proc/special_retaliate_after_attack(mob/user) //allows special actions to take place after being attacked.
 	return
 
@@ -219,7 +220,7 @@
 		return
 	if(prob(block_chance_melee))
 		visible_message("[src] deflects [user]'s attack with his energy swords!")
-		playsound(loc, 'sound/weapons/blade1.ogg', 50, TRUE, -1)
+		playsound(loc, 'sound/weapons/blade1.ogg', 50, TRUE, -1)	
 		return TRUE
 
 /mob/living/simple_animal/bot/secbot/griefsky/attack_hand(mob/living/carbon/human/H)

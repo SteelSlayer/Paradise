@@ -46,7 +46,6 @@
 	icon = 'icons/obj/janitor.dmi'
 	icon_state = "lightreplacer0"
 	item_state = "electronic"
-	belt_icon = "light_replacer"
 	w_class = WEIGHT_CLASS_SMALL
 	flags = CONDUCT
 	slot_flags = SLOT_BELT
@@ -147,23 +146,14 @@
 
 /obj/item/lightreplacer/emag_act(user as mob)
 	if(!emagged)
-		emagged = !emagged
-		playsound(loc, "sparks", 100, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
-		update_appearance(UPDATE_NAME|UPDATE_ICON_STATE)
+		Emag()
 
 /obj/item/lightreplacer/attack_self(mob/user)
 	for(var/obj/machinery/light/target in user.loc)
 		ReplaceLight(target, user)
 	to_chat(user, status_string())
 
-/obj/item/lightreplacer/update_name()
-	. = ..()
-	if(emagged)
-		name = "shortcircuited [initial(name)]"
-	else
-		name = initial(name)
-
-/obj/item/lightreplacer/update_icon_state()
+/obj/item/lightreplacer/update_icon()
 	icon_state = "lightreplacer[emagged]"
 
 /obj/item/lightreplacer/proc/status_string()
@@ -205,16 +195,23 @@
 			if(target.status != LIGHT_EMPTY)
 				AddShards(1, U)
 				target.status = LIGHT_EMPTY
+				target.update()
 
-			var/obj/item/light/replacement = target.light_type
-			target.status = LIGHT_OK
-			target.switchcount = 0
+			var/obj/item/light/L2 = new target.light_type()
+
+			target.status = L2.status
+			target.switchcount = L2.switchcount
 			target.rigged = emagged
-			target.brightness_range = initial(replacement.brightness_range)
-			target.brightness_power = initial(replacement.brightness_power)
-			target.brightness_color = initial(replacement.brightness_color)
+			target.brightness_range = L2.brightness_range
+			target.brightness_power = L2.brightness_power
+			target.brightness_color = L2.brightness_color
 			target.on = target.has_power()
-			target.update(TRUE, TRUE, FALSE)
+			target.update()
+			qdel(L2)
+
+			if(target.on && target.rigged)
+				target.explode()
+			return
 
 		else
 			to_chat(U, "[src]'s refill light blinks red.")
@@ -222,6 +219,15 @@
 	else
 		to_chat(U, "<span class='warning'>There is a working [target.fitting] already inserted!</span>")
 		return
+
+/obj/item/lightreplacer/proc/Emag()
+	emagged = !emagged
+	playsound(loc, "sparks", 100, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
+	if(emagged)
+		name = "shortcircuited [initial(name)]"
+	else
+		name = initial(name)
+	update_icon()
 
 /obj/item/lightreplacer/proc/CanUse(mob/living/user)
 	add_fingerprint(user)
@@ -249,8 +255,9 @@
 		to_chat(U, "[src]'s refill light blinks red.")
 
 /obj/item/lightreplacer/proc/janicart_insert(mob/user, obj/structure/janitorialcart/J)
-	J.myreplacer = src
 	J.put_in_cart(src, user)
+	J.myreplacer = src
+	J.update_icon()
 
 /obj/item/lightreplacer/cyborg/janicart_insert(mob/user, obj/structure/janitorialcart/J)
 	return

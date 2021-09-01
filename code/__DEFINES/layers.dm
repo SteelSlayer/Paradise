@@ -12,7 +12,6 @@
 #define BLACKNESS_PLANE 0 //To keep from conflicts with SEE_BLACKNESS internals
 
 #define SPACE_LAYER 1.8
-#define GRASS_UNDER_LAYER 1.9
 //#define TURF_LAYER 2 //For easy recordkeeping; this is a byond define
 #define MID_TURF_LAYER 2.02
 #define HIGH_TURF_LAYER 2.03
@@ -27,13 +26,11 @@
 #define DISPOSAL_PIPE_LAYER 2.3
 #define GAS_PIPE_HIDDEN_LAYER 2.35
 #define WIRE_LAYER 2.4
-#define TRANSPARENT_TURF_LAYER 2.41
 #define WIRE_TERMINAL_LAYER 2.45
 #define GAS_SCRUBBER_LAYER 2.46
 #define GAS_PIPE_VISIBLE_LAYER 2.47
 #define GAS_FILTER_LAYER 2.48
 #define GAS_PUMP_LAYER 2.49
-#define HOLOPAD_LAYER 2.491
 #define CONVEYOR_LAYER 2.495
 #define LOW_OBJ_LAYER 2.5
 #define LOW_SIGIL_LAYER 2.52
@@ -86,11 +83,6 @@
 #define CHAT_LAYER 12.0001 // Do not insert layers between these two values
 #define CHAT_LAYER_MAX 12.9999
 
-/// This plane masks out lighting to create an "emissive" effect, ie for glowing lights in otherwise dark areas.
-#define EMISSIVE_PLANE 13
-/// The render target used by the emissive.
-#define EMISSIVE_RENDER_TARGET "*EMISSIVE_PLANE"
-
 #define LIGHTING_PLANE 15
 #define LIGHTING_LAYER 15
 
@@ -126,10 +118,8 @@
 #define SPLASHSCREEN_LAYER 23
 #define SPLASHSCREEN_PLANE 23
 
+// This should always be on top.
 #define HUD_PLANE_BUILDMODE 30
-
-// This should always be on top. No exceptions.
-#define HUD_PLANE_DEBUGVIEW 40
 
 ///Plane master controller keys
 #define PLANE_MASTERS_GAME "plane_masters_game"

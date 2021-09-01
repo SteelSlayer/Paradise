@@ -3,30 +3,32 @@
 	desc = "A PDA painting machine. To use, simply insert your PDA and choose the desired preset paint scheme."
 	icon = 'icons/obj/pda.dmi'
 	icon_state = "pdapainter"
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1
 	max_integrity = 200
 	var/obj/item/pda/storedpda = null
 	var/list/colorlist = list()
 
-/obj/machinery/pdapainter/update_icon_state()
+
+/obj/machinery/pdapainter/update_icon()
+	cut_overlays()
+
 	if(stat & BROKEN)
 		icon_state = "[initial(icon_state)]-broken"
 		return
+
+	if(storedpda)
+		add_overlay("[initial(icon_state)]-closed")
+
 	if(powered())
 		icon_state = initial(icon_state)
 	else
 		icon_state = "[initial(icon_state)]-off"
 
-/obj/machinery/pdapainter/update_overlays()
-	. = ..()
-	if(stat & BROKEN)
-		return
-	if(storedpda)
-		. += "[initial(icon_state)]-closed"
+	return
 
-/obj/machinery/pdapainter/Initialize(mapload)
-	. = ..()
+/obj/machinery/pdapainter/New()
+	..()
 	var/blocked = list(/obj/item/pda/silicon/ai, /obj/item/pda/silicon/robot, /obj/item/pda/silicon/pai, /obj/item/pda/heads,
 						/obj/item/pda/clear, /obj/item/pda/syndicate, /obj/item/pda/chameleon, /obj/item/pda/chameleon/broken)
 

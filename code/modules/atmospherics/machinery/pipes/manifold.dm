@@ -57,8 +57,6 @@
 					node3 = target
 				break
 	var/turf/T = src.loc			// hide if turf is not intact
-	if(T.transparent_floor)
-		return
 	hide(T.intact)
 	update_icon()
 
@@ -118,14 +116,17 @@
 	if(node3)
 		node3.update_underlays()
 
-/obj/machinery/atmospherics/pipe/manifold/update_overlays()
-	. = ..()
-	alpha = 255
-	. += SSair.icon_manager.get_atmos_icon("manifold", , pipe_color, "core" + icon_connect_type)
-	. += SSair.icon_manager.get_atmos_icon("manifold", , , "clamps" + icon_connect_type)
-	update_underlays()
+/obj/machinery/atmospherics/pipe/manifold/update_icon(safety = 0)
+	..()
 
-/obj/machinery/atmospherics/pipe/manifold/update_underlays()
+	if(!check_icon_cache())
+		return
+
+	alpha = 255
+
+	overlays.Cut()
+	overlays += SSair.icon_manager.get_atmos_icon("manifold", , pipe_color, "core" + icon_connect_type)
+	overlays += SSair.icon_manager.get_atmos_icon("manifold", , , "clamps" + icon_connect_type)
 	underlays.Cut()
 
 	var/turf/T = get_turf(src)
@@ -144,6 +145,10 @@
 	for(var/D in directions)
 		add_underlay(T,,D,icon_connect_type)
 
+/obj/machinery/atmospherics/pipe/manifold/update_underlays()
+	..()
+	update_icon()
+
 // A check to make sure both nodes exist - self-delete if they aren't present
 /obj/machinery/atmospherics/pipe/manifold/check_nodes_exist()
 	if(!node1 && !node2 && !node3)
@@ -160,7 +165,7 @@
 	name="Scrubbers pipe manifold"
 	desc = "A manifold composed of scrubbers pipes"
 	icon_state = "map-scrubbers"
-	connect_types = list(CONNECT_TYPE_SCRUBBER)
+	connect_types = list(3)
 	layer = 2.38
 	icon_connect_type = "-scrubbers"
 	color = PIPE_COLOR_RED
@@ -173,7 +178,7 @@
 	name="Air supply pipe manifold"
 	desc = "A manifold composed of supply pipes"
 	icon_state = "map-supply"
-	connect_types = list(CONNECT_TYPE_SUPPLY)
+	connect_types = list(2)
 	layer = 2.39
 	icon_connect_type = "-supply"
 	color = PIPE_COLOR_BLUE
@@ -209,7 +214,7 @@
 	name="Scrubbers pipe manifold"
 	desc = "A manifold composed of scrubbers pipes"
 	icon_state = "map-scrubbers"
-	connect_types = list(CONNECT_TYPE_SCRUBBER)
+	connect_types = list(3)
 	layer = 2.38
 	icon_connect_type = "-scrubbers"
 	color = PIPE_COLOR_RED
@@ -222,7 +227,7 @@
 	name="Air supply pipe manifold"
 	desc = "A manifold composed of supply pipes"
 	icon_state = "map-supply"
-	connect_types = list(CONNECT_TYPE_SUPPLY)
+	connect_types = list(2)
 	layer = 2.39
 	icon_connect_type = "-supply"
 	color = PIPE_COLOR_BLUE

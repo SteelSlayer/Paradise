@@ -454,12 +454,12 @@
 	build_path = /obj/item/ammo_casing/shotgun/rubbershot
 	category = list("initial", "Security")
 
-/datum/design/e_charger
-	name = "E-revolver charge pack"
-	id = "e_charger"
+/datum/design/c38
+	name = "Speed Loader (.38)"
+	id = "c38"
 	build_type = AUTOLATHE
-	materials = list(MAT_METAL = 30000, MAT_GLASS = 6000)
-	build_path = /obj/item/ammo_box/magazine/detective/speedcharger
+	materials = list(MAT_METAL = 30000)
+	build_path = /obj/item/ammo_box/c38
 	category = list("initial", "Security")
 
 /datum/design/recorder
@@ -676,7 +676,7 @@
 	id = "electropack"
 	build_type = AUTOLATHE
 	materials = list(MAT_METAL = 10000, MAT_GLASS = 2500)
-	build_path = /obj/item/electropack
+	build_path = /obj/item/radio/electropack
 	category = list("hacked", "Tools")
 
 /datum/design/large_welding_tool
@@ -703,6 +703,22 @@
 	build_path = /obj/item/weaponcrafting/receiver
 	category = list("hacked", "Security")
 
+/datum/design/shotgun_slug
+	name = "Shotgun Slug"
+	id = "shotgun_slug"
+	build_type = AUTOLATHE
+	materials = list(MAT_METAL = 4000)
+	build_path = /obj/item/ammo_casing/shotgun
+	category = list("hacked", "Security")
+
+/datum/design/buckshot_shell
+	name = "Buckshot shell"
+	id = "buckshot_shell"
+	build_type = AUTOLATHE
+	materials = list(MAT_METAL = 4000)
+	build_path = /obj/item/ammo_casing/shotgun/buckshot
+	category = list("hacked", "Security")
+
 /datum/design/shotgun_dart
 	name = "Shotgun Dart"
 	id = "shotgun_dart"
@@ -717,14 +733,6 @@
 	build_type = AUTOLATHE
 	materials = list(MAT_METAL = 4000)
 	build_path = /obj/item/ammo_casing/shotgun/incendiary
-	category = list("hacked", "Security")
-
-/datum/design/buckshot
-	name = "Buckshot Shell"
-	id = "buckshot"
-	build_type = GAMMALATHE
-	materials = list(MAT_METAL = 4000)
-	build_path = /obj/item/ammo_casing/shotgun/buckshot
 	category = list("hacked", "Security")
 
 /datum/design/riot_dart
@@ -897,12 +905,3 @@
 	materials = list(MAT_METAL = 40000)
 	build_path = /obj/item/golem_shell
 	category = list("Imported")
-
-/datum/design/desk_bell
-	name = "Desk Bell"
-	desc = "Prints a ring-able bell."
-	id = "desk_bell"
-	build_type = AUTOLATHE
-	materials = list(MAT_METAL = 4000)
-	build_path = /obj/item/desk_bell
-	category = list("initial", "Miscellaneous")

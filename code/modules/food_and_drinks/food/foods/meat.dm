@@ -5,7 +5,7 @@
 
 /obj/item/reagent_containers/food/snacks/meat
 	name = "meat"
-	desc = "A slab of meat."
+	desc = "A slab of meat"
 	icon_state = "meat"
 	filling_color = "#FF1C1C"
 	bitesize = 3
@@ -17,10 +17,7 @@
 		new /obj/item/reagent_containers/food/snacks/rawcutlet(src)
 		new /obj/item/reagent_containers/food/snacks/rawcutlet(src)
 		new /obj/item/reagent_containers/food/snacks/rawcutlet(src)
-		user.visible_message( \
-			"<span class ='notice'>[user] cuts [src] with [W]!</span>", \
-			"<span class ='notice'>You cut [src] with [W]!</span>" \
-			)
+		to_chat(user, "You cut the meat in thin strips.")
 		qdel(src)
 	else
 		..()
@@ -44,7 +41,7 @@
 
 /obj/item/reagent_containers/food/snacks/meat/corgi
 	name = "corgi meat"
-	desc = "Tastes like the Head of Personnel's hopes and dreams."
+	desc = "Tastes like the Head of Personnel's hopes and dreams"
 
 /obj/item/reagent_containers/food/snacks/meat/pug
 	name = "pug meat"
@@ -72,10 +69,10 @@
 	list_reagents = list("protein" = 1)
 
 /obj/item/reagent_containers/food/snacks/rawcutlet/attackby(obj/item/W, mob/user, params)
-	if(istype(W, /obj/item/kitchen/knife) || istype(W, /obj/item/scalpel))
+	if(istype(W,/obj/item/kitchen/knife))
 		user.visible_message( \
-			"<span class ='notice'>[user] cuts the raw cutlet with [W]!</span>", \
-			"<span class ='notice'>You cut the raw cutlet with [W]!</span>" \
+			"[user] cuts the raw cutlet with the knife!", \
+			"<span class ='notice'>You cut the raw cutlet with your knife!</span>" \
 			)
 		new /obj/item/reagent_containers/food/snacks/raw_bacon(loc)
 		qdel(src)
@@ -192,13 +189,9 @@
 	list_reagents = list("nutriment" = 4, "porktonium" = 10)
 	tastes = list("bacon" = 1)
 
-/obj/item/reagent_containers/food/snacks/telebacon/Initialize(mapload)
-	. = ..()
+/obj/item/reagent_containers/food/snacks/telebacon/New()
+	..()
 	baconbeacon = new /obj/item/radio/beacon/bacon(src)
-
-/obj/item/reagent_containers/food/snacks/telebacon/Destroy()
-	QDEL_NULL(baconbeacon)
-	return ..()
 
 /obj/item/reagent_containers/food/snacks/telebacon/On_Consume(mob/M, mob/user)
 	if(!reagents.total_volume)
@@ -412,8 +405,8 @@
 /obj/item/reagent_containers/food/snacks/egg/gland
 	desc = "An egg! It looks weird..."
 
-/obj/item/reagent_containers/food/snacks/egg/gland/Initialize(mapload)
-	. = ..()
+/obj/item/reagent_containers/food/snacks/egg/gland/New()
+	..()
 	reagents.add_reagent(get_random_reagent_id(), 15)
 
 	var/reagent_color = mix_color_from_reagents(reagents.reagent_list)

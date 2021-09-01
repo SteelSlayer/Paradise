@@ -1,49 +1,33 @@
 /obj/item/implantcase
 	name = "implant case"
 	desc = "A glass case containing an implant."
-	icon = 'icons/obj/implants.dmi'
-	icon_state = "implantcase"
+	icon = 'icons/obj/items.dmi'
+	icon_state = "implantcase-0"
 	item_state = "implantcase"
 	throw_speed = 2
 	throw_range = 5
 	w_class = WEIGHT_CLASS_TINY
 	origin_tech = "materials=1;biotech=2"
 	container_type = OPENCONTAINER | INJECTABLE | DRAWABLE
-	materials = list(MAT_GLASS = 500)
+	materials = list(MAT_GLASS=500)
+	var/obj/item/implant/imp = null
 
-	var/obj/item/implant/imp
-	var/implant_type = /obj/item/implant
 
-/obj/item/implantcase/Initialize(mapload)
-	. = ..()
-	imp = new implant_type(src)
-	update_state()
-
-/obj/item/implantcase/Destroy()
+/obj/item/implantcase/update_icon()
 	if(imp)
-		QDEL_NULL(imp)
-	return ..()
-
-/obj/item/implantcase/proc/update_state()
-	if(imp)
+		icon_state = "implantcase-[imp.item_color]"
 		origin_tech = imp.origin_tech
 		flags = imp.flags & ~DROPDEL
 		reagents = imp.reagents
 	else
+		icon_state = "implantcase-0"
 		origin_tech = initial(origin_tech)
 		flags = initial(flags)
 		reagents = null
-	update_icon(UPDATE_OVERLAYS)
 
-/obj/item/implantcase/update_overlays()
-	. = ..()
-	if(imp)
-		var/image/implant_overlay = image('icons/obj/implants.dmi', imp.implant_state)
-		. += implant_overlay
 
-/obj/item/implantcase/attackby(obj/item/W, mob/user)
+/obj/item/implantcase/attackby(obj/item/W, mob/user, params)
 	..()
-
 	if(istype(W, /obj/item/pen))
 		rename_interactive(user, W)
 	else if(istype(W, /obj/item/implanter))
@@ -51,11 +35,11 @@
 		if(I.imp)
 			if(imp || I.imp.implanted)
 				return
-			I.imp.forceMove(src)
+			I.imp.loc = src
 			imp = I.imp
 			I.imp = null
-			update_state()
-			I.update_icon(UPDATE_ICON_STATE)
+			update_icon()
+			I.update_icon()
 		else
 			if(imp)
 				if(I.imp)
@@ -63,5 +47,48 @@
 				imp.loc = I
 				I.imp = imp
 				imp = null
-				update_state()
-			I.update_icon(UPDATE_ICON_STATE)
+				update_icon()
+			I.update_icon()
+
+	/*else if(istype(W, /obj/item/ammo_casing/shotgun/implanter))
+		var/obj/item/ammo_casing/shotgun/implanter/I = W
+		if(I.implanter)
+			src.attackby(I.implanter, user, params) */ // COMING SOON -- c0
+
+/obj/item/implantcase/New()
+	..()
+	update_icon()
+
+
+/obj/item/implantcase/tracking
+	name = "implant case - 'Tracking'"
+	desc = "A glass case containing a tracking implant."
+
+/obj/item/implantcase/tracking/New()
+	imp = new /obj/item/implant/tracking(src)
+	..()
+
+
+/obj/item/implantcase/weapons_auth
+	name = "implant case - 'Firearms Authentication'"
+	desc = "A glass case containing a firearms authentication implant."
+
+/obj/item/implantcase/weapons_auth/New()
+	imp = new /obj/item/implant/weapons_auth(src)
+	..()
+
+/obj/item/implantcase/adrenaline
+	name = "implant case - 'Adrenaline'"
+	desc = "A glass case containing an adrenaline implant."
+
+/obj/item/implantcase/adrenaline/New()
+	imp = new /obj/item/implant/adrenalin(src)
+	..()
+
+/obj/item/implantcase/death_alarm
+	name = "Glass Case- 'Death Alarm'"
+	desc = "A case containing a death alarm implant."
+
+/obj/item/implantcase/death_alarm/New()
+	imp = new /obj/item/implant/death_alarm(src)
+	..()

@@ -16,12 +16,12 @@
 	response_disarm = "shoos"
 	response_harm   = "stomps on"
 	ventcrawler = 2
-	density = FALSE
+	density = 0
 	pass_flags = PASSTABLE | PASSMOB
 	mob_size = MOB_SIZE_SMALL
-	can_hide = TRUE
+	can_hide = 1
 	butcher_results = list(/obj/item/reagent_containers/food/snacks/meat = 1)
-	can_collar = TRUE
+	can_collar = 1
 	mob_biotypes = MOB_ORGANIC | MOB_BEAST | MOB_REPTILE
 	gold_core_spawnable = FRIENDLY_SPAWN
 

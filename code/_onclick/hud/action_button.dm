@@ -88,7 +88,7 @@
 		name = "Show Buttons"
 	else
 		name = "Hide Buttons"
-	update_icon(UPDATE_OVERLAYS)
+	UpdateIcon()
 	usr.update_action_buttons()
 
 /obj/screen/movable/action_button/hide_toggle/AltClick(mob/user)
@@ -114,16 +114,15 @@
 	if(user.client)
 		alpha = user.client.prefs.UI_style_alpha
 		color = user.client.prefs.UI_style_color
-	update_icon(UPDATE_OVERLAYS)
+	UpdateIcon()
 
-/obj/screen/movable/action_button/hide_toggle/update_overlays()
-	. = ..()
+/obj/screen/movable/action_button/hide_toggle/proc/UpdateIcon()
+	cut_overlays()
 	var/image/img = image(initial(icon), src, hidden ? "show" : "hide")
 	img.appearance_flags = RESET_COLOR | RESET_ALPHA
-	. += img
+	overlays += img
 
 /obj/screen/movable/action_button/MouseEntered(location, control, params)
-	. = ..()
 	if(!QDELETED(src))
 		openToolTip(usr, src, params, title = name, content = desc, theme = actiontooltipstyle)
 

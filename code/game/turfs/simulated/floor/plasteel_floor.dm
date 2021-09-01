@@ -4,7 +4,9 @@
 	broken_states = list("damaged1", "damaged2", "damaged3", "damaged4", "damaged5")
 	burnt_states = list("floorscorched1", "floorscorched2")
 
-/turf/simulated/floor/plasteel/update_icon_state()
+/turf/simulated/floor/plasteel/update_icon()
+	if(!..())
+		return 0
 	if(!broken && !burnt)
 		icon_state = icon_regular_floor
 
@@ -13,7 +15,6 @@
 	oxygen = 0
 	nitrogen = 0
 	temperature = TCMB
-	smoothing_groups = list(SMOOTH_GROUP_TURF, SMOOTH_GROUP_LATTICE)
 
 /turf/simulated/floor/plasteel/airless/Initialize(mapload)
 	. = ..()

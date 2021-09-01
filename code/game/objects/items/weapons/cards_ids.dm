@@ -80,27 +80,6 @@
 		return
 	A.emag_act(user)
 
-/obj/item/card/cmag
-	desc = "It's a card coated in a slurry of electromagnetic bananium."
-	name = "jestographic sequencer"
-	icon_state = "cmag"
-	item_state = "card-id"
-	origin_tech = "magnets=2;syndicate=2"
-	flags = NOBLUDGEON
-	flags_2 = NO_MAT_REDEMPTION_2
-
-/obj/item/card/cmag/Initialize(mapload)
-	. = ..()
-	AddComponent(/datum/component/slippery, src, 16 SECONDS, 100)
-
-/obj/item/card/cmag/attack()
-	return
-
-/obj/item/card/cmag/afterattack(atom/target, mob/user, proximity)
-	if(!proximity)
-		return
-	target.cmag_act(user)
-
 /obj/item/card/id
 	name = "identification card"
 	desc = "A card used to provide ID and determine access across the station."
@@ -110,7 +89,7 @@
 	var/list/access = list()
 	var/registered_name = "Unknown" // The name registered_name on the card
 	slot_flags = SLOT_ID
-	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 100, ACID = 100)
+	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 100)
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 	var/untrackable // Can not be tracked by AI's
 
@@ -264,11 +243,6 @@
 		qdel(W)
 		return
 
-	else if(istype(W, /obj/item/barcodescanner))
-		var/obj/item/barcodescanner/B = W
-		B.scanID(src, user)
-		return
-
 	else if(istype (W,/obj/item/stamp))
 		if(!stamped)
 			dat+="<img src=large_[W.icon_state].png>"
@@ -300,7 +274,7 @@
 	set category = "Object"
 	set src in range(0)
 
-	if(usr.stat || HAS_TRAIT(usr, TRAIT_UI_BLOCKED) || usr.restrained())
+	if(usr.stat || !usr.canmove || usr.restrained())
 		return
 
 	if(guest_pass)
@@ -509,7 +483,7 @@
 
 					if("Occupation")
 						var/list/departments =list(
-							"Assistant",
+							"Civilian",
 							"Engineering",
 							"Medical",
 							"Science",
@@ -520,11 +494,11 @@
 						)
 
 						var/department = input(user, "What job would you like to put on this card?\nChoose a department or a custom job title.\nChanging occupation will not grant or remove any access levels.","Agent Card Occupation") in departments
-						var/new_job = "Assistant"
+						var/new_job = "Civilian"
 
 						if(department == "Custom")
-							new_job = sanitize(stripped_input(user,"Choose a custom job title:","Agent Card Occupation", "Assistant", MAX_MESSAGE_LEN))
-						else if(department != "Assistant")
+							new_job = sanitize(stripped_input(user,"Choose a custom job title:","Agent Card Occupation", "Civilian", MAX_MESSAGE_LEN))
+						else if(department != "Civilian")
 							switch(department)
 								if("Engineering")
 									new_job = input(user, "What job would you like to put on this card?\nChanging occupation will not grant or remove any access levels.","Agent Card Occupation") in GLOB.engineering_positions
@@ -678,11 +652,10 @@
 	assignment = "Prisoner"
 	registered_name = "Scum"
 	var/goal = 0 //How far from freedom?
+	var/points = 0
 
-/obj/item/card/id/prisoner/examine(mob/user)
-	. = ..()
-	if(goal)
-		. += "\nYou have accumulated [mining_points] out of the [goal] points assigned to gain freedom."
+/obj/item/card/id/prisoner/attack_self(mob/user as mob)
+	to_chat(usr, "You have accumulated [points] out of the [goal] points you need for freedom.")
 
 /obj/item/card/id/prisoner/one
 	name = "Prisoner #13-001"
@@ -748,7 +721,7 @@
 	name = "Supply ID"
 	registered_name = "Cargonian"
 	icon_state = "cargo"
-	access = list(ACCESS_MAINT_TUNNELS, ACCESS_MAILSORTING, ACCESS_CARGO, ACCESS_QM, ACCESS_MINT, ACCESS_MINING, ACCESS_MINING_STATION, ACCESS_MINERAL_STOREROOM)
+	access = list(ACCESS_MAINT_TUNNELS, ACCESS_MAILSORTING, ACCESS_CARGO, ACCESS_CARGO_BOT, ACCESS_QM, ACCESS_MINT, ACCESS_MINING, ACCESS_MINING_STATION, ACCESS_MINERAL_STOREROOM)
 
 /obj/item/card/id/engineering
 	name = "Engineering ID"
@@ -761,7 +734,7 @@
 	registered_name = "HoS"
 	icon_state = "HoS"
 	access = list(ACCESS_SECURITY, ACCESS_SEC_DOORS, ACCESS_BRIG, ACCESS_ARMORY, ACCESS_COURT,
-			            ACCESS_FORENSICS_LOCKERS, ACCESS_MORGUE, ACCESS_MAINT_TUNNELS, ACCESS_ALL_PERSONAL_LOCKERS,
+			            ACCESS_FORENSICS_LOCKERS, ACCESS_PILOT, ACCESS_MORGUE, ACCESS_MAINT_TUNNELS, ACCESS_ALL_PERSONAL_LOCKERS,
 			            ACCESS_RESEARCH, ACCESS_ENGINE, ACCESS_MINING, ACCESS_MEDICAL, ACCESS_CONSTRUCTION, ACCESS_MAILSORTING,
 			            ACCESS_HEADS, ACCESS_HOS, ACCESS_RC_ANNOUNCE, ACCESS_KEYCARD_AUTH, ACCESS_GATEWAY, ACCESS_WEAPONS)
 
@@ -789,7 +762,7 @@
 	access = list(ACCESS_ENGINE, ACCESS_ENGINE_EQUIP, ACCESS_TECH_STORAGE, ACCESS_MAINT_TUNNELS,
 			            ACCESS_TELEPORTER, ACCESS_EXTERNAL_AIRLOCKS, ACCESS_ATMOSPHERICS, ACCESS_EMERGENCY_STORAGE, ACCESS_EVA,
 			            ACCESS_HEADS, ACCESS_CONSTRUCTION, ACCESS_SEC_DOORS,
-			            ACCESS_CE, ACCESS_RC_ANNOUNCE, ACCESS_KEYCARD_AUTH, ACCESS_TCOMSAT, ACCESS_MINISAT, ACCESS_MINERAL_STOREROOM)
+			            ACCESS_CE, ACCESS_RC_ANNOUNCE, ACCESS_KEYCARD_AUTH, ACCESS_TCOMSAT, ACCESS_MINISAT, ACCESS_MECHANIC, ACCESS_MINERAL_STOREROOM)
 
 /obj/item/card/id/clown
 	name = "Pink ID"
@@ -834,18 +807,12 @@
 
 /obj/item/card/id/ert/commander
 	icon_state = "ERT_leader"
-
 /obj/item/card/id/ert/security
 	icon_state = "ERT_security"
-
 /obj/item/card/id/ert/engineering
 	icon_state = "ERT_engineering"
-
 /obj/item/card/id/ert/medic
 	icon_state = "ERT_medical"
-
-/obj/item/card/id/ert/deathsquad
-	icon_state = "deathsquad"
 
 /obj/item/card/id/golem
 	name = "Free Golem ID"
@@ -954,8 +921,6 @@
 			return "ERT Medical"
 		if("ERT_janitorial")
 			return "ERT Janitorial"
-		if("deathsquad")
-			return "Deathsquad"
 		if("syndie")
 			return "Syndicate"
 		if("TDred")

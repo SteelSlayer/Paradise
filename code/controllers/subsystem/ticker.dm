@@ -57,7 +57,7 @@ SUBSYSTEM_DEF(ticker)
 	var/round_end_announced = FALSE
 	/// Is the ticker currently processing? If FALSE, roundstart is delayed
 	var/ticker_going = TRUE
-	/// Gamemode result (For things like cult or nukies which can end multiple ways)
+	/// Gamemode result (For things like shadowlings or nukies which can end multiple ways)
 	var/mode_result = "undefined"
 	/// Server end state (Did we end properly or reboot or nuke or what)
 	var/end_state = "undefined"
@@ -87,8 +87,7 @@ SUBSYSTEM_DEF(ticker)
 			current_state = GAME_STATE_PREGAME
 			fire() // TG says this is a good idea
 			for(var/mob/new_player/N in GLOB.player_list)
-				if (N.client)
-					N.new_player_panel_proc() // to enable the observe option
+				N.new_player_panel_proc() // to enable the observe option
 		if(GAME_STATE_PREGAME)
 			if(!SSticker.ticker_going) // This has to be referenced like this, and I dont know why. If you dont put SSticker. it will break
 				return
@@ -116,7 +115,7 @@ SUBSYSTEM_DEF(ticker)
 			mode.process_job_tasks()
 
 			if(world.time > next_autotransfer)
-				SSvote.start_vote(new /datum/vote/crew_transfer)
+				SSvote.autotransfer()
 				next_autotransfer = world.time + GLOB.configuration.vote.autotransfer_interval_time
 
 			var/game_finished = SSshuttle.emergency.mode >= SHUTTLE_ENDGAME || mode.station_was_nuked
@@ -133,18 +132,7 @@ SUBSYSTEM_DEF(ticker)
 			declare_completion()
 			addtimer(CALLBACK(src, .proc/call_reboot), 5 SECONDS)
 			if(GLOB.configuration.vote.enable_map_voting)
-				SSvote.start_vote(new /datum/vote/map)
-			else
-				// Pick random map
-				var/list/pickable_types = list()
-				for(var/x in subtypesof(/datum/map))
-					var/datum/map/M = x
-					if(initial(M.voteable))
-						pickable_types += M
-
-				var/datum/map/target_map = pick(pickable_types)
-				SSmapping.next_map = new target_map
-				to_chat(world, "<span class='interface'>Map for next round: [SSmapping.next_map.fluff_name] ([SSmapping.next_map.technical_name])</span>")
+				SSvote.initiate_vote("map", "the server", TRUE) // Start a map vote. Timing is a little tight here but we should be good.
 
 /datum/controller/subsystem/ticker/proc/call_reboot()
 	if(mode.station_was_nuked)
@@ -191,11 +179,6 @@ SUBSYSTEM_DEF(ticker)
 		SSjobs.ResetOccupations()
 		Master.SetRunLevel(RUNLEVEL_LOBBY)
 		return FALSE
-
-	// Randomise characters now. This avoids rare cases where a human is set as a changeling then they randomise to an IPC
-	for(var/mob/new_player/player in GLOB.player_list)
-		if(player.client.prefs.toggles2 & PREFTOGGLE_2_RANDOMSLOT)
-			player.client.prefs.load_random_character_slot(player.client)
 
 	//Configure mode and assign player to special mode stuff
 	mode.pre_pre_setup()
@@ -248,10 +231,12 @@ SUBSYSTEM_DEF(ticker)
 	Master.SetRunLevel(RUNLEVEL_GAME)
 
 	// Generate the list of empty playable AI cores in the world
-	for(var/obj/effect/landmark/start/ai/A in GLOB.landmarks_list)
-		if(locate(/mob/living) in get_turf(A))
+	for(var/obj/effect/landmark/start/S in GLOB.landmarks_list)
+		if(S.name != "AI")
 			continue
-		GLOB.empty_playable_ai_cores += new /obj/structure/AIcore/deactivated(get_turf(A))
+		if(locate(/mob/living) in S.loc)
+			continue
+		GLOB.empty_playable_ai_cores += new /obj/structure/AIcore/deactivated(get_turf(S))
 
 
 	// Setup pregenerated newsfeeds
@@ -268,7 +253,7 @@ SUBSYSTEM_DEF(ticker)
 
 	// Delete starting landmarks (not AI ones because we need those for AI-ize)
 	for(var/obj/effect/landmark/start/S in GLOB.landmarks_list)
-		if(!istype(S, /obj/effect/landmark/start/ai))
+		if(S.name != "AI")
 			qdel(S)
 
 	SSdbcore.SetRoundStart()
@@ -302,7 +287,7 @@ SUBSYSTEM_DEF(ticker)
 	else
 		log_debug("Playercount: [playercount] versus trigger: [highpop_trigger] - keeping standard job config")
 
-	SSnightshift.check_nightshift(TRUE)
+	SSnightshift.check_nightshift()
 
 	#ifdef UNIT_TESTS
 	RunUnitTests()
@@ -331,8 +316,7 @@ SUBSYSTEM_DEF(ticker)
 		for(var/mob/M in GLOB.mob_list)
 			if(M.stat != DEAD)
 				var/turf/T = get_turf(M)
-				if(T && is_station_level(T.z) && !istype(M.loc, /obj/structure/closet/secure_closet/freezer) && !(issilicon(M) && override == "AI malfunction"))
-					to_chat(M, "<span class='danger'><B>The blast wave from the explosion tears you atom from atom!</B></span>")
+				if(T && is_station_level(T.z) && !istype(M.loc, /obj/structure/closet/secure_closet/freezer))
 					var/mob/ghost = M.ghostize()
 					M.dust() //no mercy
 					if(ghost && ghost.client) //Play the victims an uninterrupted cinematic.
@@ -416,63 +400,19 @@ SUBSYSTEM_DEF(ticker)
 				qdel(player)
 
 /datum/controller/subsystem/ticker/proc/equip_characters()
+	var/captainless = TRUE
 	for(var/mob/living/carbon/human/player in GLOB.player_list)
-		if(player && player.mind && player.mind.assigned_role && player.mind.assigned_role != player.mind.special_role)
-			SSjobs.AssignRank(player, player.mind.assigned_role, FALSE)
-			SSjobs.EquipRank(player, player.mind.assigned_role, FALSE)
-			equip_cuis(player)
-
-/datum/controller/subsystem/ticker/proc/equip_cuis(mob/living/carbon/human/H)
-	if(!H.client)
-		return // If they are spawning without a client (somehow), they *cant* have a CUI list
-	for(var/datum/custom_user_item/cui in H.client.cui_entries)
-		// Skip items with invalid character names
-		if((cui.characer_name != H.real_name) && !cui.all_characters_allowed)
-			continue
-
-		var/ok = FALSE
-
-		if(!cui.all_jobs_allowed)
-			var/alt_blocked = FALSE
-			if(H.mind.role_alt_title)
-				if(!(H.mind.role_alt_title in cui.allowed_jobs))
-					alt_blocked = TRUE
-			if(!(H.mind.assigned_role in cui.allowed_jobs) || alt_blocked)
-				continue
-
-		var/obj/item/I = new cui.object_typepath()
-		var/name_override = cui.item_name_override
-		var/desc_override = cui.item_desc_override
-
-		if(name_override)
-			I.name = name_override
-		if(desc_override)
-			I.desc = desc_override
-
-		if(istype(H.back, /obj/item/storage)) // Try to place it in something on the mob's back
-			var/obj/item/storage/S = H.back
-			if(length(S.contents) < S.storage_slots)
-				I.forceMove(H.back)
-				ok = TRUE
-				to_chat(H, "<span class='notice'>Your [I.name] has been added to your [H.back.name].</span>")
-
-		if(!ok)
-			for(var/obj/item/storage/S in H.contents) // Try to place it in any item that can store stuff, on the mob.
-				if(length(S.contents) < S.storage_slots)
-					I.forceMove(S)
-					ok = TRUE
-					to_chat(H, "<span class='notice'>Your [I.name] has been added to your [S.name].</span>")
-					break
-
-		if(!ok) // Finally, since everything else failed, place it on the ground
-			var/turf/T = get_turf(H)
-			if(T)
-				I.forceMove(T)
-				to_chat(H, "<span class='notice'>Your [I.name] is on the [T.name] below you.</span>")
-			else
-				to_chat(H, "<span class='notice'>Your [I.name] couldnt spawn anywhere on you or even on the floor below you. Please file a bug report.</span>")
-				qdel(I)
-
+		if(player && player.mind && player.mind.assigned_role)
+			if(player.mind.assigned_role == "Captain")
+				captainless = FALSE
+			if(player.mind.assigned_role != player.mind.special_role)
+				SSjobs.AssignRank(player, player.mind.assigned_role, FALSE)
+				SSjobs.EquipRank(player, player.mind.assigned_role, FALSE)
+				EquipCustomItems(player)
+	if(captainless)
+		for(var/mob/M in GLOB.player_list)
+			if(!isnewplayer(M))
+				to_chat(M, "Captainship not forced on anyone.")
 
 /datum/controller/subsystem/ticker/proc/send_tip_of_the_round()
 	var/m
@@ -502,19 +442,16 @@ SUBSYSTEM_DEF(ticker)
 
 	//Silicon laws report
 	for(var/mob/living/silicon/ai/aiPlayer in GLOB.mob_list)
-		var/ai_ckey = safe_get_ckey(aiPlayer)
-
 		if(aiPlayer.stat != 2)
-			to_chat(world, "<b>[aiPlayer.name] (Played by: [ai_ckey])'s laws at the end of the game were:</b>")
+			to_chat(world, "<b>[aiPlayer.name] (Played by: [aiPlayer.key])'s laws at the end of the game were:</b>")
 		else
-			to_chat(world, "<b>[aiPlayer.name] (Played by: [ai_ckey])'s laws when it was deactivated were:</b>")
+			to_chat(world, "<b>[aiPlayer.name] (Played by: [aiPlayer.key])'s laws when it was deactivated were:</b>")
 		aiPlayer.show_laws(TRUE)
 
 		if(aiPlayer.connected_robots.len)
 			var/robolist = "<b>The AI's loyal minions were:</b> "
 			for(var/mob/living/silicon/robot/robo in aiPlayer.connected_robots)
-				var/robo_ckey = safe_get_ckey(robo)
-				robolist += "[robo.name][robo.stat ? " (Deactivated)" : ""] (Played by: [robo_ckey])"
+				robolist += "[robo.name][robo.stat?" (Deactivated) (Played by: [robo.key]), ":" (Played by: [robo.key]), "]"
 			to_chat(world, "[robolist]")
 
 	var/dronecount = 0
@@ -525,13 +462,11 @@ SUBSYSTEM_DEF(ticker)
 			dronecount++
 			continue
 
-		var/robo_ckey = safe_get_ckey(robo)
-
 		if(!robo.connected_ai)
 			if(robo.stat != 2)
-				to_chat(world, "<b>[robo.name] (Played by: [robo_ckey]) survived as an AI-less borg! Its laws were:</b>")
+				to_chat(world, "<b>[robo.name] (Played by: [robo.key]) survived as an AI-less borg! Its laws were:</b>")
 			else
-				to_chat(world, "<b>[robo.name] (Played by: [robo_ckey]) was unable to survive the rigors of being a cyborg without an AI. Its laws were:</b>")
+				to_chat(world, "<b>[robo.name] (Played by: [robo.key]) was unable to survive the rigors of being a cyborg without an AI. Its laws were:</b>")
 
 			if(robo) //How the hell do we lose robo between here and the world messages directly above this?
 				robo.laws.show_laws(world)

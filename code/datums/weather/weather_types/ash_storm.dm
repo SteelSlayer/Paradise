@@ -30,28 +30,13 @@
 	var/datum/looping_sound/weak_outside_ashstorm/sound_wo = new(list(), FALSE, TRUE)
 	var/datum/looping_sound/weak_inside_ashstorm/sound_wi = new(list(), FALSE, TRUE)
 
-/datum/weather/ash_storm/proc/is_shuttle_docked(shuttleId, dockId)
-	var/obj/docking_port/mobile/M = SSshuttle.getShuttle(shuttleId)
-	var/obj/docking_port/stationary/S = M.get_docked()
-
-	return S.id == dockId
-
-/datum/weather/ash_storm/proc/update_eligible_areas()
+/datum/weather/ash_storm/telegraph()
+	. = ..()
 	var/list/inside_areas = list()
 	var/list/outside_areas = list()
 	var/list/eligible_areas = list()
 	for(var/z in impacted_z_levels)
 		eligible_areas += GLOB.space_manager.areas_in_z["[z]"]
-
-	// Don't play storm audio to shuttles that are not at lavaland
-	var/miningShuttleDocked = is_shuttle_docked("mining", "mining_away")
-	if(!miningShuttleDocked)
-		eligible_areas -= get_areas(/area/shuttle/mining)
-
-	var/laborShuttleDocked = is_shuttle_docked("laborcamp", "laborcamp_away")
-	if(!laborShuttleDocked)
-		eligible_areas -= get_areas(/area/shuttle/siberia)
-
 	for(var/i in 1 to eligible_areas.len)
 		var/area/place = eligible_areas[i]
 		if(place.outdoors)
@@ -65,46 +50,29 @@
 	sound_wo.output_atoms = outside_areas
 	sound_wi.output_atoms = inside_areas
 
-/datum/weather/ash_storm/proc/update_audio()
-	switch(stage)
-		if(STARTUP_STAGE)
-			sound_wo.start()
-			sound_wi.start()
-
-		if(MAIN_STAGE)
-			sound_wo.stop()
-			sound_wi.stop()
-
-			sound_ao.start()
-			sound_ai.start()
-
-		if(WIND_DOWN_STAGE)
-			sound_ao.stop()
-			sound_ai.stop()
-
-			sound_wo.start()
-			sound_wi.start()
-
-		if(END_STAGE)
-			sound_wo.stop()
-			sound_wi.stop()
-
-/datum/weather/ash_storm/telegraph()
-	. = ..()
-	update_eligible_areas()
-	update_audio()
+	sound_wo.start()
+	sound_wi.start()
 
 /datum/weather/ash_storm/start()
 	. = ..()
-	update_audio()
+	sound_wo.stop()
+	sound_wi.stop()
+
+	sound_ao.start()
+	sound_ai.start()
 
 /datum/weather/ash_storm/wind_down()
 	. = ..()
-	update_audio()
+	sound_ao.stop()
+	sound_ai.stop()
+
+	sound_wo.start()
+	sound_wi.start()
 
 /datum/weather/ash_storm/end()
 	. = ..()
-	update_audio()
+	sound_wo.stop()
+	sound_wi.stop()
 
 /datum/weather/ash_storm/proc/is_ash_immune(atom/L)
 	while(L && !isturf(L))

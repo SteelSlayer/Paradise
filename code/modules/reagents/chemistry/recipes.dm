@@ -8,7 +8,7 @@
 
 	// Both of these variables are mostly going to be used with slime cores - but if you want to, you can use them for other things
 	var/atom/required_container = null // the container required for the reaction to happen
-	var/required_other = FALSE // extra requirements for the reaction to happen
+	var/required_other = 0 // an integer required for the reaction to happen
 
 	var/result_amount = 0
 	var/list/secondary_results = list()		//additional reagents produced by the reaction
@@ -21,7 +21,7 @@
 	return
 
 
-/datum/chemical_reaction/proc/chemical_mob_spawn(datum/reagents/holder, amount_to_spawn, reaction_name, mob_class = HOSTILE_SPAWN, mob_faction = "chemicalsummon", random = TRUE, gold_core_spawn = FALSE)
+/datum/chemical_reaction/proc/chemical_mob_spawn(datum/reagents/holder, amount_to_spawn, reaction_name, mob_class = HOSTILE_SPAWN, mob_faction = "chemicalsummon", random = TRUE)
 	if(holder && holder.my_atom)
 		var/atom/A = holder.my_atom
 		var/turf/T = get_turf(A)
@@ -48,8 +48,6 @@
 				S = create_random_mob(get_turf(holder.my_atom), mob_class)
 			else
 				S = new mob_class(get_turf(holder.my_atom))//Spawn our specific mob_class
-			if(gold_core_spawn) //For tracking xenobiology mobs
-				S.xenobiology_spawned = TRUE
 			S.faction |= mob_faction
 			if(prob(50))
 				for(var/j = 1, j <= rand(1, 3), j++)

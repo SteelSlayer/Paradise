@@ -18,14 +18,17 @@
 	/// Associative list of all jobs and their department color classes
 	var/all_jobs = list(
 		// AI
-		"Automated Announcement" = "airadio",
 		"AI" = "airadio",
 		"Android" = "airadio",
 		"Cyborg" = "airadio",
 		"Personal AI" = "airadio",
 		"Robot" = "airadio",
-		// Assistant
+		// Civilian + Varients
 		"Assistant" = "radio",
+		"Businessman" = "radio",
+		"Civilian" = "radio",
+		"Tourist" = "radio",
+		"Trader" = "radio",
 		// Command (Solo command, not department heads)
 		"Blueshield" = "comradio",
 		"Captain" = "comradio",
@@ -38,6 +41,7 @@
 		"Engine Technician" = "engradio",
 		"Life Support Specialist" = "engradio",
 		"Maintenance Technician" = "engradio",
+		"Mechanic" = "engradio",
 		"Station Engineer" = "engradio",
 		// Central Command
 		"Emergency Response Team Engineer" = "dsquadradio", // I know this says deathsquad but the class for responseteam is neon green. No.
@@ -80,6 +84,7 @@
 		"Xenoarcheologist" = "sciradio",
 		"Xenobiologist" = "sciradio",
 		// Security
+		"Brig Physician" = "secradio",
 		"Detective" = "secradio",
 		"Forensic Technician" = "secradio",
 		"Head of Security" = "secradio",
@@ -87,6 +92,7 @@
 		"Internal Affairs Agent" = "secradio",
 		"Magistrate" = "secradio",
 		"Security Officer" = "secradio",
+		"Security Pod Pilot" = "secradio",
 		"Warden" = "secradio",
 		// Supply
 		"Quartermaster" = "supradio",
@@ -238,7 +244,7 @@
 		job_class = all_jobs[job]
 
 	if(toggle_name_color)
-		var/new_name = "<span class=\"[job_class]\">[tcm.sender_name]</span>"
+		var/new_name = "<span class=\"[job_class]\">" + tcm.sender_name + "</span>"
 		tcm.sender_name = new_name
 		tcm.vname = new_name // this is required because the broadcaster uses this directly if the speaker doesn't have a voice changer on
 

@@ -10,21 +10,17 @@
 	slowdown = 1
 	actions_types = list(/datum/action/item_action/toggle_mister)
 	max_integrity = 200
-	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 0, FIRE = 100, ACID = 30)
+	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 30)
 	resistance_flags = FIRE_PROOF
 
 	var/obj/item/noz
-	var/on = FALSE
+	var/on = 0
 	var/volume = 500
 
 /obj/item/watertank/New()
 	..()
 	create_reagents(volume)
 	noz = make_noz()
-
-/obj/item/watertank/Destroy()
-	QDEL_NULL(noz)
-	return ..()
 
 /obj/item/watertank/ui_action_click()
 	toggle_mister()
@@ -50,7 +46,7 @@
 
 		//Detach the nozzle into the user's hands
 		if(!user.put_in_hands(noz))
-			on = FALSE
+			on = 0
 			to_chat(user, "<span class='notice'>You need a free hand to hold the mister.</span>")
 			return
 		noz.loc = user
@@ -136,14 +132,10 @@
 		loc = tank
 	return
 
-/obj/item/reagent_containers/spray/mister/Destroy()
-	tank = null
-	return ..()
-
 /obj/item/reagent_containers/spray/mister/dropped(mob/user as mob)
 	..()
 	to_chat(user, "<span class='notice'>The mister snaps back onto the watertank.</span>")
-	tank.on = FALSE
+	tank.on = 0
 	loc = tank
 
 /obj/item/reagent_containers/spray/mister/attack_self()
@@ -276,7 +268,7 @@
 /obj/item/extinguisher/mini/nozzle/dropped(mob/user as mob)
 	..()
 	to_chat(user, "<span class='notice'>The nozzle snaps back onto the tank!</span>")
-	tank.on = FALSE
+	tank.on = 0
 	loc = tank
 
 /obj/item/extinguisher/mini/nozzle/afterattack(atom/target, mob/user)

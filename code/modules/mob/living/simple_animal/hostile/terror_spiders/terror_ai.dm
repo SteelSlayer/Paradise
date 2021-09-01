@@ -30,8 +30,8 @@
 			else
 				// Target prioritization by spider type. BRUTE spiders prioritize lower armor values, POISON spiders prioritize poisonable targets
 				if(ai_target_method == TS_DAMAGE_BRUTE)
-					var/theirarmor = C.getarmor(type = MELEE)
-					// Example values: Assistant: 2, Engineer w/ Hardsuit: 10, Sec Officer with armor: 19, HoS: 48, Deathsquad: 80
+					var/theirarmor = C.getarmor(type = "melee")
+					// Example values: Civilian: 2, Engineer w/ Hardsuit: 10, Sec Officer with armor: 19, HoS: 48, Deathsquad: 80
 					if(theirarmor < 10)
 						targets1 += C
 					else if(C in enemies)
@@ -68,6 +68,8 @@
 			targets2 += M
 		else
 			targets3 += M
+	for(var/obj/spacepod/S in view(src, vision_range))
+		targets3 += S
 	if(targets1.len)
 		return targets1
 	if(targets2.len)
@@ -108,17 +110,17 @@
 		if(path_to_vent)
 			if(entry_vent)
 				if(spider_steps_taken > spider_max_steps)
-					path_to_vent = FALSE
-					stop_automated_movement = FALSE
+					path_to_vent = 0
+					stop_automated_movement = 0
 					spider_steps_taken = 0
-					path_to_vent = FALSE
+					path_to_vent = 0
 					entry_vent = null
 				else if(get_dist(src, entry_vent) <= 1)
-					path_to_vent = FALSE
-					stop_automated_movement = TRUE
+					path_to_vent = 0
+					stop_automated_movement = 1
 					spider_steps_taken = 0
 					spawn(50)
-						stop_automated_movement = FALSE
+						stop_automated_movement = 0
 					TSVentCrawlRandom(entry_vent)
 				else
 					spider_steps_taken++
@@ -127,13 +129,13 @@
 					if(spider_debug)
 						visible_message("<span class='notice'>[src] moves towards the vent [entry_vent].</span>")
 			else
-				path_to_vent = FALSE
+				path_to_vent = 0
 		else if(ai_break_lights && world.time > (last_break_light + freq_break_light))
 			last_break_light = world.time
 			for(var/obj/machinery/light/L in range(1, src))
 				if(!L.status)
 					step_to(src,L)
-					L.on = TRUE
+					L.on = 1
 					L.break_light_tube()
 					do_attack_animation(L)
 					visible_message("<span class='danger'>[src] smashes the [L.name].</span>")
@@ -154,7 +156,7 @@
 							entry_vent = v
 							vdistance = get_dist(src,v)
 				if(entry_vent)
-					path_to_vent = TRUE
+					path_to_vent = 1
 		else
 			// If none of the general actions apply, check for class-specific actions.
 			spider_special_action()
@@ -186,6 +188,11 @@
 			if(M.occupant)
 				enemies |= M
 				enemies |= M.occupant
+		else if(istype(A, /obj/spacepod))
+			var/obj/spacepod/M = A
+			if(M.pilot)
+				enemies |= M
+				enemies |= M.pilot
 	for(var/mob/living/simple_animal/hostile/poison/terror_spider/H in ts_nearby)
 		var/retaliate_faction_check = 0
 		for(var/F in faction)
@@ -206,7 +213,7 @@
 				spider_steps_taken = 0
 				cocoon_target = null
 				busy = 0
-				stop_automated_movement = FALSE
+				stop_automated_movement = 0
 			else
 				spider_steps_taken++
 				CreatePath(cocoon_target)
@@ -228,7 +235,7 @@
 		if(istype(O, /obj/item) || istype(O, /obj/structure) || istype(O, /obj/machinery))
 			if(!istype(O, /obj/item/paper))
 				cocoon_target = O
-				stop_automated_movement = TRUE
+				stop_automated_movement = 1
 				spider_steps_taken = 0
 				return
 
@@ -250,7 +257,7 @@
 						spawn(0)
 							try_open_airlock(A)
 				for(var/obj/machinery/door/firedoor/F in view(1, src))
-					if(tgt_dir == get_dir(src, F) && F.density && !F.welded)
+					if(tgt_dir == get_dir(src,F) && F.density && !F.welded)
 						visible_message("<span class='danger'>[src] pries open the firedoor!</span>")
 						F.open()
 
@@ -269,7 +276,7 @@
 	if(entry_vent)
 		if(get_dist(src, entry_vent) <= 2)
 			if(ai_ventbreaker && entry_vent.welded)
-				entry_vent.welded = FALSE
+				entry_vent.welded = 0
 				entry_vent.update_icon()
 				entry_vent.visible_message("<span class='danger'>[src] smashes the welded cover off [entry_vent]!</span>")
 			var/list/vents = list()
@@ -297,7 +304,7 @@
 							entry_vent = null
 							return
 						if(ai_ventbreaker && exit_vent.welded)
-							exit_vent.welded = FALSE
+							exit_vent.welded = 0
 							exit_vent.update_icon()
 							exit_vent.update_pipe_image()
 							exit_vent.visible_message("<span class='danger'>[src] smashes the welded cover off [exit_vent]!</span>")
@@ -315,7 +322,7 @@
 /mob/living/simple_animal/hostile/poison/terror_spider/proc/ListValidTurfs()
 	var/list/potentials = list()
 	for(var/turf/simulated/T in oview(3,get_turf(src)))
-		if(!T.density && get_dist(get_turf(src), T) == 3)
+		if(T.density == 0 && get_dist(get_turf(src),T) == 3)
 			var/obj/structure/spider/terrorweb/W = locate() in T
 			if(!W)
 				var/obj/structure/grille/G = locate() in T
@@ -328,7 +335,7 @@
 /mob/living/simple_animal/hostile/poison/terror_spider/proc/ListWebbedTurfs()
 	var/list/webbed = list()
 	for(var/turf/simulated/T in oview(3,get_turf(src)))
-		if(!T.density && get_dist(get_turf(src), T) == 3)
+		if(T.density == 0 && get_dist(get_turf(src),T) == 3)
 			var/obj/structure/spider/terrorweb/W = locate() in T
 			if(W)
 				webbed += T
@@ -337,7 +344,7 @@
 /mob/living/simple_animal/hostile/poison/terror_spider/proc/ListVisibleTurfs()
 	var/list/vturfs = list()
 	for(var/turf/simulated/T in oview(7,get_turf(src)))
-		if(!T.density)
+		if(T.density == 0)
 			vturfs += T
 	return vturfs
 
@@ -345,3 +352,12 @@
 	if(!target)
 		return
 	. = ..()
+
+// --------------------------------------------------------------------------------
+// --------------------- TERROR SPIDERS: MISC AI CODE -----------------------------
+// --------------------------------------------------------------------------------
+
+/mob/living/simple_animal/hostile/poison/terror_spider/proc/UnlockBlastDoors(target_id_tag)
+	for(var/obj/machinery/door/poddoor/P in GLOB.airlocks)
+		if(P.density && P.id_tag == target_id_tag && P.z == z && !P.operating)
+			P.open()

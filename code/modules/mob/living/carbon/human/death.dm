@@ -2,7 +2,8 @@
 	if(!death(TRUE) && stat != DEAD)
 		return FALSE
 	var/atom/movable/overlay/animation = null
-	notransform = TRUE
+	notransform = 1
+	canmove = 0
 	icon = null
 	invisibility = 101
 	if(!ismachineperson(src))
@@ -48,26 +49,33 @@
 /mob/living/carbon/human/dust()
 	if(!death(TRUE) && stat != DEAD)
 		return FALSE
-	notransform = TRUE
+	notransform = 1
+	canmove = 0
+	icon = null
+	invisibility = 101
 	dust_animation()
-	QDEL_IN(src, 20)
+	QDEL_IN(src, 15)
 	return TRUE
 
 /mob/living/carbon/human/dust_animation()
-	// Animate them being dusted out of existence
-	var/obj/effect/dusting_anim/dust_effect = new(loc, UID())
-	filters += filter(type = "displace", size = 256, render_source = "*snap[UID()]")
-	animate(src, alpha = 0, time = 20, easing = (EASE_IN | SINE_EASING))
+	var/atom/movable/overlay/animation = null
 
+	animation = new(loc)
+	animation.icon_state = "blank"
+	animation.icon = 'icons/mob/mob.dmi'
+	animation.master = src
+
+	flick("dust-h", animation)
 	new dna.species.remains_type(get_turf(src))
-	QDEL_IN(dust_effect, 20)
+	QDEL_IN(animation, 15)
 	return TRUE
 
 /mob/living/carbon/human/melt()
 	if(!death(TRUE) && stat != DEAD)
 		return FALSE
 	var/atom/movable/overlay/animation = null
-	notransform = TRUE
+	notransform = 1
+	canmove = 0
 	icon = null
 	invisibility = 101
 
@@ -83,6 +91,8 @@
 	return TRUE
 
 /mob/living/carbon/human/death(gibbed)
+	if(can_die() && !gibbed && deathgasp_on_death)
+		emote("deathgasp", force = TRUE) //let the world KNOW WE ARE DEAD
 
 	// Only execute the below if we successfully died
 	. = ..(gibbed)
@@ -96,7 +106,7 @@
 		dna.species.handle_death(gibbed, src)
 
 	if(SSticker && SSticker.mode)
-		INVOKE_ASYNC(SSblackbox, /datum/controller/subsystem/blackbox/proc/ReportDeath, src)
+		SSblackbox.ReportDeath(src)
 
 /mob/living/carbon/human/update_revive(updating)
 	. = ..()
@@ -114,7 +124,7 @@
 	var/obj/item/organ/external/head/H = get_organ("head")
 
 	if(istype(H))
-		H.status |= ORGAN_DISFIGURED
+		H.disfigured = TRUE
 		if(H.f_style)
 			H.f_style = initial(H.f_style)
 		if(H.h_style)
@@ -140,7 +150,7 @@
 		ADD_TRAIT(src, TRAIT_HUSK, source)
 		var/obj/item/organ/external/head/H = bodyparts_by_name["head"]
 		if(istype(H))
-			H.status |= ORGAN_DISFIGURED //makes them unknown without fucking up other stuff like admintools
+			H.disfigured = TRUE //makes them unknown without fucking up other stuff like admintools
 			if(H.f_style)
 				H.f_style = "Shaved" //we only change the icon_state of the hair datum, so it doesn't mess up their UI/UE
 			if(H.h_style)
@@ -162,7 +172,7 @@
 	if(!HAS_TRAIT(src, TRAIT_HUSK))
 		var/obj/item/organ/external/head/H = bodyparts_by_name["head"]
 		if(istype(H))
-			H.status &= ~ORGAN_DISFIGURED
+			H.disfigured = FALSE
 		update_body()
 		update_mutantrace()
 		UpdateAppearance() // reset hair from DNA

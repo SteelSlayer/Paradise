@@ -1,13 +1,12 @@
 GLOBAL_DATUM_INIT(fire_overlay, /image, image("icon" = 'icons/goonstation/effects/fire.dmi', "icon_state" = "fire"))
-GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons/effects/welding_effect.dmi', "welding_sparks", GASFIRE_LAYER, ABOVE_LIGHTING_PLANE))
-
 /obj/item
 	name = "item"
 	icon = 'icons/obj/items.dmi'
-	blocks_emissive = EMISSIVE_BLOCK_GENERIC
 
 	move_resist = null // Set in the Initialise depending on the item size. Unless it's overriden by a specific item
 	var/discrete = 0 // used in item_attack.dm to make an item not show an attack message to viewers
+	var/image/blood_overlay = null //this saves our blood splatter overlay, which will be processed not to go over the edges of the sprite
+	var/blood_overlay_color = null
 	var/item_state = null
 	var/lefthand_file = 'icons/mob/inhands/items_lefthand.dmi'
 	var/righthand_file = 'icons/mob/inhands/items_righthand.dmi'
@@ -36,8 +35,7 @@ GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons
 	var/drop_sound
 	///Whether or not we use stealthy audio levels for this item's attack sounds
 	var/stealthy_audio = FALSE
-	/// Allows you to override the attack animation with an attack effect
-	var/attack_effect_override
+
 	var/list/attack_verb //Used in attackby() to say how something was attacked "[x] has been [z.attack_verb] by [y] with [z]"
 	var/w_class = WEIGHT_CLASS_NORMAL
 	var/slot_flags = 0		//This is used to determine on which slots an item can fit.
@@ -66,14 +64,11 @@ GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons
 	var/permeability_coefficient = 1 // for chemicals/diseases
 	var/siemens_coefficient = 1 // for electrical admittance/conductance (electrocution checks and shit)
 	var/slowdown = 0 // How much clothing is slowing you down. Negative values speeds you up
-	/// Flat armour reduction, occurs after percentage armour penetration.
-	var/armour_penetration_flat = 0
-	/// Percentage armour reduction, happens before flat armour reduction.
-	var/armour_penetration_percentage = 0
+	var/armour_penetration = 0 //percentage of armour effectiveness to remove
 	var/list/allowed = null //suit storage stuff.
 	var/obj/item/uplink/hidden/hidden_uplink = null // All items can have an uplink hidden inside, just remember to add the triggers.
 
-	var/needs_permit = FALSE			//Used by security bots to determine if this item is safe for public use.
+	var/needs_permit = 0			//Used by security bots to determine if this item is safe for public use.
 
 	var/strip_delay = DEFAULT_ITEM_STRIP_DELAY
 	var/put_on_delay = DEFAULT_ITEM_PUTON_DELAY
@@ -87,8 +82,7 @@ GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons
 	// non-clothing items
 	var/datum/dog_fashion/dog_fashion = null
 
-	/// UID of a /mob
-	var/thrownby
+	var/mob/thrownby = null
 
 	//So items can have custom embedd values
 	//Because customisation is king
@@ -123,16 +117,10 @@ GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons
 	var/in_inventory = FALSE //is this item equipped into an inventory slot or hand of a mob?
 	var/tip_timer = 0
 
-	// item hover FX
-	/// Is this item inside a storage object?
-	var/in_storage = FALSE
-	// For assigning a belt overlay icon state in belts.dmi
-	var/belt_icon = null
-	/// Holder var for the item outline filter, null when no outline filter on the item.
-	var/outline_filter
-
 /obj/item/New()
 	..()
+	for(var/path in actions_types)
+		new path(src, action_icon[path], action_icon_state[path])
 
 	if(!hitsound)
 		if(damtype == "fire")
@@ -142,13 +130,6 @@ GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons
 	LAZYINITLIST(attack_verb)
 	if(!move_resist)
 		determine_move_resist()
-
-/obj/item/Initialize(mapload)
-	. = ..()
-	for(var/path in actions_types)
-		new path(src, action_icon[path], action_icon_state[path])
-	if(istype(loc, /obj/item/storage)) //marks all items in storage as being such
-		in_storage = TRUE
 
 /obj/item/proc/determine_move_resist()
 	switch(w_class)
@@ -237,9 +218,6 @@ GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons
 			msg += "<span class='danger'>No extractable materials detected.</span><BR>"
 		msg += "*--------*"
 		. += msg
-
-	if(HAS_TRAIT(src, TRAIT_BUTCHERS_HUMANS))
-		. += "<span class='warning'>Can be used to butcher dead people into meat while on harm intent.</span>"
 
 /obj/item/burn()
 	if(!QDELETED(src))
@@ -428,7 +406,6 @@ GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons
 	if((flags & NODROP) && !(initial(flags) & NODROP)) //Remove NODROP is dropped
 		flags &= ~NODROP
 	in_inventory = FALSE
-	remove_outline()
 	SEND_SIGNAL(src, COMSIG_ITEM_DROPPED,user)
 	if(!silent)
 		playsound(src, drop_sound, DROP_SOUND_VOLUME, ignore_walls = FALSE)
@@ -441,12 +418,10 @@ GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons
 
 // called when this item is removed from a storage item, which is passed on as S. The loc variable is already set to the new destination before this is called.
 /obj/item/proc/on_exit_storage(obj/item/storage/S as obj)
-	in_storage = FALSE
 	return
 
 // called when this item is added into a storage item, which is passed on as S. The loc variable is already set to the storage item.
 /obj/item/proc/on_enter_storage(obj/item/storage/S as obj)
-	in_storage = TRUE
 	return
 
 /**
@@ -606,9 +581,9 @@ GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons
 				if(M.stat != DEAD)
 					to_chat(M, "<span class='danger'>You drop what you're holding and clutch at your eyes!</span>")
 					M.drop_item()
-				M.AdjustEyeBlurry(20 SECONDS)
-				M.Paralyse(2 SECONDS)
-				M.Weaken(4 SECONDS)
+				M.AdjustEyeBlurry(10)
+				M.Paralyse(1)
+				M.Weaken(2)
 			if(eyes.damage >= eyes.min_broken_damage)
 				if(M.stat != 2)
 					to_chat(M, "<span class='danger'>You go blind!</span>")
@@ -617,7 +592,7 @@ GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons
 			H.UpdateDamageIcon()
 	else
 		M.take_organ_damage(7)
-	M.AdjustEyeBlurry(rand(6 SECONDS, 8 SECONDS))
+	M.AdjustEyeBlurry(rand(3,4))
 	return
 
 /obj/item/singularity_pull(S, current_size)
@@ -652,10 +627,10 @@ GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons
 			playsound(src, drop_sound, YEET_SOUND_VOLUME, ignore_walls = FALSE)
 		return hit_atom.hitby(src, 0, itempush, throwingdatum = throwingdatum)
 
-/obj/item/throw_at(atom/target, range, speed, mob/thrower, spin = 1, diagonals_first = 0, datum/callback/callback, force, dodgeable)
-	thrownby = thrower?.UID()
+/obj/item/throw_at(atom/target, range, speed, mob/thrower, spin=1, diagonals_first = 0, datum/callback/callback, force)
+	thrownby = thrower
 	callback = CALLBACK(src, .proc/after_throw, callback) //replace their callback with our own
-	. = ..(target, range, speed, thrower, spin, diagonals_first, callback, force, dodgeable)
+	. = ..(target, range, speed, thrower, spin, diagonals_first, callback, force)
 
 /obj/item/proc/after_throw(datum/callback/callback)
 	if(callback) //call the original callback
@@ -716,68 +691,22 @@ GLOBAL_DATUM_INIT(welding_sparks, /mutable_appearance, mutable_appearance('icons
 	openToolTip(user, src, params, title = name, content = "[desc]", theme = "")
 
 /obj/item/MouseEntered(location, control, params)
-	. = ..()
-	if(in_inventory || in_storage)
-		var/mob/user = usr
-		if(!(user.client.prefs.toggles2 & PREFTOGGLE_2_HIDE_ITEM_TOOLTIPS))
-			tip_timer = addtimer(CALLBACK(src, .proc/openTip, location, control, params, user), 8, TIMER_STOPPABLE)
-		if(QDELETED(src))
-			return
-		if(!(user.client.prefs.toggles2 & PREFTOGGLE_2_SEE_ITEM_OUTLINES))
-			return
-		var/mob/living/L = user
-		if(istype(L) && HAS_TRAIT(L, TRAIT_HANDS_BLOCKED))
-			apply_outline(L, COLOR_RED_GRAY) //if they're dead or handcuffed, let's show the outline as red to indicate that they can't interact with that right now
-		else
-			apply_outline(L) //if the player's alive and well we send the command with no color set, so it uses the theme's color
+	if(in_inventory)
+		var/timedelay = 8
+		var/user = usr
+		tip_timer = addtimer(CALLBACK(src, .proc/openTip, location, control, params, user), timedelay, TIMER_STOPPABLE)
 
 /obj/item/MouseExited()
 	deltimer(tip_timer) //delete any in-progress timer if the mouse is moved off the item before it finishes
 	closeToolTip(usr)
-	remove_outline()
 
 /obj/item/MouseDrop_T(obj/item/I, mob/user)
-	if(!user || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED) || src == I)
+	if(!user || user.incapacitated(ignore_lying = TRUE) || src == I)
 		return
 
 	if(loc && I.loc == loc && istype(loc, /obj/item/storage) && loc.Adjacent(user)) // Are we trying to swap two items in the storage?
 		var/obj/item/storage/S = loc
 		S.swap_items(src, I, user)
-	remove_outline() //get rid of the hover effect in case the mouse exit isn't called if someone drags and drops an item and somthing goes wrong
-
-/obj/item/proc/apply_outline(mob/user, outline_color = null)
-	if(!(in_inventory || in_storage) || QDELETED(src) || isobserver(user)) //cancel if the item isn't in an inventory, is being deleted, or if the person hovering is a ghost (so that people spectating you don't randomly make your items glow)
-		return
-	var/theme = lowertext(user.client.prefs.UI_style)
-	if(!outline_color) //if we weren't provided with a color, take the theme's color
-		switch(theme) //yeah it kinda has to be this way
-			if("midnight")
-				outline_color = COLOR_THEME_MIDNIGHT
-			if("plasmafire")
-				outline_color = COLOR_THEME_PLASMAFIRE
-			if("retro")
-				outline_color = COLOR_THEME_RETRO //just as garish as the rest of this theme
-			if("slimecore")
-				outline_color = COLOR_THEME_SLIMECORE
-			if("operative")
-				outline_color = COLOR_THEME_OPERATIVE
-			if("clockwork")
-				outline_color = COLOR_THEME_CLOCKWORK //if you want free gbp go fix the fact that clockwork's tooltip css is glass'
-			if("glass")
-				outline_color = COLOR_THEME_GLASS
-			else //this should never happen, hopefully
-				outline_color = COLOR_WHITE
-	if(color)
-		outline_color = COLOR_WHITE //if the item is recolored then the outline will be too, let's make the outline white so it becomes the same color instead of some ugly mix of the theme and the tint
-	if(outline_filter)
-		filters -= outline_filter
-	outline_filter = filter(type = "outline", size = 1, color = outline_color)
-	filters += outline_filter
-
-/obj/item/proc/remove_outline()
-	if(outline_filter)
-		filters -= outline_filter
-		outline_filter = null
 
 // Returns a numeric value for sorting items used as parts in machines, so they can be replaced by the rped
 /obj/item/proc/get_part_rating()

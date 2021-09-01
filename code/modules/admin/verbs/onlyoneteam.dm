@@ -12,9 +12,8 @@
 			continue
 		if(is_type_in_list(H.dna.species, incompatible_species))
 			H.set_species(/datum/species/human)
-			var/datum/character_save/S = new	// Randomize appearance
-			S.randomise()
-			S.copy_to(H)
+			var/datum/preferences/A = new()	// Randomize appearance
+			A.copy_to(H)
 
 		for(var/obj/item/I in H)
 			if(istype(I, /obj/item/implant))
@@ -65,7 +64,7 @@
 	name = "dodgeball"
 	icon = 'icons/obj/basketball.dmi'
 	icon_state = "dodgeball"
-	item_state = "dodgeball"
+	item_state = "basketball"
 	desc = "Used for playing the most violent and degrading of childhood games."
 
 /obj/item/beach_ball/dodgeball/throw_impact(atom/hit_atom)
@@ -76,7 +75,7 @@
 			return
 		if(H.l_hand == src)
 			return
-		var/mob/A = locateUID(thrownby)
+		var/mob/A = thrownby
 		if((H in GLOB.team_alpha) && (A in GLOB.team_alpha))
 			to_chat(A, "<span class='warning'>He's on your team!</span>")
 			return

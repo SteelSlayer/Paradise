@@ -5,10 +5,6 @@
 	set hidden = 1
 	if(!SSticker)
 		return
-
-	if(!check_rights(R_MAINTAINER))
-		return
-
 	switch(cinematic)
 		if("explosion")
 			var/parameter = input(src, "station_missed = ?", "Enter Parameter", 0) as num

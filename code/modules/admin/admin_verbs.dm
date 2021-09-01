@@ -55,7 +55,8 @@ GLOBAL_LIST_INIT(admin_verbs_admin, list(
 	/client/proc/update_mob_sprite,
 	/client/proc/man_up,
 	/client/proc/global_man_up,
-	/client/proc/library_manager,
+	/client/proc/delbook,
+	/client/proc/view_flagged_books,
 	/client/proc/view_asays,
 	/client/proc/empty_ai_core_toggle_latejoin,
 	/client/proc/aooc,
@@ -66,12 +67,11 @@ GLOBAL_LIST_INIT(admin_verbs_admin, list(
 	/client/proc/toggle_mentor_chat,
 	/client/proc/toggle_advanced_interaction, /*toggle admin ability to interact with not only machines, but also atoms such as buttons and doors*/
 	/client/proc/list_ssds_afks,
-	/client/proc/ccbdb_lookup_ckey,
-	/client/proc/view_instances,
-	/client/proc/start_vote
+	/client/proc/ccbdb_lookup_ckey
 ))
 GLOBAL_LIST_INIT(admin_verbs_ban, list(
 	/client/proc/ban_panel,
+	/client/proc/stickybanpanel,
 	/datum/admins/proc/vpn_whitelist
 	))
 GLOBAL_LIST_INIT(admin_verbs_sounds, list(
@@ -86,6 +86,7 @@ GLOBAL_LIST_INIT(admin_verbs_event, list(
 	/client/proc/cmd_admin_dress,
 	/client/proc/cmd_admin_gib_self,
 	/client/proc/drop_bomb,
+	/client/proc/cinematic,
 	/client/proc/one_click_antag,
 	/client/proc/cmd_admin_add_freeform_ai_law,
 	/client/proc/cmd_admin_add_random_ai_law,
@@ -129,7 +130,8 @@ GLOBAL_LIST_INIT(admin_verbs_server, list(
 	/datum/admins/proc/toggleAI,
 	/client/proc/cmd_admin_delete,		/*delete an instance/object/mob/etc*/
 	/client/proc/cmd_debug_del_sing,
-	/client/proc/library_manager,
+	/client/proc/delbook,
+	/client/proc/view_flagged_books,
 	/client/proc/view_asays,
 	/client/proc/toggle_antagHUD_use,
 	/client/proc/toggle_antagHUD_restrictions,
@@ -141,6 +143,7 @@ GLOBAL_LIST_INIT(admin_verbs_server, list(
 	))
 GLOBAL_LIST_INIT(admin_verbs_debug, list(
 	/client/proc/cmd_admin_list_open_jobs,
+	/client/proc/Debug2,
 	/client/proc/cmd_debug_make_powernets,
 	/client/proc/debug_controller,
 	/client/proc/cmd_debug_mob_lists,
@@ -151,9 +154,11 @@ GLOBAL_LIST_INIT(admin_verbs_debug, list(
 	/client/proc/toggledebuglogs,
 	/client/proc/cmd_display_del_log,
 	/client/proc/cmd_display_del_log_simple,
+	/client/proc/debugNatureMapGenerator,
 	/client/proc/check_bomb_impacts,
 	/client/proc/test_movable_UI,
 	/client/proc/test_snap_UI,
+	/client/proc/cinematic,
 	/proc/machine_upgrade,
 	/client/proc/map_template_load,
 	/client/proc/map_template_upload,
@@ -164,16 +169,11 @@ GLOBAL_LIST_INIT(admin_verbs_debug, list(
 	/client/proc/uid_log,
 	/client/proc/visualise_active_turfs,
 	/client/proc/reestablish_db_connection,
-	/client/proc/ss_breakdown,
 	#ifdef REFERENCE_TRACKING
 	/datum/proc/find_refs,
 	/datum/proc/qdel_then_find_references,
 	/datum/proc/qdel_then_if_fail_find_references,
 	#endif
-	/client/proc/dmapi_debug,
-	/client/proc/dmapi_log,
-	/client/proc/timer_log,
-	/client/proc/debug_timers,
 	))
 GLOBAL_LIST_INIT(admin_verbs_possess, list(
 	/proc/possess,
@@ -223,14 +223,6 @@ GLOBAL_LIST_INIT(admin_verbs_ticket, list(
 	/client/proc/resolveAllAdminTickets,
 	/client/proc/resolveAllMentorTickets
 ))
-// In this list are verbs that should ONLY be executed by maintainers, aka people who know how badly this will break the server
-// If you are adding something here, you MUST justify it
-GLOBAL_LIST_INIT(admin_verbs_maintainer, list(
-	/client/proc/ticklag, // This adjusts the server tick rate and is VERY easy to hard lockup the server with
-	/client/proc/debugNatureMapGenerator, // This lags like hell, and is very easy to nuke half the server with
-	/client/proc/vv_by_ref, // This allows you to lookup **ANYTHING** in the server memory by spamming refs. Locked for security.
-	/client/proc/cinematic, // This will break everyone's screens in the round. Dont use this for adminbus.
-))
 
 /client/proc/on_holder_add()
 	if(chatOutput && chatOutput.loaded)
@@ -276,15 +268,10 @@ GLOBAL_LIST_INIT(admin_verbs_maintainer, list(
 			verbs += GLOB.admin_verbs_mentor
 		if(holder.rights & R_PROCCALL)
 			verbs += GLOB.admin_verbs_proccall
-		if(holder.rights & R_MAINTAINER)
-			verbs += GLOB.admin_verbs_maintainer
 		if(holder.rights & R_VIEWRUNTIMES)
 			verbs += /client/proc/view_runtimes
 			verbs += /client/proc/cmd_display_del_log
 			verbs += /client/proc/cmd_display_del_log_simple
-			verbs += /client/proc/toggledebuglogs
-			verbs += /client/proc/debug_variables /*allows us to -see- the variables of any instance in the game. +VAREDIT needed to modify*/
-			verbs += /client/proc/ss_breakdown
 			spawn(1) // This setting exposes the profiler for people with R_VIEWRUNTIMES. They must still have it set in cfg/admin.txt
 				control_freak = 0
 
@@ -309,8 +296,7 @@ GLOBAL_LIST_INIT(admin_verbs_maintainer, list(
 		GLOB.admin_verbs_proccall,
 		GLOB.admin_verbs_show_debug_verbs,
 		/client/proc/readmin,
-		GLOB.admin_verbs_ticket,
-		GLOB.admin_verbs_maintainer,
+		GLOB.admin_verbs_ticket
 	)
 
 /client/proc/hide_verbs()
@@ -376,20 +362,17 @@ GLOBAL_LIST_INIT(admin_verbs_maintainer, list(
 
 	if(!check_rights(R_ADMIN))
 		return
-	if(!isliving(mob))
-		return
 
-	if(mob.invisibility == INVISIBILITY_OBSERVER)
-		mob.invisibility = initial(mob.invisibility)
-		mob.add_to_all_human_data_huds()
-		to_chat(mob, "<span class='danger'>Invisimin off. Invisibility reset.</span>")
-		log_admin("[key_name(mob)] has turned Invisimin OFF")
-	else
-		mob.invisibility = INVISIBILITY_OBSERVER
-		mob.remove_from_all_data_huds()
-		to_chat(mob, "<span class='notice'>Invisimin on. You are now as invisible as a ghost.</span>")
-		log_admin("[key_name(mob)] has turned Invisimin ON")
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Invisimin")
+	if(mob)
+		if(mob.invisibility == INVISIBILITY_OBSERVER)
+			mob.invisibility = initial(mob.invisibility)
+			to_chat(mob, "<span class='danger'>Invisimin off. Invisibility reset.</span>")
+			mob.add_to_all_human_data_huds()
+			//TODO: Make some kind of indication for the badmin that they are currently invisible
+		else
+			mob.invisibility = INVISIBILITY_OBSERVER
+			to_chat(mob, "<span class='notice'>Invisimin on. You are now as invisible as a ghost.</span>")
+			mob.remove_from_all_data_huds()
 
 /client/proc/player_panel_new()
 	set name = "Player Panel"
@@ -421,7 +404,10 @@ GLOBAL_LIST_INIT(admin_verbs_maintainer, list(
 	if(!check_rights(R_BAN))
 		return
 
-	holder.DB_ban_panel()
+	if(!GLOB.configuration.general.use_database_bans)
+		holder.unbanpanel()
+	else
+		holder.DB_ban_panel()
 	SSblackbox.record_feedback("tally", "admin_verb", 1, "Ban Panel") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 	return
 
@@ -505,6 +491,51 @@ GLOBAL_LIST_INIT(admin_verbs_maintainer, list(
 			createStealthKey()
 		log_admin("[key_name(usr)] has turned BB mode [holder.fakekey ? "ON" : "OFF"]")
 		SSblackbox.record_feedback("tally", "admin_verb", 1, "Big Brother Mode")
+
+#define MAX_WARNS 3
+#define AUTOBANTIME 10
+
+/client/proc/warn(warned_ckey)
+	if(!check_rights(R_ADMIN))
+		return
+
+	if(!warned_ckey || !istext(warned_ckey))	return
+	if(warned_ckey in GLOB.admin_datums)
+		to_chat(usr, "<font color='red'>Error: warn(): You can't warn admins.</font>")
+		return
+
+	var/datum/preferences/D
+	var/client/C = GLOB.directory[warned_ckey]
+	if(C)	D = C.prefs
+	else	D = GLOB.preferences_datums[warned_ckey]
+
+	if(!D)
+		to_chat(src, "<font color='red'>Error: warn(): No such ckey found.</font>")
+		return
+
+	if(++D.warns >= MAX_WARNS)					//uh ohhhh...you'reee iiiiin trouuuubble O:)
+		if(C)
+			message_admins("[key_name_admin(src)] has warned [key_name_admin(C)] resulting in a [AUTOBANTIME] minute ban")
+			log_admin("[key_name(src)] has warned [key_name(C)] resulting in a [AUTOBANTIME] minute ban")
+			to_chat(C, "<font color='red'><BIG><B>You have been autobanned due to a warning by [ckey].</B></BIG><br>This is a temporary ban, it will be removed in [AUTOBANTIME] minutes.")
+			qdel(C)
+		else
+			message_admins("[key_name_admin(src)] has warned [warned_ckey] resulting in a [AUTOBANTIME] minute ban")
+			log_admin("[key_name(src)] has warned [warned_ckey] resulting in a [AUTOBANTIME] minute ban")
+		AddBan(warned_ckey, D.last_id, "Autobanning due to too many formal warnings", ckey, 1, AUTOBANTIME)
+	else
+		if(C)
+			to_chat(C, "<font color='red'><BIG><B>You have been formally warned by an administrator.</B></BIG><br>Further warnings will result in an autoban.</font>")
+			message_admins("[key_name_admin(src)] has warned [key_name_admin(C)]. They have [MAX_WARNS-D.warns] strikes remaining.")
+			log_admin("[key_name(src)] has warned [key_name(C)]. They have [MAX_WARNS-D.warns] strikes remaining.")
+		else
+			message_admins("[key_name_admin(src)] has warned [warned_ckey] (DC). They have [MAX_WARNS-D.warns] strikes remaining.")
+			log_admin("[key_name(src)] has warned [warned_ckey] (DC). They have [MAX_WARNS-D.warns] strikes remaining.")
+
+	SSblackbox.record_feedback("tally", "admin_verb", 1, "Warning") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+
+#undef MAX_WARNS
+#undef AUTOBANTIME
 
 /client/proc/drop_bomb() // Some admin dickery that can probably be done better -- TLE
 	set category = "Event"
@@ -675,56 +706,45 @@ GLOBAL_LIST_INIT(admin_verbs_maintainer, list(
 
 		qdel(rank_read)
 	if(!D)
-		D = try_localhost_autoadmin()
-		if(!D)
-			if(!GLOB.configuration.admin.use_database_admins)
-				if(GLOB.admin_ranks[rank] == null)
-					error("Error while re-adminning [src], admin rank ([rank]) does not exist.")
-					to_chat(src, "Error while re-adminning, admin rank ([rank]) does not exist.")
-					return
+		if(!GLOB.configuration.admin.use_database_admins)
+			if(GLOB.admin_ranks[rank] == null)
+				error("Error while re-adminning [src], admin rank ([rank]) does not exist.")
+				to_chat(src, "Error while re-adminning, admin rank ([rank]) does not exist.")
+				return
 
-				// Do a little check here
-				if(GLOB.configuration.system.is_production && (GLOB.admin_ranks[rank] & R_ADMIN) && prefs._2fa_status == _2FA_DISABLED) // If they are an admin and their 2FA is disabled
-					to_chat(src,"<span class='boldannounce'><big>You do not have 2FA enabled. Admin verbs will be unavailable until you have enabled 2FA.</big></span>") // Very fucking obvious
-					return
-				D = new(rank, GLOB.admin_ranks[rank], ckey)
-			else
-				if(!SSdbcore.IsConnected())
-					to_chat(src, "Warning, MYSQL database is not connected.")
-					return
+			D = new(rank, GLOB.admin_ranks[rank], ckey)
+		else
+			if(!SSdbcore.IsConnected())
+				to_chat(src, "Warning, MYSQL database is not connected.")
+				return
 
-				var/datum/db_query/admin_read = SSdbcore.NewQuery(
-					"SELECT ckey, admin_rank, flags FROM admin WHERE ckey=:ckey",
-					list("ckey" = ckey)
-				)
+			var/datum/db_query/admin_read = SSdbcore.NewQuery(
+				"SELECT ckey, admin_rank, flags FROM admin WHERE ckey=:ckey",
+				list("ckey" = ckey)
+			)
 
-				if(!admin_read.warn_execute())
-					qdel(admin_read)
-					return FALSE
-
-				while(admin_read.NextRow())
-					var/admin_ckey = admin_read.item[1]
-					var/admin_rank = admin_read.item[2]
-					var/flags = admin_read.item[3]
-					if(!admin_ckey)
-						to_chat(src, "Error while re-adminning, ckey [admin_ckey] was not found in the admin database.")
-						qdel(admin_read)
-						return
-					if(admin_rank == "Removed") //This person was de-adminned. They are only in the admin list for archive purposes.
-						to_chat(src, "Error while re-adminning, ckey [admin_ckey] is not an admin.")
-						qdel(admin_read)
-						return
-
-					if(istext(flags))
-						flags = text2num(flags)
-					var/client/check_client = GLOB.directory[ckey]
-					// Do a little check here
-					if(GLOB.configuration.system.is_production && (flags & R_ADMIN) && check_client.prefs._2fa_status == _2FA_DISABLED) // If they are an admin and their 2FA is disabled
-						to_chat(src,"<span class='boldannounce'><big>You do not have 2FA enabled. Admin verbs will be unavailable until you have enabled 2FA.</big></span>") // Very fucking obvious
-						qdel(admin_read)
-						return
-					D = new(admin_rank, flags, ckey)
+			if(!admin_read.warn_execute())
 				qdel(admin_read)
+				return FALSE
+
+			while(admin_read.NextRow())
+				var/admin_ckey = admin_read.item[1]
+				var/admin_rank = admin_read.item[2]
+				var/flags = admin_read.item[3]
+				if(!admin_ckey)
+					to_chat(src, "Error while re-adminning, ckey [admin_ckey] was not found in the admin database.")
+					qdel(admin_read)
+					return
+				if(admin_rank == "Removed") //This person was de-adminned. They are only in the admin list for archive purposes.
+					to_chat(src, "Error while re-adminning, ckey [admin_ckey] is not an admin.")
+					qdel(admin_read)
+					return
+
+				if(istext(flags))
+					flags = text2num(flags)
+				D = new(admin_rank, flags, ckey)
+
+			qdel(admin_read)
 
 		var/client/C = GLOB.directory[ckey]
 		D.associate(C)
@@ -933,7 +953,7 @@ GLOBAL_LIST_INIT(admin_verbs_maintainer, list(
 	set name = "Toggle Debug Log Messages"
 	set category = "Preferences"
 
-	if(!check_rights(R_VIEWRUNTIMES | R_DEBUG))
+	if(!check_rights(R_DEBUG))
 		return
 
 	prefs.toggles ^= PREFTOGGLE_CHAT_DEBUGLOGS

@@ -9,7 +9,6 @@
 	var/list/datum/autopsy_data_scanner/wdata = list()
 	var/list/chemtraces = list()
 	var/target_name = null
-	var/target_UID = null
 	var/timeofdeath = null
 
 /obj/item/autopsy_scanner/Destroy()
@@ -154,11 +153,10 @@
 	if(!istype(M))
 		return
 
-	if(!on_operable_surface(M))
+	if(!can_operate(M))
 		return
 
-	if(target_UID != M.UID())
-		target_UID = M.UID()
+	if(target_name != M.name)
 		target_name = M.name
 		wdata.Cut()
 		chemtraces.Cut()

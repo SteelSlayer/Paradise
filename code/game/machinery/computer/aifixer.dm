@@ -6,19 +6,18 @@
 	circuit = /obj/item/circuitboard/aifixer
 	req_access = list(ACCESS_CAPTAIN, ACCESS_ROBOTICS, ACCESS_HEADS)
 	var/mob/living/silicon/ai/occupant = null
-	var/active = FALSE
+	var/active = 0
 
 	light_color = LIGHT_COLOR_PURPLE
 
-/obj/machinery/computer/aifixer/screwdriver_act(mob/user, obj/item/I)
-	if(occupant)
+/obj/machinery/computer/aifixer/attackby(I as obj, user as mob, params)
+	if(occupant && istype(I, /obj/item/screwdriver))
 		if(stat & BROKEN)
-			return ..()
+			..()
 		if(stat & NOPOWER)
 			to_chat(user, "<span class='warning'>The screws on [name]'s screen won't budge.</span>")
 		else
 			to_chat(user, "<span class='warning'>The screws on [name]'s screen won't budge and it emits a warning beep!.</span>")
-		return TRUE
 	else
 		return ..()
 
@@ -74,11 +73,11 @@
 		if("radio")
 			occupant.aiRadio.disabledAi = !occupant.aiRadio.disabledAi
 
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 	return TRUE
 
 /obj/machinery/computer/aifixer/proc/fix_ai() // Can we fix it? Probrably.
-	while(occupant.health < 100 || occupant.stat == DEAD)
+	while(occupant.health < 100)
 		occupant.adjustOxyLoss(-1, FALSE)
 		occupant.adjustFireLoss(-1, FALSE)
 		occupant.adjustToxLoss(-1, FALSE)
@@ -86,22 +85,27 @@
 		occupant.updatehealth()
 		if(occupant.health >= 0 && occupant.stat == DEAD)
 			occupant.update_revive()
-			update_icon(UPDATE_OVERLAYS)
+			occupant.lying = FALSE
+			update_icon()
 		sleep(10)
 	active = FALSE
 
-/obj/machinery/computer/aifixer/update_overlays()
-	. = ..()
-	if(active)
-		. += "ai-fixer-on"
-	if(occupant)
-		switch(occupant.stat)
-			if(0)
-				. += "ai-fixer-full"
-			if(2)
-				. += "ai-fixer-404"
+/obj/machinery/computer/aifixer/update_icon()
+	..()
+	if(stat & (NOPOWER|BROKEN))
+		return
 	else
-		. += "ai-fixer-empty"
+		var/overlay_layer = LIGHTING_LAYER+0.2 // +0.1 from the default computer overlays
+		if(active)
+			overlays += image(icon,"ai-fixer-on",overlay_layer)
+		if(occupant)
+			switch(occupant.stat)
+				if(0)
+					overlays += image(icon,"ai-fixer-full",overlay_layer)
+				if(2)
+					overlays += image(icon,"ai-fixer-404",overlay_layer)
+		else
+			overlays += image(icon,"ai-fixer-empty",overlay_layer)
 
 /obj/machinery/computer/aifixer/transfer_ai(interaction, mob/user, mob/living/silicon/ai/AI, obj/item/aicard/card)
 	if(!..())
@@ -113,11 +117,11 @@
 			return
 		AI.forceMove(src)
 		occupant = AI
-		AI.control_disabled = TRUE
-		AI.aiRadio.disabledAi = TRUE
+		AI.control_disabled = 1
+		AI.aiRadio.disabledAi = 1
 		to_chat(AI, "You have been uploaded to a stationary terminal. Sadly, there is no remote access from here.")
 		to_chat(user, "<span class='boldnotice'>Transfer successful</span>: [AI.name] ([rand(1000,9999)].exe) installed and executed successfully. Local copy has been removed.")
-		update_icon(UPDATE_OVERLAYS)
+		update_icon()
 
 	else //Uploading AI from terminal to card
 		if(occupant && !active)
@@ -125,7 +129,7 @@
 			to_chat(user, "<span class='boldnotice'>Transfer successful</span>: [occupant.name] ([rand(1000,9999)].exe) removed from host terminal and stored within local memory.")
 			occupant.forceMove(card)
 			occupant = null
-			update_icon(UPDATE_OVERLAYS)
+			update_icon()
 		else if(active)
 			to_chat(user, "<span class='boldannounce'>ERROR</span>: Reconstruction in progress.")
 		else if(!occupant)

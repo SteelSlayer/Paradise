@@ -1,5 +1,6 @@
 var/list/chatResources = list(
 	"goon/browserassets/js/jquery.min.js",
+	"goon/browserassets/js/jquery.mark.min.js",
 	"goon/browserassets/js/json2.min.js",
 	"goon/browserassets/js/twemoji.min.js",
 	"goon/browserassets/js/browserOutput.js",
@@ -66,7 +67,7 @@ var/list/chatResources = list(
 
 	for(var/attempts in 1 to 5)
 		for(var/asset in global.chatResources)
-			owner << browse_rsc(wrap_file(asset))
+			owner << browse_rsc(file(asset))
 
 		for(var/subattempts in 1 to 3)
 			owner << browse(file2text("goon/browserassets/html/browserOutput.html"), "window=browseroutput")
@@ -187,7 +188,7 @@ var/list/chatResources = list(
 				var/list/row = connectionHistory[i]
 				if(!row || row.len < 3 || !(row["ckey"] && row["compid"] && row["ip"]))
 					return
-				if(world.IsBanned(key=row["ckey"], address=row["ip"], computer_id=row["compid"], type=null, check_ipintel=FALSE, check_2fa=FALSE, check_guest=FALSE, log_info=FALSE, check_tos=FALSE))
+				if(world.IsBanned(key=row["ckey"], address=row["ip"], computer_id=row["compid"], type=null, check_ipintel=FALSE, check_2fa=FALSE))
 					found = row
 					break
 				CHECK_TICK

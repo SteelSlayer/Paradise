@@ -5,20 +5,14 @@
 	health = 100
 	icon_state = "aliend_s"
 
-/mob/living/carbon/alien/humanoid/drone/Initialize(mapload)
-	. = ..()
+/mob/living/carbon/alien/humanoid/drone/New()
 	if(src.name == "alien drone")
-		src.name = "alien drone ([rand(1, 1000)])"
+		src.name = text("alien drone ([rand(1, 1000)])")
 	src.real_name = src.name
-
-/mob/living/carbon/alien/humanoid/drone/get_caste_organs()
-	. = ..()
-	. += list(
-		/obj/item/organ/internal/xenos/plasmavessel/drone,
-		/obj/item/organ/internal/xenos/acidgland,
-		/obj/item/organ/internal/xenos/resinspinner,
-	)
-
+	alien_organs += new /obj/item/organ/internal/xenos/plasmavessel/drone
+	alien_organs += new /obj/item/organ/internal/xenos/acidgland
+	alien_organs += new /obj/item/organ/internal/xenos/resinspinner
+	..()
 
 //Drones use the same base as generic humanoids.
 //Drone verbs
@@ -36,6 +30,9 @@
 				continue
 			no_queen = 0
 
+		if(src.has_brain_worms())
+			to_chat(src, "<span class='warning'>We cannot perform this ability at the present time!</span>")
+			return
 		if(no_queen)
 			adjustPlasma(-500)
 			to_chat(src, "<span class='noticealien'>You begin to evolve!</span>")

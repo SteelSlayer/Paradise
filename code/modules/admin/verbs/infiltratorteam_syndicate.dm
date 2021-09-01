@@ -66,12 +66,15 @@ GLOBAL_VAR_INIT(sent_syndicate_infiltration_team, 0)
 
 	var/list/sit_spawns = list()
 	var/list/sit_spawns_leader = list()
+	var/list/sit_spawns_mgmt = list()
 	for(var/thing in GLOB.landmarks_list)
 		var/obj/effect/landmark/L = thing
-		if(istype(L, /obj/effect/landmark/spawner/syndicate_infiltrator))
+		if(L.name == "Syndicate-Infiltrator")
 			sit_spawns += L
-		if(istype(L, /obj/effect/landmark/spawner/syndicate_infiltrator_leader))
+		if(L.name == "Syndicate-Infiltrator-Leader")
 			sit_spawns_leader += L
+		if(L.name == "Syndicate-Infiltrator-Admin")
+			sit_spawns_mgmt += L
 
 	var/num_spawned = 1
 	var/team_leader = null
@@ -121,10 +124,9 @@ GLOBAL_VAR_INIT(sent_syndicate_infiltration_team, 0)
 
 	var/syndicate_infiltrator_name = random_name(pick(MALE,FEMALE))
 
-	var/datum/character_save/S = new //Randomize appearance
-	S.randomise()
-	S.real_name = syndicate_infiltrator_name
-	S.copy_to(new_syndicate_infiltrator)
+	var/datum/preferences/A = new() //Randomize appearance
+	A.real_name = syndicate_infiltrator_name
+	A.copy_to(new_syndicate_infiltrator)
 	new_syndicate_infiltrator.dna.ready_dna(new_syndicate_infiltrator)
 
 	//Creates mind stuff.
@@ -178,8 +180,8 @@ GLOBAL_VAR_INIT(sent_syndicate_infiltration_team, 0)
 	else
 		W.icon_state = "id"
 	W.access = list(ACCESS_MAINT_TUNNELS,ACCESS_EXTERNAL_AIRLOCKS)
-	W.assignment = "Assistant"
-	W.access += get_access("Assistant")
+	W.assignment = "Civilian"
+	W.access += get_access("Civilian")
 	W.access += list(ACCESS_MEDICAL, ACCESS_ENGINE, ACCESS_CARGO, ACCESS_RESEARCH)
 	if(flag_mgmt)
 		W.assignment = "Syndicate Management Consultant"

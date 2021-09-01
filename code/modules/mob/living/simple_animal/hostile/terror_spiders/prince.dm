@@ -32,6 +32,16 @@
 	ai_spins_webs = FALSE
 	gender = MALE
 
-/mob/living/simple_animal/hostile/poison/terror_spider/prince/spider_specialattack(mob/living/carbon/human/L)
-	L.KnockDown(10 SECONDS)
+/mob/living/simple_animal/hostile/poison/terror_spider/prince/death(gibbed)
+	if(can_die() && !hasdied && spider_uo71)
+		UnlockBlastDoors("UO71_SciStorage")
 	return ..()
+
+/mob/living/simple_animal/hostile/poison/terror_spider/prince/spider_specialattack(mob/living/carbon/human/L)
+	if(prob(15))
+		visible_message("<span class='danger'>[src] rams into [L], knocking [L.p_them()] to the floor!</span>")
+		do_attack_animation(L)
+		L.Weaken(5)
+		L.Stun(5)
+	else
+		..()

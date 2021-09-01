@@ -62,16 +62,6 @@
 	build_path = /obj/item/handheld_defibrillator
 	category = list("Medical")
 
-/datum/design/holostretcher
-	name = "Holo Strecher"
-	desc = "A hardlight projector for transporting patients."
-	id = "holo_stretcher"
-	req_tech = list("magnets" = 6, "powerstorage" = 4)
-	build_path = /obj/item/roller/holo
-	build_type = PROTOLATHE
-	materials = list(MAT_METAL = 1000, MAT_SILVER = 500, MAT_GLASS = 500, MAT_DIAMOND = 200)
-	category = list("Medical")
-
 /datum/design/defib
 	name = "Defibrillator"
 	desc = "A device that delivers powerful shocks to detachable paddles that resuscitate incapacitated patients."
@@ -80,16 +70,6 @@
 	build_type = PROTOLATHE
 	materials = list(MAT_METAL = 5000, MAT_GLASS = 2000, MAT_SILVER = 1000)
 	build_path = /obj/item/defibrillator
-	category = list("Medical")
-
-/datum/design/compact_defib
-	name = "Compact Defibrillator"
-	desc = "A belt-mounted defibrillator for rapid deployment."
-	id = "compact_defib"
-	req_tech = list("materials" = 7, "biotech" = 7, "powerstorage" = 6)
-	build_type = PROTOLATHE
-	materials = list(MAT_METAL = 10000, MAT_GLASS = 4000, MAT_SILVER = 2000)
-	build_path = /obj/item/defibrillator/compact
 	category = list("Medical")
 
 /datum/design/defib_mount
@@ -165,7 +145,7 @@
 	build_path = /obj/item/reagent_scanner
 	category = list("Medical")
 
-/datum/design/scalpel_laser1
+/datum/design/item/scalpel_laser1
 	name = "Basic Laser Scalpel"
 	desc = "A scalpel augmented with a directed laser, for more precise cutting without blood entering the field. This one looks basic and could be improved."
 	id = "scalpel_laser1"
@@ -175,7 +155,7 @@
 	build_path = /obj/item/scalpel/laser/laser1
 	category = list("Medical")
 
-/datum/design/scalpel_laser2
+/datum/design/item/scalpel_laser2
 	name = "Improved Laser Scalpel"
 	desc = "A scalpel augmented with a directed laser, for more precise cutting without blood entering the field. This one looks somewhat advanced."
 	id = "scalpel_laser2"
@@ -185,7 +165,7 @@
 	build_path = /obj/item/scalpel/laser/laser2
 	category = list("Medical")
 
-/datum/design/scalpel_laser3
+/datum/design/item/scalpel_laser3
 	name = "Advanced Laser Scalpel"
 	desc = "A scalpel augmented with a directed laser, for more precise cutting without blood entering the field. This one looks to be the pinnacle of precision energy cutlery!"
 	id = "scalpel_laser3"
@@ -195,7 +175,7 @@
 	build_path = /obj/item/scalpel/laser/laser3
 	category = list("Medical")
 
-/datum/design/scalpel_manager
+/datum/design/item/scalpel_manager
 	name = "Incision Management System"
 	desc = "A true extension of the surgeon's body, this marvel instantly and completely prepares an incision allowing for the immediate commencement of therapeutic steps."
 	id = "scalpel_manager"
@@ -455,13 +435,13 @@
 
 /datum/design/cyberimp_antistun
 	name = "CNS Rebooter implant"
-	desc = "This implant will automatically give you back control over your central nervous system, reducing downtime when fatigued. Incompatible with the Neural Jumpstarter."
+	desc = "This implant will automatically give you back control over your central nervous system, reducing downtime when stunned. Incompatible with the Neural Jumpstarter."
 	id = "ci-antistun"
 	req_tech = list("materials" = 6, "programming" = 5, "biotech" = 6)
 	build_type = PROTOLATHE | MECHFAB
 	construction_time = 60
 	materials = list(MAT_METAL = 600, MAT_GLASS = 600, MAT_SILVER = 500, MAT_GOLD = 1000)
-	build_path = /obj/item/organ/internal/cyberimp/brain/anti_stam
+	build_path = /obj/item/organ/internal/cyberimp/brain/anti_stun
 	category = list("Medical")
 
 /datum/design/cyberimp_antisleep
@@ -570,7 +550,7 @@
 	req_tech = list("materials" = 2, "biotech" = 3, "magnets" = 3, "programming" = 2)
 	build_type = PROTOLATHE
 	materials = list(MAT_METAL = 500, MAT_GLASS = 500)
-	build_path = /obj/item/implantcase/tracking
+	build_path = /obj/item/implantcase/track
 	category = list("Medical")
 
 //Cybernetic organs

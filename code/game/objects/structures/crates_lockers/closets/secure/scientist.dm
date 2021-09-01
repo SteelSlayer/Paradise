@@ -1,8 +1,12 @@
 /obj/structure/closet/secure_closet/scientist
 	name = "scientist's locker"
 	req_access = list(ACCESS_TOX_STORAGE)
-	icon_state = "science"
-	open_door_sprite = "white_secure_door"
+	icon_state = "secureres1"
+	icon_closed = "secureres"
+	icon_locked = "secureres1"
+	icon_opened = "secureresopen"
+	icon_broken = "secureresbroken"
+	icon_off = "secureresoff"
 
 /obj/structure/closet/secure_closet/scientist/populate_contents()
 	new /obj/item/storage/backpack/science(src)
@@ -21,8 +25,12 @@
 /obj/structure/closet/secure_closet/roboticist
 	name = "roboticist's locker"
 	req_access = list(ACCESS_ROBOTICS)
-	icon_state = "science"
-	open_door_sprite = "white_secure_door"
+	icon_state = "secureres1"
+	icon_closed = "secureres"
+	icon_locked = "secureres1"
+	icon_opened = "secureresopen"
+	icon_broken = "secureresbroken"
+	icon_off = "secureresoff"
 
 /obj/structure/closet/secure_closet/roboticist/populate_contents()
 	new /obj/item/storage/backpack(src)
@@ -35,37 +43,46 @@
 	new /obj/item/clothing/suit/storage/labcoat(src)
 	new /obj/item/radio/headset/headset_sci(src)
 	new /obj/item/radio/headset/headset_sci(src)
-	new /obj/item/radio/headset/headset_sci(src)
 
 /obj/structure/closet/secure_closet/RD
 	name = "research director's locker"
 	req_access = list(ACCESS_RD)
-	icon_state = "rd"
-	open_door_sprite = "rd_door"
+	icon_state = "rdsecure1"
+	icon_closed = "rdsecure"
+	icon_locked = "rdsecure1"
+	icon_opened = "rdsecureopen"
+	icon_broken = "rdsecurebroken"
+	icon_off = "rdsecureoff"
 
 /obj/structure/closet/secure_closet/RD/populate_contents()
-	new /obj/item/storage/bag/garment/research_director(src)
 	new /obj/item/clothing/suit/bio_suit/scientist(src)
 	new /obj/item/clothing/head/bio_hood/scientist(src)
+	new /obj/item/clothing/under/rank/research_director(src)
+	new /obj/item/clothing/suit/storage/labcoat(src)
+	new /obj/item/clothing/suit/mantle/labcoat(src)
 	new /obj/item/cartridge/rd(src)
+	new /obj/item/clothing/shoes/white(src)
+	new /obj/item/clothing/gloves/color/latex(src)
 	new /obj/item/radio/headset/heads/rd(src)
 	new /obj/item/tank/internals/air(src)
 	new /obj/item/clothing/mask/gas(src)
-	new /obj/item/clothing/suit/armor/reactive/random(src)
+	new /obj/item/clothing/suit/armor/reactive/teleport(src)
 	new /obj/item/flash(src)
 	new /obj/item/laser_pointer(src)
 	new /obj/item/door_remote/research_director(src)
 	new /obj/item/reagent_containers/food/drinks/mug/rd(src)
 	new /obj/item/organ/internal/cyberimp/eyes/hud/diagnostic(src)
 	new /obj/item/clothing/accessory/medal/science(src)
-	new /obj/item/clothing/glasses/welding/superior(src)
 
 /obj/structure/closet/secure_closet/research_reagents
 	name = "research chemical storage closet"
 	desc = "Store dangerous chemicals in here."
-	icon_state = "rchemical"
-	open_door_sprite = "med_door"
-	icon_opened = "med_open"
+	icon_state = "rchemical1"
+	icon_closed = "rchemical"
+	icon_locked = "rchemical1"
+	icon_opened = "medicalopen"
+	icon_broken = "rchemicalbroken"
+	icon_off = "rchemicaloff"
 	req_access = list(ACCESS_TOX_STORAGE)
 
 /obj/structure/closet/secure_closet/research_reagents/populate_contents()

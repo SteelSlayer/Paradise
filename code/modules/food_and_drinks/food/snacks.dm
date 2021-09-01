@@ -9,8 +9,10 @@
 	var/trash = null
 	var/slice_path
 	var/slices_num
+	var/eatverb
+	var/wrapped = 0
 	var/dried_type = null
-	var/dry = FALSE
+	var/dry = 0
 	var/cooktype[0]
 	var/cooked_type = null  //for microwave cooking. path of the resulting item after microwaving
 	var/total_w_class = 0 //for the total weight an item of food can carry
@@ -275,11 +277,11 @@
 	filling_color = "#211F02"
 	list_reagents = list("????" = 30)
 
-/obj/item/reagent_containers/food/snacks/badrecipe/Initialize(mapload)
-	. = ..()
+/obj/item/reagent_containers/food/snacks/badrecipe/New()
+	..()
 	// it's burned! it should start off being classed as any cooktype that burns
-	cooktype["grilled"] = TRUE
-	cooktype["deep fried"] = TRUE
+	cooktype["grilled"] = 1
+	cooktype["deep fried"] = 1
 
 // MISC
 

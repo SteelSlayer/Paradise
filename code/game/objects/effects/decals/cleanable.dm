@@ -1,4 +1,5 @@
 /obj/effect/decal/cleanable
+	anchored = TRUE
 	var/list/random_icon_states = list()
 	var/bloodiness = 0 //0-100, amount of blood in this decal, used for making footprints and affecting the alpha of bloody footprints
 	var/mergeable_decal = TRUE //when two of these are on a same tile or do we need to merge them into just one?
@@ -16,9 +17,6 @@
 		var/obj/item/organ/external/l_foot = H.get_organ("l_foot")
 		var/obj/item/organ/external/r_foot = H.get_organ("r_foot")
 		var/hasfeet = TRUE
-		if(IS_HORIZONTAL(H) && !H.buckled) //Make people bloody if they're lying down and move into blood
-			if(bloodiness > 0 && length(blood_DNA))
-				H.add_blood(H.blood_DNA, basecolor)
 		if(!l_foot && !r_foot)
 			hasfeet = FALSE
 		if(H.shoes && blood_state && bloodiness)
@@ -30,7 +28,6 @@
 				add_blood = bloodiness
 			bloodiness -= add_blood
 			S.bloody_shoes[blood_state] = min(MAX_SHOE_BLOODINESS, S.bloody_shoes[blood_state] + add_blood)
-			S.bloody_shoes[BLOOD_BASE_ALPHA] = BLOODY_FOOTPRINT_BASE_ALPHA * (alpha/255)
 			if(blood_DNA && blood_DNA.len)
 				S.add_blood(H.blood_DNA, basecolor)
 			S.blood_state = blood_state
@@ -45,7 +42,6 @@
 				add_blood = bloodiness
 			bloodiness -= add_blood
 			H.bloody_feet[blood_state] = min(MAX_SHOE_BLOODINESS, H.bloody_feet[blood_state] + add_blood)
-			H.bloody_feet[BLOOD_BASE_ALPHA] = BLOODY_FOOTPRINT_BASE_ALPHA * (alpha/255)
 			if(!H.feet_blood_DNA)
 				H.feet_blood_DNA = list()
 			H.blood_state = blood_state
@@ -70,11 +66,11 @@
 					return TRUE
 	if(random_icon_states && length(src.random_icon_states) > 0)
 		src.icon_state = pick(src.random_icon_states)
-	if(smoothing_flags)
-		QUEUE_SMOOTH(src)
-		QUEUE_SMOOTH_NEIGHBORS(src)
+	if(smooth)
+		queue_smooth(src)
+		queue_smooth_neighbors(src)
 
 /obj/effect/decal/cleanable/Destroy()
-	if(smoothing_flags)
-		QUEUE_SMOOTH_NEIGHBORS(src)
+	if(smooth)
+		queue_smooth_neighbors(src)
 	return ..()

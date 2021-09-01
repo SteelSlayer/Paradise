@@ -26,10 +26,10 @@
 		msg += "It's coated in something flammable.\n"
 	msg += "</span>"
 
-	if(opened)
+	if(cover_flags & OPENED)
 		msg += "<span class='warning'>Its cover is open and the power cell is [cell ? "installed" : "missing"].</span>\n"
 	else
-		msg += "Its cover is closed[locked ? "" : ", and looks unlocked"].\n"
+		msg += "Its cover is closed[(cover_flags & LOCKED) ? "" : ", and looks unlocked"].\n"
 
 	if(cell && cell.charge <= 0)
 		msg += "<span class='warning'>Its battery indicator is blinking red!</span>\n"
@@ -42,7 +42,7 @@
 			msg += "<span class='warning'>It doesn't seem to be responding.</span>\n"
 		if(DEAD)
 			if(!suiciding)
-				msg += "<span class='deadsay'>It looks like its internal subsystems are beyond repair and require replacing.</span>\n"
+				msg += "<span class='deadsay'>It looks like its system is corrupted and requires a reset.</span>\n"
 			else
 				msg += "<span class='warning'>It looks like its system is corrupted beyond repair. There is no hope of recovery.</span>\n"
 	msg += "*---------*</span>"

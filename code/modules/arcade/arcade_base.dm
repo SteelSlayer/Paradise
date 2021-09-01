@@ -4,22 +4,22 @@
 	desc = "One of the most generic arcade games ever."
 	icon = 'icons/obj/arcade.dmi'
 	icon_state = "clawmachine_on"
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 40
 	var/tokens = 0
-	var/freeplay = FALSE			//for debugging and admin kindness
+	var/freeplay = 0				//for debugging and admin kindness
 	var/token_price = 0
 	var/last_winner = null			//for letting people who to hunt down and steal prizes from
 	var/window_name = "arcade"		//in case you want to change the window name for certain machines
 
-/obj/machinery/arcade/Initialize(mapload)
-	. = ..()
+/obj/machinery/arcade/New()
+	..()
 	if(type == /obj/machinery/arcade)		//if you spawn the base-type, it will replace itself with a random subtype for randomness
 		var/choice = pick(subtypesof(/obj/machinery/arcade))
 		new choice(loc)
-		return INITIALIZE_HINT_QDEL
+		qdel(src)
 
 /obj/machinery/arcade/examine(mob/user)
 	. = ..()
@@ -59,8 +59,12 @@
 			to_chat(user, "Someone else is already playing this machine, please wait your turn!")
 		return
 
-/obj/machinery/arcade/attackby(obj/item/O, mob/user, params)
-	if(exchange_parts(user, O))
+/obj/machinery/arcade/attackby(obj/item/O as obj, mob/user as mob, params)
+	if(istype(O, /obj/item/screwdriver) && anchored)
+		playsound(src.loc, O.usesound, 50, 1)
+		panel_open = !panel_open
+		to_chat(user, "You [panel_open ? "open" : "close"] the maintenance panel.")
+		update_icon()
 		return
 	if(!freeplay)
 		if(istype(O, /obj/item/card/id))
@@ -72,21 +76,14 @@
 			var/obj/item/stack/spacecash/C = O
 			if(pay_with_cash(C, user))
 				tokens += 1
-			return
+		return
+	if(panel_open && component_parts && istype(O, /obj/item/crowbar))
+		default_deconstruction_crowbar(user, O)
+		return
 	return ..()
 
-/obj/machinery/arcade/screwdriver_act(mob/living/user, obj/item/I)
-	if(!anchored)
-		return FALSE
-	default_deconstruction_screwdriver(user, icon_state, icon_state, I)
-	update_icon()
-	return TRUE
-
-/obj/machinery/arcade/crowbar_act(mob/living/user, obj/item/I)
-	if(!component_parts || !panel_open)
-		return FALSE
-	default_deconstruction_crowbar(user, I)
-	return TRUE
+/obj/machinery/arcade/update_icon()
+	return
 
 /obj/machinery/arcade/proc/pay_with_cash(obj/item/stack/spacecash/cashmoney, mob/user)
 	if(cashmoney.amount < token_price)

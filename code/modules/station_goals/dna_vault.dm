@@ -8,6 +8,7 @@
 #define VAULT_FIREPROOF "Thermal Regulation"
 #define VAULT_STUNTIME "Neural Repathing"
 #define VAULT_ARMOUR "Hardened Skin"
+#define VAULT_SPEED "Leg Muscle Stimulus"
 #define VAULT_QUICK "Arm Muscle Stimulus"
 
 /datum/station_goal/dna_vault
@@ -130,8 +131,8 @@ GLOBAL_LIST_INIT(non_simple_animals, typecacheof(list(/mob/living/carbon/human/m
 
 /obj/structure/filler
 	name = "big machinery part"
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1
 	invisibility = 101
 	var/obj/machinery/parent
 
@@ -147,8 +148,8 @@ GLOBAL_LIST_INIT(non_simple_animals, typecacheof(list(/mob/living/carbon/human/m
 	desc = "Break glass in case of apocalypse."
 	icon = 'icons/obj/machines/dna_vault.dmi'
 	icon_state = "vault"
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1
 	idle_power_usage = 5000
 	pixel_x = -32
 	pixel_y = -64
@@ -167,8 +168,7 @@ GLOBAL_LIST_INIT(non_simple_animals, typecacheof(list(/mob/living/carbon/human/m
 
 	var/list/obj/structure/fillers = list()
 
-/obj/machinery/dna_vault/Initialize(mapload)
-	. = ..()
+/obj/machinery/dna_vault/New()
 	//TODO: Replace this,bsa and gravgen with some big machinery datum
 	var/list/occupied = list()
 	for(var/direct in list(EAST,WEST,SOUTHEAST,SOUTHWEST))
@@ -188,7 +188,10 @@ GLOBAL_LIST_INIT(non_simple_animals, typecacheof(list(/mob/living/carbon/human/m
 			dna_max = G.human_count
 			break
 
-/obj/machinery/dna_vault/update_icon_state()
+	..()
+
+/obj/machinery/dna_vault/update_icon()
+	..()
 	if(stat & NOPOWER)
 		icon_state = "vaultoff"
 		return
@@ -199,7 +202,7 @@ GLOBAL_LIST_INIT(non_simple_animals, typecacheof(list(/mob/living/carbon/human/m
 		stat &= ~NOPOWER
 	else
 		stat |= NOPOWER
-	update_icon(UPDATE_ICON_STATE)
+	update_icon()
 
 
 /obj/machinery/dna_vault/Destroy()
@@ -227,7 +230,7 @@ GLOBAL_LIST_INIT(non_simple_animals, typecacheof(list(/mob/living/carbon/human/m
 	if(user in power_lottery)
 		return
 	var/list/L = list()
-	var/list/possible_powers = list(VAULT_TOXIN, VAULT_NOBREATH, VAULT_FIREPROOF, VAULT_STUNTIME, VAULT_ARMOUR, VAULT_QUICK)
+	var/list/possible_powers = list(VAULT_TOXIN, VAULT_NOBREATH, VAULT_FIREPROOF, VAULT_STUNTIME, VAULT_ARMOUR, VAULT_SPEED, VAULT_QUICK)
 	L += pick_n_take(possible_powers)
 	L += pick_n_take(possible_powers)
 	power_lottery[user] = L
@@ -261,9 +264,8 @@ GLOBAL_LIST_INIT(non_simple_animals, typecacheof(list(/mob/living/carbon/human/m
 
 	switch(action)
 		if("gene")
-			if(isliving(usr))
-				upgrade(usr, params["choice"])
-				return TRUE
+			upgrade(usr, params["choice"])
+			return TRUE
 
 /obj/machinery/dna_vault/proc/check_goal()
 	if(plants.len >= plants_max && animals.len >= animals_max && dna.len >= dna_max)
@@ -295,11 +297,10 @@ GLOBAL_LIST_INIT(non_simple_animals, typecacheof(list(/mob/living/carbon/human/m
 		return
 	if(!completed)
 		return
-	if(!istype(H) || HAS_TRAIT(H, TRAIT_GENELESS))
+	var/datum/species/S = H.dna.species
+	if(HAS_TRAIT(H, TRAIT_GENELESS))
 		to_chat(H, "<span class='warning'>Error, no DNA detected.</span>")
 		return
-
-	var/datum/species/S = H.dna.species
 	switch(upgrade_type)
 		if(VAULT_TOXIN)
 			to_chat(H, "<span class='notice'>You feel resistant to airborne toxins.</span>")
@@ -322,6 +323,9 @@ GLOBAL_LIST_INIT(non_simple_animals, typecacheof(list(/mob/living/carbon/human/m
 			to_chat(H, "<span class='notice'>You feel tough.</span>")
 			S.armor = 30
 			ADD_TRAIT(H, TRAIT_PIERCEIMMUNE, "dna_vault")
+		if(VAULT_SPEED)
+			to_chat(H, "<span class='notice'>You feel very fast and agile.</span>")
+			S.speed_mod = -1
 		if(VAULT_QUICK)
 			to_chat(H, "<span class='notice'>Your arms move as fast as lightning.</span>")
 			H.next_move_modifier = 0.5
@@ -332,4 +336,5 @@ GLOBAL_LIST_INIT(non_simple_animals, typecacheof(list(/mob/living/carbon/human/m
 #undef VAULT_FIREPROOF
 #undef VAULT_STUNTIME
 #undef VAULT_ARMOUR
+#undef VAULT_SPEED
 #undef VAULT_QUICK

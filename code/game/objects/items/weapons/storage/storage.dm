@@ -43,7 +43,7 @@
 	var/foldable_amt = 0
 
 	/// Lazy list of mobs which are currently viewing the storage inventory.
-	var/list/mobs_viewing
+	var/list/mobs_viewing 
 
 /obj/item/storage/Initialize(mapload)
 	. = ..()
@@ -85,20 +85,12 @@
 	LAZYCLEARLIST(mobs_viewing)
 	return ..()
 
-/obj/item/storage/forceMove(atom/destination)
-	. = ..()
-	if(!ismob(destination.loc))
-		for(var/mob/player in mobs_viewing)
-			if(player == destination)
-				continue
-			hide_from(player)
-
 /obj/item/storage/MouseDrop(obj/over_object)
 	if(!ismob(usr)) //so monkeys can take off their backpacks -- Urist
 		return
 	var/mob/M = usr
 
-	if(istype(M.loc, /obj/mecha) || M.incapacitated(FALSE, TRUE)) // Stops inventory actions in a mech as well as while being incapacitated
+	if(istype(M.loc, /obj/mecha) || M.incapacitated(FALSE, TRUE, TRUE)) // Stops inventory actions in a mech as well as while being incapacitated
 		return
 
 	if(over_object == M && Adjacent(M)) // this must come before the screen objects only block
@@ -108,14 +100,14 @@
 		return
 
 	if((istype(over_object, /obj/structure/table) || isfloorturf(over_object)) && length(contents) \
-		&& loc == M && !M.stat && !M.restrained() && !HAS_TRAIT(M, TRAIT_HANDS_BLOCKED) && over_object.Adjacent(M) && !istype(src, /obj/item/storage/lockbox)) // Worlds longest `if()`
+		&& loc == M && !M.stat && !M.restrained() && M.canmove && over_object.Adjacent(M) && !istype(src, /obj/item/storage/lockbox)) // Worlds longest `if()`
 		var/turf/T = get_turf(over_object)
 		if(isfloorturf(over_object))
 			if(get_turf(M) != T)
 				return // Can only empty containers onto the floor under you
 			if(alert(M, "Empty [src] onto [T]?", "Confirm", "Yes", "No") != "Yes")
 				return
-			if(!(M && over_object && length(contents) && loc == M && !M.stat && !M.restrained() && !HAS_TRAIT(M, TRAIT_HANDS_BLOCKED) && get_turf(M) == T))
+			if(!(M && over_object && length(contents) && loc == M && !M.stat && !M.restrained() && M.canmove && get_turf(M) == T))
 				return // Something happened while the player was thinking
 		hide_from(M)
 		M.face_atom(over_object)
@@ -150,7 +142,7 @@
 
 /obj/item/storage/AltClick(mob/user)
 	. = ..()
-	if(ishuman(user) && Adjacent(user) && !user.incapacitated(FALSE, TRUE))
+	if(ishuman(user) && Adjacent(user) && !user.incapacitated(FALSE, TRUE, TRUE))
 		show_to(user)
 		playsound(loc, "rustle", 50, TRUE, -5)
 		add_fingerprint(user)
@@ -361,14 +353,6 @@
 			to_chat(usr, "<span class='warning'>[src] cannot hold [I].</span>")
 		return FALSE
 
-	if(length(cant_hold) && istype(I, /obj/item/storage)) //Checks nested storage contents for restricted objects, we don't want people sneaking the NAD in via boxes now, do we?
-		var/obj/item/storage/S = I
-		for(var/obj/A in S.return_inv())
-			if(is_type_in_typecache(A, cant_hold))
-				if(!stop_messages)
-					to_chat(usr, "<span class='warning'>[src] rejects [I] because of its contents.</span>")
-				return FALSE
-
 	if(I.w_class > max_w_class)
 		if(!stop_messages)
 			to_chat(usr, "<span class='warning'>[I] is too big for [src].</span>")
@@ -413,11 +397,7 @@
 	if(silent)
 		prevent_warning = TRUE
 	I.forceMove(src)
-	if(QDELING(I))
-		return FALSE
 	I.on_enter_storage(src)
-	if(QDELING(I))
-		return FALSE
 
 	for(var/_M in mobs_viewing)
 		var/mob/M = _M
@@ -460,7 +440,7 @@
 
 	if(istype(src, /obj/item/storage/fancy))
 		var/obj/item/storage/fancy/F = src
-		F.update_icon()
+		F.update_icon(TRUE)
 
 	for(var/_M in mobs_viewing)
 		var/mob/M = _M
@@ -544,6 +524,9 @@
 		show_to(user)
 	else
 		..()
+		for(var/mob/M in range(1))
+			if(M.s_active == src)
+				close(M)
 	add_fingerprint(user)
 
 /obj/item/storage/equipped(mob/user, slot, initial)
@@ -708,9 +691,9 @@
 		if(islist(thing))
 			list_to_object(thing, src)
 		else if(thing == null)
-			stack_trace("Null entry found in storage/deserialize.")
+			log_runtime(EXCEPTION("Null entry found in storage/deserialize."), src)
 		else
-			stack_trace("Non-list thing found in storage/deserialize (Thing: [thing])")
+			log_runtime(EXCEPTION("Non-list thing found in storage/deserialize."), src, list("Thing: [thing]"))
 	..()
 
 /obj/item/storage/AllowDrop()

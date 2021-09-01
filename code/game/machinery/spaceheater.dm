@@ -1,23 +1,23 @@
 /obj/machinery/space_heater
-	anchored = FALSE
-	density = TRUE
+	anchored = 0
+	density = 1
 	icon = 'icons/obj/atmos.dmi'
 	icon_state = "sheater0"
 	name = "space heater"
 	desc = "Made by Space Amish using traditional space techniques, this heater is guaranteed not to set the station on fire."
 	max_integrity = 250
-	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 100, RAD = 100, FIRE = 80, ACID = 10)
+	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 100, "rad" = 100, "fire" = 80, "acid" = 10)
 	var/obj/item/stock_parts/cell/cell
-	var/on = FALSE
-	var/open = FALSE
+	var/on = 0
+	var/open = 0
 	var/set_temperature = 50		// in celcius, add T0C for kelvin
 	var/heating_power = 40000
 
 /obj/machinery/space_heater/get_cell()
 	return cell
 
-/obj/machinery/space_heater/Initialize(mapload)
-	. = ..()
+/obj/machinery/space_heater/New()
+	..()
 	cell = new /obj/item/stock_parts/cell(src)
 	update_icon()
 	return
@@ -26,13 +26,12 @@
 	QDEL_NULL(cell)
 	return ..()
 
-/obj/machinery/space_heater/update_icon_state()
+/obj/machinery/space_heater/update_icon()
+	overlays.Cut()
 	icon_state = "sheater[on]"
-
-/obj/machinery/space_heater/update_overlays()
-	. = ..()
 	if(open)
-		. += "sheater-open"
+		overlays  += "sheater-open"
+	return
 
 /obj/machinery/space_heater/examine(mob/user)
 	. = ..()
@@ -185,5 +184,5 @@
 					env.merge(removed)
 					air_update_turf()
 		else
-			on = FALSE
+			on = 0
 			update_icon()

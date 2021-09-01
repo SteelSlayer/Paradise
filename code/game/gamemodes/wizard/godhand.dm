@@ -3,7 +3,7 @@
 	desc = "High Five?"
 	var/catchphrase = "High Five!"
 	var/on_use_sound = null
-	var/obj/effect/proc_holder/spell/touch/attached_spell
+	var/obj/effect/proc_holder/spell/targeted/touch/attached_spell
 	icon_state = "syndballoon"
 	item_state = null
 	flags = ABSTRACT | NODROP | DROPDEL
@@ -20,7 +20,7 @@
 /obj/item/melee/touch_attack/attack(mob/target, mob/living/carbon/user)
 	if(!iscarbon(user)) //Look ma, no hands
 		return
-	if(HAS_TRAIT(user, TRAIT_HANDS_BLOCKED))
+	if(user.lying || user.handcuffed)
 		to_chat(user, "<span class='warning'>You can't reach out!</span>")
 		return
 	..()
@@ -45,7 +45,7 @@
 	item_state = "disintegrate"
 
 /obj/item/melee/touch_attack/disintegrate/afterattack(atom/target, mob/living/carbon/user, proximity)
-	if(!proximity || target == user || !ismob(target) || !iscarbon(user) || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED)) //exploding after touching yourself would be bad
+	if(!proximity || target == user || !ismob(target) || !iscarbon(user) || user.lying || user.handcuffed) //exploding after touching yourself would be bad
 		return
 	var/mob/M = target
 	do_sparks(4, 0, M.loc) //no idea what the 0 is
@@ -61,11 +61,14 @@
 	item_state = "fleshtostone"
 
 /obj/item/melee/touch_attack/fleshtostone/afterattack(atom/target, mob/living/carbon/user, proximity)
-	if(!proximity || target == user || !isliving(target) || !iscarbon(user) || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED)) //getting hard after touching yourself would also be bad
+	if(!proximity || target == user || !ismob(target) || !iscarbon(user) || user.lying || user.handcuffed) //getting hard after touching yourself would also be bad
 		return
-	var/mob/living/L = target
-	L.Stun(4 SECONDS)
-	new /obj/structure/closet/statue(L.loc, L)
+	if(user.lying || user.handcuffed)
+		to_chat(user, "<span class='warning'>You can't reach out!</span>")
+		return
+	var/mob/M = target
+	M.Stun(2)
+	new /obj/structure/closet/statue(M.loc, M)
 	..()
 
 /obj/item/melee/touch_attack/fake_disintegrate
@@ -75,10 +78,9 @@
 	on_use_sound = 'sound/magic/disintegrate.ogg'
 	icon_state = "disintegrate"
 	item_state = "disintegrate"
-	needs_permit = FALSE
 
 /obj/item/melee/touch_attack/fake_disintegrate/afterattack(atom/target, mob/living/carbon/user, proximity)
-	if(!proximity || target == user || !ismob(target) || !iscarbon(user) || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED)) //not exploding after touching yourself would be bad
+	if(!proximity || target == user || !ismob(target) || !iscarbon(user) || user.lying || user.handcuffed) //not exploding after touching yourself would be bad
 		return
 	do_sparks(4, 0, target.loc)
 	playsound(target.loc, 'sound/goonstation/effects/gib.ogg', 50, 1)
@@ -93,7 +95,7 @@
 	item_state = "cluwnecurse"
 
 /obj/item/melee/touch_attack/cluwne/afterattack(atom/target, mob/living/carbon/user, proximity)
-	if(!proximity || target == user || !ishuman(target) || !iscarbon(user) || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED)) //clowning around after touching yourself would unsurprisingly, be bad
+	if(!proximity || target == user || !ishuman(target) || !iscarbon(user) || user.lying || user.handcuffed) //clowning around after touching yourself would unsurprisingly, be bad
 		return
 
 	if(iswizard(target))

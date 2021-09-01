@@ -4,3 +4,7 @@
 	icon = 'icons/obj/machines/particle_accelerator.dmi'
 	icon_state = "fuel_chamber"
 	reference = "fuel_chamber"
+
+/obj/structure/particle_accelerator/fuel_chamber/update_icon()
+	..()
+	return

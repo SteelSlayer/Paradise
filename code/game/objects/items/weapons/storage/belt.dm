@@ -13,13 +13,12 @@
 	/// Do we have overlays for items held inside the belt?
 	var/use_item_overlays = FALSE
 
-/obj/item/storage/belt/update_overlays()
-	. = ..()
+/obj/item/storage/belt/update_icon()
 	if(use_item_overlays)
+		overlays.Cut()
 		for(var/obj/item/I in contents)
-			var/image/belt_image = image(icon, I.belt_icon)
-			belt_image.color = I.color
-			. += belt_image
+			overlays += "[I.name]"
+	..()
 
 /obj/item/storage/belt/proc/can_use()
 	return is_equipped()
@@ -108,21 +107,6 @@
 	update_icon()
 	//much roomier now that we've managed to remove two tools
 
-/obj/item/storage/belt/utility/syndi_researcher // A cool looking belt thats essentially a syndicate toolbox
-	desc = "A belt for holding tools, but with style."
-	icon_state = "assaultbelt"
-	item_state = "assault"
-
-/obj/item/storage/belt/utility/syndi_researcher/populate_contents()
-	new /obj/item/screwdriver(src, "red")
-	new /obj/item/wrench(src)
-	new /obj/item/weldingtool/largetank(src)
-	new /obj/item/crowbar/red(src)
-	new /obj/item/wirecutters(src, "red")
-	new /obj/item/multitool/red(src)
-	new /obj/item/stack/cable_coil(src, 30, COLOR_RED)
-	update_icon()
-
 /obj/item/storage/belt/medical
 	name = "medical belt"
 	desc = "Can hold various medical equipment."
@@ -149,6 +133,7 @@
 		/obj/item/reagent_containers/hypospray/autoinjector,
 		/obj/item/reagent_containers/hypospray/CMO,
 		/obj/item/reagent_containers/hypospray/safety,
+		/obj/item/rad_laser,
 		/obj/item/sensor_device,
 		/obj/item/wrench/medical,
 		/obj/item/handheld_defibrillator,
@@ -218,7 +203,6 @@
 		/obj/item/wirecutters,
 		/obj/item/wrench,
 		/obj/item/reagent_containers/spray/weedspray,
-		/obj/item/reagent_containers/spray/plantbgone,
 		/obj/item/reagent_containers/spray/pestspray
 		)
 
@@ -247,14 +231,11 @@
 		/obj/item/holosign_creator/security,
 		/obj/item/melee/classic_baton/telescopic,
 		/obj/item/restraints/legcuffs/bola,
-		/obj/item/clothing/mask/gas/sechailer)
+		/obj/item/clothing/mask/gas/sechailer,
+		/obj/item/spacepod_key)
 
-/obj/item/storage/belt/security/full/populate_contents()
-	new /obj/item/reagent_containers/spray/pepper(src)
-	new /obj/item/restraints/handcuffs(src)
-	new /obj/item/grenade/flashbang(src)
-	new /obj/item/flash(src)
-	new /obj/item/melee/baton/loaded(src)
+/obj/item/storage/belt/security/sec/populate_contents()
+	new /obj/item/flashlight/seclite(src)
 	update_icon()
 
 /obj/item/storage/belt/security/response_team/populate_contents()
@@ -289,7 +270,7 @@
 	storage_slots = 6
 	use_item_overlays = TRUE
 	can_hold = list(
-		/obj/item/soulstone
+		"/obj/item/soulstone"
 		)
 
 /obj/item/storage/belt/soulstone/full/populate_contents()
@@ -306,7 +287,7 @@
 	materials = list(MAT_GOLD=400)
 	storage_slots = TRUE
 	can_hold = list(
-		/obj/item/clothing/mask/luchador
+		"/obj/item/clothing/mask/luchador"
 		)
 
 /obj/item/storage/belt/military
@@ -417,14 +398,13 @@
 		/obj/item/flashlight,
 		/obj/item/reagent_containers/spray,
 		/obj/item/soap,
-		/obj/item/holosign_creator/janitor,
+		/obj/item/holosign_creator,
 		/obj/item/melee/flyswatter,
-		/obj/item/storage/bag/trash
 		)
 
 /obj/item/storage/belt/janitor/full/populate_contents()
 	new /obj/item/lightreplacer(src)
-	new /obj/item/holosign_creator/janitor(src)
+	new /obj/item/holosign_creator(src)
 	new /obj/item/reagent_containers/spray/cleaner(src)
 	new /obj/item/soap(src)
 	new /obj/item/grenade/chem_grenade/cleaner(src)
@@ -446,7 +426,8 @@
 	. = ..()
 	update_icon()
 
-/obj/item/storage/belt/lazarus/update_icon_state()
+/obj/item/storage/belt/lazarus/update_icon()
+	..()
 	icon_state = "[initial(icon_state)]_[length(contents)]"
 
 /obj/item/storage/belt/lazarus/attackby(obj/item/I, mob/user)
@@ -477,7 +458,8 @@
 	for(var/I in 1 to 8)
 		new /obj/item/ammo_casing/shotgun/beanbag(src)
 
-/obj/item/storage/belt/bandolier/update_icon_state()
+/obj/item/storage/belt/bandolier/update_icon()
+	..()
 	icon_state = "[initial(icon_state)]_[length(contents)]"
 
 /obj/item/storage/belt/bandolier/attackby(obj/item/I, mob/user)
@@ -495,7 +477,7 @@
 	max_w_class = WEIGHT_CLASS_NORMAL
 	can_hold = list(
 		/obj/item/gun/projectile/automatic/pistol,
-		/obj/item/gun/energy/detective
+		/obj/item/gun/projectile/revolver/detective
 		)
 
 /obj/item/storage/belt/wands
@@ -622,13 +604,13 @@
 		return
 	playsound(src, 'sound/weapons/blade_unsheath.ogg', 20)
 
-/obj/item/storage/belt/rapier/update_icon_state()
+/obj/item/storage/belt/rapier/update_icon()
+	. = ..()
+	icon_state = initial(icon_state)
+	item_state = initial(item_state)
 	if(length(contents))
 		icon_state = "[icon_state]-rapier"
 		item_state = "[item_state]-rapier"
-	else
-		icon_state = initial(icon_state)
-		item_state = initial(item_state)
 	if(isliving(loc))
 		var/mob/living/L = loc
 		L.update_inv_belt()
@@ -734,6 +716,7 @@
 	new /obj/item/stack/cable_coil(src)
 
 	new /obj/item/restraints/handcuffs(src)
+	new /obj/item/dnainjector/xraymut(src)
 	new /obj/item/dnainjector/firemut(src)
 	new /obj/item/dnainjector/telemut(src)
 	new /obj/item/dnainjector/hulkmut(src)

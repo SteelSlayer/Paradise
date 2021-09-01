@@ -1,16 +1,16 @@
 /obj/item/chameleon
-	name = "chameleon projector"
+	name = "chameleon-projector"
 	icon = 'icons/obj/device.dmi'
 	icon_state = "shield0"
 	flags = CONDUCT
 	slot_flags = SLOT_BELT
 	item_state = "electronic"
-	throwforce = 5
+	throwforce = 5.0
 	throw_speed = 3
 	throw_range = 5
 	w_class = WEIGHT_CLASS_SMALL
 	origin_tech = "syndicate=4;magnets=4"
-	var/can_use = TRUE
+	var/can_use = 1
 	var/obj/effect/dummy/chameleon/active_dummy = null
 	var/saved_item = /obj/item/cigbutt
 	var/saved_icon = 'icons/obj/clothing/masks.dmi'
@@ -28,15 +28,8 @@
 /obj/item/chameleon/attack_self()
 	toggle()
 
-/obj/item/chameleon/afterattack(atom/target, mob/user, proximity)
-	if(!proximity)
-		return
-	if(!check_sprite(target))
-		return
-	if(target.alpha < 255)
-		return
-	if(target.invisibility != 0)
-		return
+/obj/item/chameleon/afterattack(atom/target, mob/user , proximity)
+	if(!proximity) return
 	if(!active_dummy)
 		if(istype(target,/obj/item) && !istype(target, /obj/item/disk/nuclear))
 			playsound(get_turf(src), 'sound/weapons/flash.ogg', 100, 1, -6)
@@ -47,12 +40,8 @@
 			saved_overlays = target.overlays
 			saved_underlays = target.underlays
 
-/obj/item/chameleon/proc/check_sprite(atom/target)
-	return (target.icon_state in icon_states(target.icon))
-
 /obj/item/chameleon/proc/toggle()
-	if(!can_use || !saved_item)
-		return
+	if(!can_use || !saved_item) return
 	if(active_dummy)
 		eject_all()
 		playsound(get_turf(src), 'sound/effects/pop.ogg', 100, 1, -6)
@@ -66,8 +55,7 @@
 	else
 		playsound(get_turf(src), 'sound/effects/pop.ogg', 100, 1, -6)
 		var/obj/O = new saved_item(src)
-		if(!O)
-			return
+		if(!O) return
 		var/obj/effect/dummy/chameleon/C = new/obj/effect/dummy/chameleon(usr.loc)
 		C.activate(O, usr, saved_icon, saved_icon_state, saved_overlays, saved_underlays, src)
 		qdel(O)
@@ -85,8 +73,8 @@
 		if(delete_dummy)
 			qdel(active_dummy)
 		active_dummy = null
-		can_use = FALSE
-		addtimer(VARSET_CALLBACK(src, can_use, TRUE), 5 SECONDS)
+		can_use = 0
+		spawn(50) can_use = 1
 
 /obj/item/chameleon/proc/eject_all()
 	for(var/atom/movable/A in active_dummy)
@@ -98,9 +86,9 @@
 /obj/effect/dummy/chameleon
 	name = ""
 	desc = ""
-	density = FALSE
-	anchored = TRUE
-	var/can_move = TRUE
+	density = 0
+	anchored = 1
+	var/can_move = 1
 	var/obj/item/chameleon/master = null
 
 /obj/effect/dummy/chameleon/proc/activate(obj/O, mob/M, new_icon, new_iconstate, new_overlays, new_underlays, obj/item/chameleon/C)
@@ -117,12 +105,12 @@
 
 /obj/effect/dummy/chameleon/attackby()
 	for(var/mob/M in src)
-		to_chat(M, "<span class='danger'>Your [src] deactivates.</span>")
+		to_chat(M, "<span class='danger'>Your chameleon-projector deactivates.</span>")
 	master.disrupt()
 
 /obj/effect/dummy/chameleon/attack_hand()
 	for(var/mob/M in src)
-		to_chat(M, "<span class='danger'>Your [src] deactivates.</span>")
+		to_chat(M, "<span class='danger'>Your chameleon-projector deactivates.</span>")
 	master.disrupt()
 
 /obj/effect/dummy/chameleon/attack_animal()
@@ -136,34 +124,34 @@
 
 /obj/effect/dummy/chameleon/ex_act(severity) //no longer bomb-proof
 	for(var/mob/M in src)
-		to_chat(M, "<span class='danger'>Your [src] deactivates.</span>")
+		to_chat(M, "<span class='danger'>Your chameleon-projector deactivates.</span>")
 		spawn()
 			M.ex_act(severity)
 	master.disrupt()
 
 /obj/effect/dummy/chameleon/bullet_act()
 	for(var/mob/M in src)
-		to_chat(M, "<span class='danger'>Your [src] deactivates.</span>")
+		to_chat(M, "<span class='danger'>Your chameleon-projector deactivates.</span>")
 	..()
 	master.disrupt()
 
 /obj/effect/dummy/chameleon/relaymove(mob/user, direction)
-	if(!isturf(loc) || istype(loc, /turf/space) || !direction)
-		return // No magical movement!
+	if(istype(loc, /turf/space) || !direction)
+		return //No magical space movement!
 
 	if(can_move)
-		can_move = FALSE
+		can_move = 0
 		switch(user.bodytemperature)
 			if(300 to INFINITY)
-				addtimer(VARSET_CALLBACK(src, can_move, TRUE), 1 SECONDS)
+				spawn(10) can_move = 1
 			if(295 to 300)
-				addtimer(VARSET_CALLBACK(src, can_move, TRUE), 1.3 SECONDS)
+				spawn(13) can_move = 1
 			if(280 to 295)
-				addtimer(VARSET_CALLBACK(src, can_move, TRUE), 1.6 SECONDS)
+				spawn(16) can_move = 1
 			if(260 to 280)
-				addtimer(VARSET_CALLBACK(src, can_move, TRUE), 2 SECONDS)
+				spawn(20) can_move = 1
 			else
-				addtimer(VARSET_CALLBACK(src, can_move, TRUE), 2.5 SECONDS)
+				spawn(25) can_move = 1
 		step(src, direction)
 	return
 
@@ -232,7 +220,6 @@
 /obj/item/borg_chameleon/proc/activate(mob/living/silicon/robot/syndicate/saboteur/user)
 	START_PROCESSING(SSobj, src)
 	S = user
-	user.base_icon = disguise
 	user.icon_state = disguise
 	user.cham_proj = src
 	user.bubble_icon = "robot"
@@ -242,7 +229,6 @@
 /obj/item/borg_chameleon/proc/deactivate(mob/living/silicon/robot/syndicate/saboteur/user)
 	STOP_PROCESSING(SSobj, src)
 	S = user
-	user.base_icon = initial(user.base_icon)
 	user.icon_state = initial(user.icon_state)
 	user.bubble_icon = "syndibot"
 	active = FALSE

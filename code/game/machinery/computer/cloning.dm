@@ -15,6 +15,7 @@
 	var/menu = MENU_MAIN //Which menu screen to display
 	var/list/records = null
 	var/datum/dna2/record/active_record = null
+	var/obj/item/disk/data/diskette = null //Mostly so the geneticist can steal everything.
 	var/loading = 0 // Nice loading text
 	var/autoprocess = 0
 	var/obj/machinery/clonepod/selected_pod
@@ -24,8 +25,8 @@
 
 	light_color = LIGHT_COLOR_DARKBLUE
 
-/obj/machinery/computer/cloning/Initialize(mapload)
-	. = ..()
+/obj/machinery/computer/cloning/Initialize()
+	..()
 	pods = list()
 	records = list()
 	set_scan_temp("Scanner ready.", "good")
@@ -60,15 +61,20 @@
 		selected_pod = pods[1]
 
 /obj/machinery/computer/cloning/proc/findscanner()
+	var/obj/machinery/dna_scannernew/scannerf = null
+
 	//Try to find scanner on adjacent tiles first
-	for(var/obj/machinery/dna_scannernew/scanner in orange(1, src))
-		return scanner
+	for(dir in list(NORTH,EAST,SOUTH,WEST))
+		scannerf = locate(/obj/machinery/dna_scannernew, get_step(src, dir))
+		if(scannerf)
+			return scannerf
 
 	//Then look for a free one in the area
-	for(var/obj/machinery/dna_scannernew/S in get_area(src))
-		return S
+	if(!scannerf)
+		for(var/obj/machinery/dna_scannernew/S in get_area(src))
+			return S
 
-	return FALSE
+	return 0
 
 /obj/machinery/computer/cloning/proc/releasecloner()
 	for(var/obj/machinery/clonepod/P in pods)
@@ -85,7 +91,15 @@
 			P.name = "[initial(P.name)] #[num++]"
 
 /obj/machinery/computer/cloning/attackby(obj/item/W as obj, mob/user as mob, params)
-	if(istype(W, /obj/item/multitool))
+	if(istype(W, /obj/item/disk/data)) //INSERT SOME DISKETTES
+		if(!src.diskette)
+			user.drop_item()
+			W.loc = src
+			src.diskette = W
+			to_chat(user, "You insert [W].")
+			SStgui.update_uis(src)
+			return
+	else if(istype(W, /obj/item/multitool))
 		var/obj/item/multitool/M = W
 		if(M.buffer && istype(M.buffer, /obj/machinery/clonepod))
 			var/obj/machinery/clonepod/P = M.buffer
@@ -102,6 +116,7 @@
 	return attack_hand(user)
 
 /obj/machinery/computer/cloning/attack_hand(mob/user as mob)
+	user.set_machine(src)
 	add_fingerprint(user)
 
 	if(stat & (BROKEN|NOPOWER))
@@ -164,6 +179,7 @@
 		data["locked"] = src.scanner.locked
 	data["temp"] = temp
 	data["scantemp"] = scantemp
+	data["disk"] = src.diskette
 	data["selected_pod"] = "\ref[selected_pod]"
 	var/list/temprecords[0]
 	for(var/datum/dna2/record/R in records)
@@ -251,6 +267,46 @@
 			if(!active_record)
 				return
 			ui_modal_boolean(src, action, "Please confirm that you want to delete the record by holding your ID and pressing Delete:", yes_text = "Delete", no_text = "Cancel")
+		if("disk") // Disk management.
+			if(!length(params["option"]))
+				return
+			switch(params["option"])
+				if("load")
+					if(isnull(diskette) || isnull(diskette.buf))
+						set_temp("Error: The disk's data could not be read.", "danger")
+						return
+					else if(isnull(active_record))
+						set_temp("Error: No active record was found.", "danger")
+						menu = MENU_MAIN
+						return
+
+					active_record = diskette.buf.copy()
+					set_temp("Successfully loaded from disk.", "success")
+				if("save")
+					if(isnull(diskette) || diskette.read_only || isnull(active_record))
+						set_temp("Error: The data could not be saved.", "danger")
+						return
+
+					// DNA2 makes things a little simpler.
+					var/types
+					switch(params["savetype"]) // Save as Ui/Ui+Ue/Se
+						if("ui")
+							types = DNA2_BUF_UI
+						if("ue")
+							types = DNA2_BUF_UI|DNA2_BUF_UE
+						if("se")
+							types = DNA2_BUF_SE
+						else
+							set_temp("Error: Invalid save format.", "danger")
+							return
+					diskette.buf = active_record.copy()
+					diskette.buf.types = types
+					diskette.name = "data disk - '[active_record.dna.real_name]'"
+					set_temp("Successfully saved to disk.", "success")
+				if("eject")
+					if(!isnull(diskette))
+						diskette.loc = loc
+						diskette = null
 		if("refresh")
 			SStgui.update_uis(src)
 		if("selectpod")
@@ -358,10 +414,6 @@
 		return
 	if(!isnull(find_record(subject.ckey)))
 		set_scan_temp("Subject already in database.")
-		SStgui.update_uis(src)
-		return
-	if(subject.stat != DEAD)
-		set_scan_temp("Subject is not dead.", "bad")
 		SStgui.update_uis(src)
 		return
 

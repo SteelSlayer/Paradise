@@ -356,8 +356,6 @@
 		return
 	else if(istype(AM, /obj/item/nuke_core_container))
 		return
-	else if(istype(AM, /obj/machinery/atmospherics/supermatter_crystal))
-		return
 	else
 		investigate_log("has consumed [AM].", "supermatter")
 		qdel(AM)

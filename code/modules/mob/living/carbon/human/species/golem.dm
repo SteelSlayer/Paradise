@@ -5,7 +5,7 @@
 	icobase = 'icons/mob/human_races/r_golem.dmi'
 
 	species_traits = list(NO_BLOOD, NO_HAIR)
-	inherent_traits = list(TRAIT_RESISTHEAT, TRAIT_NOBREATH, TRAIT_RESISTCOLD, TRAIT_RESISTHIGHPRESSURE, TRAIT_RESISTLOWPRESSURE, TRAIT_NOFIRE, TRAIT_CHUNKYFINGERS, TRAIT_RADIMMUNE, TRAIT_PIERCEIMMUNE, TRAIT_NOPAIN, TRAIT_NO_BONES, TRAIT_STURDY_LIMBS)
+	inherent_traits = list(TRAIT_RESISTHEAT, TRAIT_NOBREATH, TRAIT_RESISTCOLD, TRAIT_RESISTHIGHPRESSURE, TRAIT_RESISTLOWPRESSURE, TRAIT_NOFIRE, TRAIT_CHUNKYFINGERS, TRAIT_RADIMMUNE, TRAIT_PIERCEIMMUNE, TRAIT_NOPAIN)
 	inherent_biotypes = MOB_HUMANOID | MOB_MINERAL
 	dies_at_threshold = TRUE
 	speed_mod = 2
@@ -33,6 +33,18 @@
 		"adamantine_resonator" = /obj/item/organ/internal/adamantine_resonator
 		) //Has standard darksight of 2.
 
+	has_limbs = list(
+		"chest" =  list("path" = /obj/item/organ/external/chest/unbreakable/sturdy),
+		"groin" =  list("path" = /obj/item/organ/external/groin/unbreakable/sturdy),
+		"head" =   list("path" = /obj/item/organ/external/head/unbreakable/sturdy),
+		"l_arm" =  list("path" = /obj/item/organ/external/arm/unbreakable/sturdy),
+		"r_arm" =  list("path" = /obj/item/organ/external/arm/right/unbreakable/sturdy),
+		"l_leg" =  list("path" = /obj/item/organ/external/leg/unbreakable/sturdy),
+		"r_leg" =  list("path" = /obj/item/organ/external/leg/right/unbreakable/sturdy),
+		"l_hand" = list("path" = /obj/item/organ/external/hand/unbreakable/sturdy),
+		"r_hand" = list("path" = /obj/item/organ/external/hand/right/unbreakable/sturdy),
+		"l_foot" = list("path" = /obj/item/organ/external/foot/unbreakable/sturdy),
+		"r_foot" = list("path" = /obj/item/organ/external/foot/right/unbreakable/sturdy))
 
 	suicide_messages = list(
 		"is crumbling into dust!",
@@ -111,7 +123,7 @@
 	name = "Plasma Golem"
 	skinned_type = /obj/item/stack/ore/plasma
 	//Can burn and takes damage from heat
-	inherent_traits = list(TRAIT_NOBREATH, TRAIT_RESISTCOLD, TRAIT_RESISTHIGHPRESSURE, TRAIT_RESISTLOWPRESSURE, TRAIT_CHUNKYFINGERS, TRAIT_RADIMMUNE, TRAIT_PIERCEIMMUNE, TRAIT_NOPAIN, TRAIT_NO_BONES, TRAIT_STURDY_LIMBS) //no RESISTHEAT, NOFIRE
+	inherent_traits = list(TRAIT_NOBREATH, TRAIT_RESISTCOLD, TRAIT_RESISTHIGHPRESSURE, TRAIT_RESISTLOWPRESSURE, TRAIT_CHUNKYFINGERS, TRAIT_RADIMMUNE, TRAIT_PIERCEIMMUNE, TRAIT_NOPAIN) //no RESISTHEAT, NOFIRE
 	golem_colour = rgb(170, 51, 221)
 	info_text = "As a <span class='danger'>Plasma Golem</span>, you burn easily. Be careful, if you get hot enough while burning, you'll blow up!"
 	heatmod = 0 //fine until they blow up
@@ -289,7 +301,7 @@
 	golem_colour = rgb(158, 112, 75)
 	skinned_type = /obj/item/stack/sheet/wood
 	//Can burn and take damage from heat
-	inherent_traits = list(TRAIT_NOBREATH, TRAIT_RESISTCOLD, TRAIT_RESISTHIGHPRESSURE, TRAIT_RESISTLOWPRESSURE, TRAIT_CHUNKYFINGERS, TRAIT_RADIMMUNE, TRAIT_PIERCEIMMUNE, TRAIT_NOPAIN, TRAIT_NO_BONES, TRAIT_STURDY_LIMBS)
+	inherent_traits = list(TRAIT_NOBREATH, TRAIT_RESISTCOLD, TRAIT_RESISTHIGHPRESSURE, TRAIT_RESISTLOWPRESSURE, TRAIT_CHUNKYFINGERS, TRAIT_RADIMMUNE, TRAIT_PIERCEIMMUNE, TRAIT_NOPAIN)
 	inherent_biotypes = MOB_ORGANIC | MOB_HUMANOID | MOB_PLANT
 	armor = 30
 	burn_mod = 1.25
@@ -378,7 +390,7 @@
 
 /datum/species/golem/sand/bullet_act(obj/item/projectile/P, mob/living/carbon/human/H)
 	if(!(P.original == H && P.firer == H))
-		if(P.flag == BULLET || P.flag == BOMB)
+		if(P.flag == "bullet" || P.flag == "bomb")
 			playsound(H, 'sound/effects/shovel_dig.ogg', 70, 1)
 			H.visible_message("<span class='danger'>[P] sinks harmlessly in [H]'s sandy body!</span>", \
 			"<span class='userdanger'>[P] sinks harmlessly in [H]'s sandy body!</span>")
@@ -412,7 +424,7 @@
 
 /datum/species/golem/glass/bullet_act(obj/item/projectile/P, mob/living/carbon/human/H)
 	if(!(P.original == H && P.firer == H)) //self-shots don't reflect
-		if(P.is_reflectable(REFLECTABILITY_ENERGY))
+		if(P.is_reflectable)
 			H.visible_message("<span class='danger'>[P] gets reflected by [H]'s glass skin!</span>", \
 			"<span class='userdanger'>[P] gets reflected by [H]'s glass skin!</span>")
 
@@ -465,7 +477,7 @@
 	var/obj/item/I
 	if(istype(AM, /obj/item))
 		I = AM
-		if(locateUID(I.thrownby) == H) //No throwing stuff at yourself to trigger the teleport
+		if(I.thrownby == H) //No throwing stuff at yourself to trigger the teleport
 			return 0
 		else
 			reactive_teleport(H)
@@ -563,12 +575,12 @@
 	prefix = "Bananium"
 	special_names = null
 	unarmed_type = /datum/unarmed_attack/golem/bananium
-	inherent_traits = list(TRAIT_RESISTHEAT, TRAIT_NOBREATH, TRAIT_RESISTCOLD, TRAIT_RESISTHIGHPRESSURE, TRAIT_RESISTLOWPRESSURE, TRAIT_NOFIRE, TRAIT_CHUNKYFINGERS, TRAIT_CLUMSY, TRAIT_COMIC_SANS, TRAIT_RADIMMUNE, TRAIT_PIERCEIMMUNE, TRAIT_NOPAIN, TRAIT_NO_BONES, TRAIT_STURDY_LIMBS)
+	inherent_traits = list(TRAIT_RESISTHEAT, TRAIT_NOBREATH, TRAIT_RESISTCOLD, TRAIT_RESISTHIGHPRESSURE, TRAIT_RESISTLOWPRESSURE, TRAIT_NOFIRE, TRAIT_CHUNKYFINGERS, TRAIT_CLUMSY, TRAIT_COMIC_SANS, TRAIT_RADIMMUNE, TRAIT_PIERCEIMMUNE, TRAIT_NOPAIN)
 	var/last_honk = 0
 	var/honkooldown = 0
 	var/last_banana = 0
 	var/banana_cooldown = 100
-	var/active = FALSE
+	var/active = null
 
 /datum/species/golem/bananium/on_species_gain(mob/living/carbon/human/H)
 	..()
@@ -610,7 +622,7 @@
 	var/obj/item/I
 	if(istype(AM, /obj/item))
 		I = AM
-		if(locateUID(I.thrownby) == H) //No throwing stuff at yourself to make bananas
+		if(I.thrownby == H) //No throwing stuff at yourself to make bananas
 			return 0
 		else
 			new/obj/item/grown/bananapeel/specialpeel(get_turf(H))
@@ -619,11 +631,11 @@
 /datum/species/golem/bananium/handle_life(mob/living/carbon/human/H)
 	if(!active)
 		if(world.time > last_honk + honkooldown)
-			active = TRUE
+			active = 1
 			playsound(get_turf(H), 'sound/items/bikehorn.ogg', 50, 1)
 			last_honk = world.time
 			honkooldown = rand(20, 80)
-			active = FALSE
+			active = null
 	..()
 
 /datum/species/golem/bananium/handle_death(gibbed, mob/living/carbon/human/H)
@@ -656,113 +668,9 @@
 	H.equip_to_slot_or_del(new 	/obj/item/reagent_containers/food/drinks/bottle/bottleofnothing(H), slot_r_store)
 	H.equip_to_slot_or_del(new 	/obj/item/cane(H), slot_l_hand)
 	if(H.mind)
-		H.mind.AddSpell(new /obj/effect/proc_holder/spell/aoe_turf/conjure/build/mime_wall(null))
-		H.mind.AddSpell(new /obj/effect/proc_holder/spell/mime/speak(null))
+		H.mind.AddSpell(new /obj/effect/proc_holder/spell/aoe_turf/conjure/mime_wall(null))
+		H.mind.AddSpell(new /obj/effect/proc_holder/spell/targeted/mime/speak(null))
 		H.mind.miming = TRUE
 
 /datum/unarmed_attack/golem/tranquillite
 	attack_sound = null
-
-/datum/species/golem/cloth
-	name = "Cloth Golem"
-	icobase = 'icons/mob/human_races/r_cloth_golem.dmi'
-	flesh_color = "#E9E9E9"
-	blood_color = "#E9E9E9"
-	info_text = "As a <span class='danger'>Cloth Golem</span>, you are able to reform yourself after death, provided your remains aren't burned or destroyed. You are, of course, very flammable. \
-	Being made of cloth, your body is magic resistant and faster than that of other golems, but weaker and less resilient."
-	inherent_traits = list(TRAIT_RESISTCOLD, TRAIT_NOBREATH, TRAIT_RESISTHIGHPRESSURE, TRAIT_RESISTLOWPRESSURE, TRAIT_RADIMMUNE, TRAIT_PIERCEIMMUNE, TRAIT_CHUNKYFINGERS, TRAIT_NOPAIN)
-	inherent_biotypes = MOB_UNDEAD | MOB_HUMANOID
-	brute_mod = 0.85 //15% damage reduction
-	burn_mod = 1.7 // don't get burned
-	tox_mod = 0.85
-	clone_mod = 0.85
-	brain_mod = 0.85
-	stamina_mod = 0.85
-	speed_mod = 1 // not as heavy as stone
-	punchdamagelow = 4
-	punchstunthreshold = 7
-	punchdamagehigh = 8 // not as heavy as stone
-	prefix = "Cloth"
-	golem_colour = null
-	special_names = null
-
-/datum/species/golem/cloth/get_random_name()
-	var/pharaoh_name = pick("Neferkare", "Hudjefa", "Khufu", "Mentuhotep", "Ahmose", "Amenhotep", "Thutmose", "Hatshepsut", "Tutankhamun", "Ramses", "Seti", \
-	"Merenptah", "Djer", "Semerkhet", "Nynetjer", "Khafre", "Pepi", "Intef", "Ay") //yes, Ay was an actual pharaoh
-	var/golem_name = "[pharaoh_name] \Roman[rand(1,99)]"
-	return golem_name
-
-/datum/species/golem/cloth/handle_life(mob/living/carbon/human/H)
-	if(H.fire_stacks < 1)
-		H.adjust_fire_stacks(1) //always prone to burning
-	..()
-
-/datum/species/golem/cloth/handle_death(gibbed, mob/living/carbon/human/H)
-	if(gibbed)
-		return
-	if(H.on_fire)
-		H.visible_message("<span class='danger'>[H] burns into ash!</span>")
-		H.dust()
-		return
-
-	H.visible_message("<span class='danger'>[H] falls apart into a pile of bandages!</span>")
-	new /obj/structure/cloth_pile(get_turf(H), H)
-	..()
-
-/obj/structure/cloth_pile
-	name = "pile of bandages"
-	desc = "It emits a strange aura, as if there was still life within it..."
-	max_integrity = 50
-	armor = list(MELEE = 90, BULLET = 90, LASER = 25, ENERGY = 80, BOMB = 50, BIO = 100, FIRE = -50, ACID = -50)
-	icon = 'icons/obj/items.dmi'
-	icon_state = "pile_bandages"
-	resistance_flags = FLAMMABLE
-	var/revive_time = 900
-	var/mob/living/carbon/human/cloth_golem
-
-/obj/structure/cloth_pile/Initialize(mapload, mob/living/carbon/human/H)
-	. = ..()
-	if(!QDELETED(H) && is_species(H, /datum/species/golem/cloth))
-		H.unequip_everything()
-		H.forceMove(src)
-		cloth_golem = H
-		to_chat(cloth_golem, "<span class='notice'>You start gathering your life energy, preparing to rise again...</span>")
-		addtimer(CALLBACK(src, .proc/revive), revive_time)
-	else
-		return INITIALIZE_HINT_QDEL
-
-/obj/structure/cloth_pile/Destroy()
-	QDEL_NULL(cloth_golem)
-	return ..()
-
-/obj/structure/cloth_pile/burn()
-	visible_message("<span class='danger'>[src] burns into ash!</span>")
-	new /obj/effect/decal/cleanable/ash(get_turf(src))
-	..()
-
-/obj/structure/cloth_pile/proc/revive()
-	if(QDELETED(src) || QDELETED(cloth_golem)) //QDELETED also checks for null, so if no cloth golem is set this won't runtime
-		return
-	if(cloth_golem.suiciding)
-		QDEL_NULL(cloth_golem)
-		return
-
-	invisibility = INVISIBILITY_MAXIMUM //disappear before the animation
-	new /obj/effect/temp_visual/mummy_animation(get_turf(src))
-	cloth_golem.revive()
-	cloth_golem.grab_ghost() //won't pull if it's a suicide
-	sleep(20)
-	cloth_golem.forceMove(get_turf(src))
-	cloth_golem.visible_message("<span class='danger'>[src] rises and reforms into [cloth_golem]!</span>", "<span class='userdanger'>You reform into yourself!</span>")
-	cloth_golem = null
-	qdel(src)
-
-/obj/structure/cloth_pile/attackby(obj/item/P, mob/living/carbon/human/user, params)
-	. = ..()
-
-	if(resistance_flags & ON_FIRE)
-		return
-
-	if(is_hot(P))
-		visible_message("<span class='danger'>[src] bursts into flames!</span>")
-		fire_act()

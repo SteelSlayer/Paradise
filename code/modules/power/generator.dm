@@ -2,8 +2,8 @@
 	name = "thermoelectric generator"
 	desc = "It's a high efficiency thermoelectric generator."
 	icon_state = "teg"
-	anchored = FALSE
-	density = TRUE
+	anchored = 0
+	density = 1
 	use_power = NO_POWER_USE
 
 	var/obj/machinery/atmospherics/binary/circulator/cold_circ
@@ -16,16 +16,11 @@
 	var/lastgenlev = -1
 	var/lastcirc = "00"
 
-	var/light_range_on = 1
-	var/light_power_on = 0.1 //just dont want it to be culled by byond.
+/obj/machinery/power/generator/New()
+	..()
+	update_desc()
 
-/obj/machinery/power/generator/Initialize(mapload)
-	. = ..()
-	update_appearance(UPDATE_DESC)
-	connect()
-
-/obj/machinery/power/generator/update_desc()
-	. = ..()
+/obj/machinery/power/generator/proc/update_desc()
 	desc = initial(desc) + " Its cold circulator is located on the [dir2text(cold_dir)] side, and its heat circulator is located on the [dir2text(hot_dir)] side."
 
 /obj/machinery/power/generator/Destroy()
@@ -41,7 +36,7 @@
 		disconnect_from_network()
 
 /obj/machinery/power/generator/Initialize()
-	. = ..()
+	..()
 	connect()
 
 /obj/machinery/power/generator/proc/connect()
@@ -68,28 +63,21 @@
 	updateDialog()
 
 /obj/machinery/power/generator/power_change()
-	. = ..()
 	if(!anchored)
 		stat |= NOPOWER
-	if((stat & (BROKEN|NOPOWER)))
-		set_light(0)
 	else
-		set_light(light_range_on, light_power_on)
-	update_icon(UPDATE_OVERLAYS)
+		..()
 
-/obj/machinery/power/generator/update_overlays()
-	. = ..()
+/obj/machinery/power/generator/update_icon()
 	if(stat & (NOPOWER|BROKEN))
-		return
+		overlays.Cut()
+	else
+		overlays.Cut()
 
-	if(lastgenlev != 0)
-		. += "teg-op[lastgenlev]"
-		if(light)
-			. += emissive_appearance(icon, "teg-op[lastgenlev]")
+		if(lastgenlev != 0)
+			overlays += image('icons/obj/power.dmi', "teg-op[lastgenlev]")
 
-	. += "teg-oc[lastcirc]"
-	if(light)
-		. += emissive_appearance(icon, "teg-oc[lastcirc]")
+		overlays += image('icons/obj/power.dmi', "teg-oc[lastcirc]")
 
 /obj/machinery/power/generator/process()
 	if(stat & (NOPOWER|BROKEN))
@@ -152,7 +140,7 @@
 	if((genlev != lastgenlev) || (circ != lastcirc))
 		lastgenlev = genlev
 		lastcirc = circ
-		update_icon(UPDATE_OVERLAYS)
+		update_icon()
 
 	updateDialog()
 
@@ -188,7 +176,7 @@
 		hot_dir = SOUTH
 	connect()
 	to_chat(user, "<span class='notice'>You reverse the generator's circulator settings. The cold circulator is now on the [dir2text(cold_dir)] side, and the heat circulator is now on the [dir2text(hot_dir)] side.</span>")
-	update_appearance(UPDATE_DESC)
+	update_desc()
 
 /obj/machinery/power/generator/wrench_act(mob/user, obj/item/I)
 	. = TRUE
@@ -245,3 +233,7 @@
 		if(!powernet || !cold_circ || !hot_circ)
 			connect()
 			return TRUE
+
+/obj/machinery/power/generator/power_change()
+	..()
+	update_icon()

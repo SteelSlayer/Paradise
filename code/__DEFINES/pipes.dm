@@ -72,9 +72,3 @@
 
 #define PIPETYPE_ATMOS		1
 #define PIPETYPE_DISPOSAL	2
-
-// Connection types
-
-#define CONNECT_TYPE_NORMAL 1
-#define CONNECT_TYPE_SUPPLY 2
-#define CONNECT_TYPE_SCRUBBER 3

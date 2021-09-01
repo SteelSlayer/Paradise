@@ -1,12 +1,12 @@
-/obj/effect/proc_holder/spell/touch/cluwne
+/obj/effect/proc_holder/spell/targeted/touch/cluwne
 	name = "Curse of the Cluwne"
 	desc = "Turns the target into a fat and cursed monstrosity of a clown."
 	hand_path = /obj/item/melee/touch_attack/cluwne
 
 	school = "transmutation"
 
-	base_cooldown = 1 MINUTES
-	clothes_req = TRUE
+	charge_max = 600
+	clothes_req = 1
 	cooldown_min = 200 //100 deciseconds reduction per rank
 
 	action_icon_state = "clown"
@@ -20,7 +20,7 @@
 	setBrainLoss(80, use_brain_mod = FALSE)
 	set_nutrition(9000)
 	overeatduration = 9000
-	Confused(60 SECONDS)
+	Confused(30)
 	if(mind)
 		mind.assigned_role = "Cluwne"
 

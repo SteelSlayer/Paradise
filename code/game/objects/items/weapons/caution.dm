@@ -11,11 +11,11 @@
 	attack_verb = list("warned", "cautioned", "smashed")
 
 /obj/item/caution/proximity_sign
-	var/timing = FALSE
-	var/armed = FALSE
+	var/timing = 0
+	var/armed = 0
 	var/timepassed = 0
 
-/obj/item/caution/proximity_sign/Initialize(mapload)
+/obj/item/caution/proximity_sign/ComponentInitialize()
 	. = ..()
 	AddComponent(/datum/component/proximity_monitor)
 
@@ -25,14 +25,14 @@
 		if(H.mind.assigned_role != "Janitor")
 			return
 		if(armed)
-			armed = FALSE
+			armed = 0
 			to_chat(user, "<span class='notice'>You disarm \the [src].</span>")
 			return
 		timing = !timing
 		if(timing)
 			START_PROCESSING(SSobj, src)
 		else
-			armed = FALSE
+			armed = 0
 			timepassed = 0
 		to_chat(H, "<span class='notice'>You [timing ? "activate \the [src]'s timer, you have 15 seconds." : "de-activate \the [src]'s timer."]</span>")
 
@@ -41,8 +41,8 @@
 		STOP_PROCESSING(SSobj, src)
 	timepassed++
 	if(timepassed >= 15 && !armed)
-		armed = TRUE
-		timing = FALSE
+		armed = 1
+		timing = 0
 
 /obj/item/caution/proximity_sign/HasProximity(atom/movable/AM)
 	if(armed)

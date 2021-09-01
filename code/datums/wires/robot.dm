@@ -16,7 +16,7 @@
 	. += "The LawSync light is [R.lawupdate ? "on" : "off"]."
 	. += "The AI link light is [R.connected_ai ? "on" : "off"]."
 	. += "The Camera light is [(R.camera && R.camera.status == 1) ? "on" : "off"]."
-	. += "The lockdown light is [R.lockcharge ? "on" : "off"]."
+	. += "The lockdown light is [R.locked_down ? "on" : "off"]."
 
 /datum/wires/robot/on_cut(wire, mend)
 	var/mob/living/silicon/robot/R = holder
@@ -37,7 +37,7 @@
 					R.disconnect_from_ai()
 
 		if(WIRE_BORG_CAMERA)
-			if(!isnull(R.camera) && !R.scrambledcodes)
+			if(!isnull(R.camera) && !R.visible_on_console)
 				R.camera.status = mend
 				R.camera.toggle_cam(usr, 0) // Will kick anyone who is watching the Cyborg's camera.
 
@@ -54,17 +54,17 @@
 				R.connect_to_ai(select_active_ai())
 
 		if(WIRE_BORG_CAMERA)
-			if(!isnull(R.camera) && R.camera.can_use() && !R.scrambledcodes)
+			if(!isnull(R.camera) && R.camera.can_use() && !R.visible_on_console)
 				R.camera.toggle_cam(usr, 0) // Kick anyone watching the Cyborg's camera, doesn't display you disconnecting the camera.
 				R.visible_message("[R]'s camera lense focuses loudly.")
 				to_chat(R, "Your camera lense focuses loudly.")
 
 		if(WIRE_BORG_LOCKED)
-			R.SetLockdown(!R.lockcharge) // Toggle
+			R.SetLockdown(!R.locked_down) // Toggle
 	..()
 
 /datum/wires/robot/interactable(mob/user)
 	var/mob/living/silicon/robot/R = holder
-	if(R.wiresexposed)
+	if(R.cover_flags & WIRES_EXPOSED)
 		return TRUE
 	return FALSE

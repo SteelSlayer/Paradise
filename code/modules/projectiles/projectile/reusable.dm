@@ -49,7 +49,7 @@
 	if(pen)
 		newdart.add_pen(pen)
 		pen = null
-	newdart.update_appearance(UPDATE_DESC|UPDATE_ICON_STATE)
+	newdart.update_icon()
 
 /obj/item/projectile/bullet/reusable/foam_dart/Destroy()
 	QDEL_NULL(pen)

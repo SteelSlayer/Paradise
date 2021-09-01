@@ -48,7 +48,7 @@ GLOBAL_LIST_EMPTY(all_cults)
 /datum/game_mode/cult
 	name = "cult"
 	config_tag = "cult"
-	restricted_jobs = list("Chaplain", "AI", "Cyborg", "Internal Affairs Agent", "Security Officer", "Warden", "Detective", "Head of Security", "Captain", "Head of Personnel", "Blueshield", "Nanotrasen Representative", "Magistrate", "Nanotrasen Navy Officer", "Special Operations Officer", "Syndicate Officer", "Solar Federation General")
+	restricted_jobs = list("Chaplain", "AI", "Cyborg", "Internal Affairs Agent", "Security Officer", "Warden", "Detective", "Security Pod Pilot", "Head of Security", "Captain", "Head of Personnel", "Blueshield", "Nanotrasen Representative", "Magistrate", "Brig Physician", "Nanotrasen Navy Officer", "Special Operations Officer", "Syndicate Officer", "Solar Federation General")
 	protected_jobs = list()
 	required_players = 30
 	required_enemies = 3
@@ -196,12 +196,6 @@ GLOBAL_LIST_EMPTY(all_cults)
 			for(var/I in H.contents)
 				if(is_type_in_list(I, CULT_CLOTHING))
 					H.unEquip(I)
-		if(cult_mind.assigned_role == "Clown")
-			to_chat(H, "<span class='sans'>You are free of the dark power suppressing your clownish nature. You are clumsy again! Honk!</span>")
-			H.dna.SetSEState(GLOB.clumsyblock, TRUE)
-			singlemutcheck(H, GLOB.clumsyblock, MUTCHK_FORCED)
-			for(var/datum/action/innate/toggle_clumsy/A in H.actions)
-				A.Remove(H)
 	check_cult_size()
 	if(show_message)
 		cultist.visible_message("<span class='cult'>[cultist] looks like [cultist.p_they()] just reverted to [cultist.p_their()] old faith!</span>",

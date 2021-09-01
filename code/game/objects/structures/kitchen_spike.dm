@@ -6,8 +6,8 @@
 	icon = 'icons/obj/kitchen.dmi'
 	icon_state = "spikeframe"
 	desc = "The frame of a meat spike."
-	density = TRUE
-	anchored = FALSE
+	density = 1
+	anchored = 0
 	max_integrity = 200
 
 /obj/structure/kitchenspike_frame/attackby(obj/item/I, mob/user, params)
@@ -15,10 +15,10 @@
 	if(istype(I, /obj/item/wrench))
 		if(anchored)
 			to_chat(user, "<span class='notice'>You unwrench [src] from the floor.</span>")
-			anchored = FALSE
+			anchored = 0
 		else
 			to_chat(user, "<span class='notice'>You wrench [src] into place.</span>")
-			anchored = TRUE
+			anchored = 1
 	else if(istype(I, /obj/item/stack/rods))
 		var/obj/item/stack/rods/R = I
 		if(R.get_amount() >= 4)
@@ -37,8 +37,8 @@
 	icon = 'icons/obj/kitchen.dmi'
 	icon_state = "spike"
 	desc = "A spike for collecting meat from animals."
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1
 	buckle_lying = FALSE
 	can_buckle = TRUE
 	max_integrity = 250
@@ -93,8 +93,9 @@
 	victim.adjustBruteLoss(30)
 	victim.setDir(2)
 	buckle_mob(victim, force = TRUE)
-	victim.set_lying_angle(180)
-	victim.update_transform()
+	var/matrix/m180 = matrix(victim.transform)
+	m180.Turn(180)
+	animate(victim, transform = m180, time = 3)
 	victim.pixel_y = victim.get_standard_pixel_y_offset(180)
 	return TRUE
 
@@ -133,13 +134,13 @@
 	src.visible_message(text("<span class='danger'>[M] falls free of [src]!</span>"))
 	unbuckle_mob(M, force = TRUE)
 	M.emote("scream")
-	M.AdjustWeakened(20 SECONDS)
-
+	M.AdjustWeakened(10)
 
 /obj/structure/kitchenspike/post_unbuckle_mob(mob/living/M)
 	M.pixel_y = M.get_standard_pixel_y_offset(0)
-	M.set_lying_angle(0)
-	M.update_transform()
+	var/matrix/m180 = matrix(M.transform)
+	m180.Turn(180)
+	animate(M, transform = m180, time = 3)
 
 /obj/structure/kitchenspike/Destroy()
 	if(has_buckled_mobs())

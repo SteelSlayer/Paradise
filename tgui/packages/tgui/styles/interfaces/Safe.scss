@@ -1,5 +1,7 @@
-.Safe {
-  &--engraving {
+.Safe
+{
+  &--engraving
+  {
     position: absolute;
     width: 95%;
     height: 96%;
@@ -9,12 +11,14 @@
     padding: 5px;
     text-align: center;
 
-    &--arrow {
+    &--arrow
+    {
       color: #35435a;
     }
 
-    &--hinge {
-      content: ' ';
+    &--hinge
+    {
+      content: " ";
       background-color: #191f2a;
       width: 25px;
       height: 40px;
@@ -24,10 +28,12 @@
     }
   }
 
-  &--dialer {
+  &--dialer
+  {
     margin-bottom: 0.5rem;
 
-    &--number {
+    &--number
+    {
       color: #bbbbbb;
       display: inline;
       background-color: #191f2a;
@@ -36,20 +42,25 @@
       padding: 0 0.5rem;
     }
 
-    &--right {
-      .Button {
-        i {
+    &--right
+    {
+      .Button
+      {
+        i
+        {
           z-index: -100;
         }
       }
     }
 
-    .Button {
+    .Button
+    {
       width: 80px;
     }
   }
 
-  &--contents {
+  &--contents
+  {
     border: 10px solid #191f2a;
     background-color: #0f131a;
     height: calc(85% + 7.5px);
@@ -57,7 +68,8 @@
     padding: 5px;
   }
 
-  &--help {
+  &--help
+  {
     position: absolute;
     bottom: 10px;
     left: 5px;

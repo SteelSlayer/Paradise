@@ -1,19 +1,27 @@
-import { useBackend } from '../../backend';
-import { LabeledList, Button, ProgressBar, Box } from '../../components';
+import { useBackend } from "../../backend";
+import { LabeledList, Button, ProgressBar, Box } from "../../components";
 
 export const pai_doorjack = (props, context) => {
   const { act, data } = useBackend(context);
-  const { cable, machine, inprogress, progress, aborted } = data.app_data;
+  const {
+    cable,
+    machine,
+    inprogress,
+    progress,
+    aborted,
+  } = data.app_data;
 
   let cableContent;
 
   if (machine) {
-    cableContent = <Button selected content="Connected" />;
+    cableContent = (
+      <Button selected content="Connected" />
+    );
   } else {
     cableContent = (
       <Button
-        content={cable ? 'Extended' : 'Retracted'}
-        color={cable ? 'orange' : null}
+        content={cable ? "Extended" : "Retracted"}
+        color={cable ? "orange" : null}
         onClick={() => act('cable')}
       />
     );
@@ -30,8 +38,7 @@ export const pai_doorjack = (props, context) => {
             bad: [-Infinity, 33],
           }}
           value={progress}
-          maxValue={100}
-        />
+          maxValue={100} />
         {inprogress ? (
           <Button
             mt={1}
@@ -40,7 +47,11 @@ export const pai_doorjack = (props, context) => {
             onClick={() => act('cancel')}
           />
         ) : (
-          <Button mt={1} content="Start" onClick={() => act('jack')} />
+          <Button
+            mt={1}
+            content="Start"
+            onClick={() => act('jack')}
+          />
         )}
       </LabeledList.Item>
     );
@@ -48,7 +59,9 @@ export const pai_doorjack = (props, context) => {
 
   return (
     <LabeledList>
-      <LabeledList.Item label="Cable">{cableContent}</LabeledList.Item>
+      <LabeledList.Item label="Cable">
+        {cableContent}
+      </LabeledList.Item>
       {hackContent}
     </LabeledList>
   );

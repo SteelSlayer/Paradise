@@ -3,50 +3,47 @@
 	req_access = list(ACCESS_ARMORY)
 	icon = 'icons/obj/guncabinet.dmi'
 	icon_state = "base"
-	anchored = TRUE
+	icon_closed = "base"
+	icon_opened = "base"
+	icon_locked = "base"
+	icon_broken = "base"
+	icon_off = "base"
 
 /obj/structure/closet/secure_closet/guncabinet/toggle()
 	..()
 	update_icon()
 
-/obj/structure/closet/secure_closet/guncabinet/take_contents()
-	..()
-	update_icon()
-
-/obj/structure/closet/secure_closet/guncabinet/emag_act(mob/user)
-	if(!broken)
-		broken = TRUE
-		locked = FALSE
-		to_chat(user, "<span class='notice'>You break the lock on [src].</span>")
-		update_icon()
-
-/obj/structure/closet/secure_closet/guncabinet/update_overlays()
-	. = list()
-	if(!opened)
-		var/lasers = 0
-		var/ballistics = 0
+/obj/structure/closet/secure_closet/guncabinet/update_icon()
+	overlays.Cut()
+	if(opened)
+		overlays += icon(icon,"door_open")
+	else
+		var/lazors = 0
+		var/shottas = 0
 		for(var/obj/item/gun/G in contents)
 			if(istype(G, /obj/item/gun/energy))
-				lasers++
-			if(istype(G, /obj/item/gun/projectile))
-				ballistics++
-		if(lasers || ballistics)
+				lazors++
+			if(istype(G, /obj/item/gun/projectile/))
+				shottas++
+		if(lazors || shottas)
 			for(var/i = 0 to 2)
-				if(!lasers && !ballistics) //This may seem redundant but needed here to prevent adding the gun overlay without guns
-					continue
-				var/image/gun = image(icon(icon))
-				if(lasers && (!ballistics || prob(50)))
-					lasers--
+				var/image/gun = image(icon(src.icon))
+
+				if(lazors > 0 && (shottas <= 0 || prob(50)))
+					lazors--
 					gun.icon_state = "laser"
-				else if(ballistics)
-					ballistics--
+				else if(shottas > 0)
+					shottas--
 					gun.icon_state = "projectile"
 
 				gun.pixel_x = i*4
-				. += gun
+				overlays += gun
 
-		. += "door"
+		overlays += icon(src.icon,"door")
+
 		if(broken)
-			. += "off"
+			overlays += icon(src.icon,"broken")
 		else if(locked)
-			. += "locked"
+			overlays += icon(src.icon,"locked")
+		else
+			overlays += icon(src.icon,"open")

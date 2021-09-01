@@ -7,7 +7,7 @@
 	icon_living = "drone3"
 	icon_dead = "drone_dead"
 	mob_biotypes = MOB_ROBOTIC
-	ranged = TRUE
+	ranged = 1
 	rapid = 3
 	retreat_distance = 3
 	minimum_distance = 3
@@ -29,7 +29,7 @@
 	minbodytemp = 0
 	faction = list("malf_drone")
 	deathmessage = "suddenly breaks apart."
-	del_on_death = TRUE
+	del_on_death = 1
 	var/passive_mode = TRUE // if true, don't target anything.
 
 /mob/living/simple_animal/hostile/malf_drone/Initialize(mapload)

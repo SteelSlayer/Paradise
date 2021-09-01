@@ -18,11 +18,10 @@ SUBSYSTEM_DEF(statistics)
 		return
 	else
 		var/datum/db_query/statquery = SSdbcore.NewQuery(
-			"INSERT INTO legacy_population (playercount, admincount, time, server_id) VALUES (:playercount, :admincount, NOW(), :server_id)",
+			"INSERT INTO legacy_population (playercount, admincount, time) VALUES (:playercount, :admincount, NOW())",
 			list(
 				"playercount" = length(GLOB.clients),
-				"admincount" = length(GLOB.admins),
-				"server_id" = GLOB.configuration.system.instance_id
+				"admincount" = length(GLOB.admins)
 			)
 		)
 		statquery.warn_execute()

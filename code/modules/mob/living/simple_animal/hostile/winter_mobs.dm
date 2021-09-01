@@ -42,13 +42,13 @@
 		if(prob(20))	//chance to become a stationary snowman structure instead of a corpse
 			loot.Add(/obj/structure/snowman)
 			deathmessage = "shimmers as its animating magic fades away!"
-			del_on_death = TRUE
+			del_on_death = 1
 	return ..()
 
 /mob/living/simple_animal/hostile/winter/snowman/ranged
 	maxHealth = 50
 	health = 50
-	ranged = TRUE
+	ranged = 1
 	retreat_distance = 5
 	minimum_distance = 5
 	projectiletype = /obj/item/projectile/snowball
@@ -105,7 +105,7 @@
 	death_message = "<span class='danger'>YOU'VE BEEN VERY NAUGHTY! PREPARE TO DIE!</span>"
 	maxHealth = 200		//DID YOU REALLY BELIEVE IT WOULD BE THIS EASY!??!!
 	health = 200
-	ranged = TRUE
+	ranged = 1
 	projectiletype = /obj/item/projectile/ornament
 	retreat_distance = 5
 	minimum_distance = 5
@@ -116,7 +116,7 @@
 	death_message = "<span class='danger'>FACE MY FINAL FORM AND KNOW DESPAIR!</span>"
 	maxHealth = 250
 	health = 250
-	ranged = TRUE
+	ranged = 1
 	rapid = 3
 	speed = 0	//he's lost some weight from the fighting
 	projectiletype = /obj/item/projectile/ornament

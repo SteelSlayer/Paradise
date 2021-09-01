@@ -56,6 +56,12 @@
 		for(var/obj/structure/spider/S in range(1, get_turf(src)))
 			return S
 
+/mob/living/simple_animal/hostile/poison/giant_spider/death(gibbed)
+	. = ..()
+	if(!.)
+		return FALSE
+	SSmobs.giant_spiders--
+
 //nursemaids - these create webs and eggs
 /mob/living/simple_animal/hostile/poison/giant_spider/nurse
 	desc = "Furry and black, it makes you shudder to look at it. This one has brilliant green eyes."
@@ -90,10 +96,10 @@
 	if(AIStatus == AI_IDLE)
 		//1% chance to skitter madly away
 		if(!busy && prob(1))
-			stop_automated_movement = TRUE
+			stop_automated_movement = 1
 			Goto(pick(urange(20, src, 1)), move_to_delay)
 			spawn(50)
-				stop_automated_movement = FALSE
+				stop_automated_movement = 0
 				walk(src,0)
 		return 1
 
@@ -103,7 +109,7 @@
 			if(cocoon_target == C && get_dist(src,cocoon_target) > 1)
 				cocoon_target = null
 			busy = 0
-			stop_automated_movement = FALSE
+			stop_automated_movement = 0
 
 /mob/living/simple_animal/hostile/poison/giant_spider/nurse/handle_automated_movement() //Hacky and ugly.
 	if(..())
@@ -135,7 +141,7 @@
 						if(isitem(O) || isstructure(O) || ismachinery(O))
 							cocoon_target = O
 							busy = MOVING_TO_TARGET
-							stop_automated_movement = TRUE
+							stop_automated_movement = 1
 							Goto(O, move_to_delay)
 							//give up if we can't reach them after 10 seconds
 							GiveUp(O)
@@ -146,7 +152,7 @@
 
 	else
 		busy = 0
-		stop_automated_movement = FALSE
+		stop_automated_movement = 0
 
 /mob/living/simple_animal/hostile/poison/giant_spider/verb/Web()
 	set name = "Lay Web"
@@ -158,12 +164,12 @@
 	if(busy != SPINNING_WEB)
 		busy = SPINNING_WEB
 		src.visible_message("<span class='notice'>\the [src] begins to secrete a sticky substance.</span>")
-		stop_automated_movement = TRUE
+		stop_automated_movement = 1
 		spawn(40)
 			if(busy == SPINNING_WEB && src.loc == T)
 				new /obj/structure/spider/stickyweb(T)
 			busy = 0
-			stop_automated_movement = FALSE
+			stop_automated_movement = 0
 
 
 /mob/living/simple_animal/hostile/poison/giant_spider/nurse/verb/Wrap()
@@ -198,7 +204,7 @@
 	if(cocoon_target && busy != SPINNING_COCOON)
 		busy = SPINNING_COCOON
 		src.visible_message("<span class='notice'>\the [src] begins to secrete a sticky substance around \the [cocoon_target].</span>")
-		stop_automated_movement = TRUE
+		stop_automated_movement = 1
 		walk(src,0)
 		spawn(50)
 			if(busy == SPINNING_COCOON)
@@ -234,7 +240,7 @@
 						C.icon_state = pick("cocoon_large1","cocoon_large2","cocoon_large3")
 			cocoon_target = null
 			busy = 0
-			stop_automated_movement = FALSE
+			stop_automated_movement = 0
 
 /mob/living/simple_animal/hostile/poison/giant_spider/nurse/verb/LayEggs()
 	set name = "Lay Eggs"
@@ -249,7 +255,7 @@
 	else if(busy != LAYING_EGGS)
 		busy = LAYING_EGGS
 		src.visible_message("<span class='notice'>\the [src] begins to lay a cluster of eggs.</span>")
-		stop_automated_movement = TRUE
+		stop_automated_movement = 1
 		spawn(50)
 			if(busy == LAYING_EGGS)
 				E = locate() in get_turf(src)
@@ -257,12 +263,11 @@
 					var/obj/structure/spider/eggcluster/C = new /obj/structure/spider/eggcluster(src.loc)
 					C.faction = faction.Copy()
 					C.master_commander = master_commander
-					C.xenobiology_spawned = xenobiology_spawned
 					if(ckey)
-						C.player_spiders = TRUE
+						C.player_spiders = 1
 					fed--
 			busy = 0
-			stop_automated_movement = FALSE
+			stop_automated_movement = 0
 
 #undef SPINNING_WEB
 #undef LAYING_EGGS

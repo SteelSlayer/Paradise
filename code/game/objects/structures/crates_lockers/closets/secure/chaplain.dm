@@ -2,8 +2,12 @@
 	name = "chapel wardrobe"
 	desc = "A lockable storage unit for Nanotrasen-approved religious attire."
 	req_access = list(ACCESS_CHAPEL_OFFICE)
-	icon_state = "chaplain"
-	open_door_sprite = "chaplain_door"
+	icon_state = "chaplainsecure1"
+	icon_closed = "chaplainsecure"
+	icon_locked = "chaplainsecure1"
+	icon_opened = "chaplainsecureopen"
+	icon_broken = "chaplainsecurebroken"
+	icon_off = "chaplainsecureoff"
 
 /obj/structure/closet/secure_closet/chaplain/populate_contents()
 	new /obj/item/clothing/under/rank/chaplain(src)

@@ -18,7 +18,7 @@
 
 /datum/event/ion_storm/announce()
 	if(announceEvent == ION_ANNOUNCE || (announceEvent == ION_RANDOM && prob(ionAnnounceChance)))
-		GLOB.event_announcement.Announce("Ion storm detected near the station. Please check all AI-controlled equipment for errors.", "Anomaly Alert", 'sound/AI/ions.ogg')
+		GLOB.event_announcement.Announce("Ion storm detected near the station. Please check all AI-controlled equipment for errors.", "Anomaly Alert", 'sound/AI/ionstorm.ogg')
 
 /datum/event/ion_storm/start()
 	//AI laws
@@ -30,9 +30,6 @@
 				to_chat(M, "<br>")
 				to_chat(M, "<span class='danger'>[message] ...LAWS UPDATED</span>")
 				to_chat(M, "<br>")
-
-				for(var/player in GLOB.dead_mob_list)
-					to_chat(player, "<span class='deadsay'><b>[M] ([ghost_follow_link(M, player)])</b> has recieved an ion law:\n<b>'[message]'</b></span>")
 
 	if(botEmagChance)
 		for(var/mob/living/simple_animal/bot/bot in GLOB.machines)
@@ -488,7 +485,7 @@
 						if(3) //X is Ying an abstract
 							message = "THE [ionabstract] IS [ionverb] THE [ionadjectiveshalf][ionobjects]"
 
-		else //Static laws
+		if(40 to INFINITY) //Static laws
 			message = uppertext(generate_static_ion_law())
 
 	return message

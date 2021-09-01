@@ -2,8 +2,8 @@
 	name = "ragin' mages"
 	config_tag = "raginmages"
 	required_players = 20
-	use_huds = TRUE
-	but_wait_theres_more = TRUE
+	use_huds = 1
+	but_wait_theres_more = 1
 	var/max_mages = 0
 	var/making_mage = FALSE
 	var/mages_made = 1
@@ -78,7 +78,7 @@
 			make_more_mages()
 	else
 		if(wizards.len >= wizard_cap)
-			finished = TRUE
+			finished = 1
 			return 1
 		else
 			make_more_mages()
@@ -137,8 +137,8 @@
 			mages_made++
 			return TRUE
 		else
-			. = FALSE
-			CRASH("The candidates list for ragin' mages contained non-observer entries!")
+			log_runtime(EXCEPTION("The candidates list for ragin' mages contained non-observer entries!"), src)
+			return FALSE
 
 // ripped from -tg-'s wizcode, because whee lets make a very general proc for a very specific gamemode
 // This probably wouldn't do half bad as a proc in __HELPERS
@@ -147,7 +147,7 @@
 	if(!G || !G.key)
 		return // Let's not steal someone's soul here
 	var/mob/living/carbon/human/new_character = new(pick(GLOB.latejoin))
-	G.client.prefs.active_character.copy_to(new_character)
+	G.client.prefs.copy_to(new_character)
 	new_character.key = G.key
 	return new_character
 

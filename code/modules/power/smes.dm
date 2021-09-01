@@ -83,17 +83,24 @@
 		C += PC.maxcharge
 	capacity = C / (15000) * 1e6
 
-/obj/machinery/power/smes/update_overlays()
-	. = ..()
-	if(stat & BROKEN)
-		return
+/obj/machinery/power/smes/update_icon()
+	overlays.Cut()
+	if(stat & BROKEN)	return
 
-	. += "smes-op[outputting ? 1 : 0]"
-	. += "smes-oc[inputting ? 1 : 0]"
+	overlays += image('icons/obj/power.dmi', "smes-op[outputting]")
 
-	var/charge_level = chargedisplay()
-	if(charge_level > 0)
-		. += "smes-og[charge_level]"
+	if(inputting == 2)
+		overlays += image('icons/obj/power.dmi', "smes-oc2")
+	else if(inputting == 1)
+		overlays += image('icons/obj/power.dmi', "smes-oc1")
+	else
+		if(input_attempt)
+			overlays += image('icons/obj/power.dmi', "smes-oc0")
+
+	var/clevel = chargedisplay()
+	if(clevel>0)
+		overlays += image('icons/obj/power.dmi', "smes-og[clevel]")
+	return
 
 /obj/machinery/power/smes/attackby(obj/item/I, mob/user, params)
 	//opening using screwdriver
@@ -242,7 +249,7 @@
 	return ..()
 
 /obj/machinery/power/smes/proc/chargedisplay()
-	return clamp(round(5.5 * charge / capacity), 0, 5)
+	return round(5.5*charge/(capacity ? capacity : 5e6))
 
 /obj/machinery/power/smes/process()
 	if(stat & BROKEN)

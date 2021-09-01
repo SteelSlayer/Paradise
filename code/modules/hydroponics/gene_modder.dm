@@ -4,8 +4,8 @@
 	icon = 'icons/obj/hydroponics/equipment.dmi'
 	pass_flags = PASSTABLE
 	icon_state = "dnamod"
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1
 
 	var/obj/item/seeds/seed
 	var/obj/item/disk/plantgene/disk
@@ -23,8 +23,8 @@
 	var/min_wchance = 67
 	var/min_wrate = 10
 
-/obj/machinery/plantgenes/Initialize(mapload)
-	. = ..()
+/obj/machinery/plantgenes/New()
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/plantgenes(null)
 	component_parts += new /obj/item/stack/sheet/glass(null)
@@ -33,8 +33,8 @@
 	component_parts += new /obj/item/stock_parts/manipulator(null)
 	RefreshParts()
 
-/obj/machinery/plantgenes/seedvault/Initialize(mapload)
-	. = ..()
+/obj/machinery/plantgenes/seedvault/New()
+	..()
 	component_parts = list()
 	component_parts += new /obj/item/circuitboard/plantgenes/vault(null)
 	component_parts += new /obj/item/stack/sheet/glass(null)
@@ -82,22 +82,21 @@
 			min_wchance = 0
 			min_wrate = 0
 
-/obj/machinery/plantgenes/update_icon_state()
+/obj/machinery/plantgenes/update_icon()
+	..()
+	overlays.Cut()
 	if((stat & (BROKEN|NOPOWER)))
 		icon_state = "dnamod-off"
 	else
 		icon_state = "dnamod"
-
-/obj/machinery/plantgenes/update_overlays()
-	. = ..()
 	if(seed)
-		. += "dnamod-dna"
+		overlays += "dnamod-dna"
 	if(panel_open)
-		. += "dnamod-open"
+		overlays += "dnamod-open"
 
 /obj/machinery/plantgenes/attackby(obj/item/I, mob/user, params)
 	if(default_deconstruction_screwdriver(user, "dnamod", "dnamod", I))
-		update_icon(UPDATE_OVERLAYS)
+		update_icon()
 		return
 	if(exchange_parts(user, I))
 		return
@@ -278,13 +277,6 @@
 			if(can_insert && istype(disk.gene, /datum/plant_gene/trait))
 				dat += "<a href='?src=[UID()];op=insert'>Insert: [disk.gene.get_name()]</a>"
 			dat += "</div>"
-
-		dat += "<div class='line'><h3>Variant</h3></div><div class='statusDisplay'><table>"
-		dat += "<tr><td width='260px'>[seed.variant ? seed.variant : "None"]</td>"
-		dat += "<td><a href='?src=[UID()];set_v=1'>Edit</a></td>"
-		if(seed.variant)
-			dat += "<td><a href='?src=[UID()];del_v=1'>Remove</a></td>"
-		dat += "</tr></table></div>"
 	else
 		dat += "<br>No sample found.<br><span class='highlight'>Please, insert a plant sample to use this device.</span>"
 	popup.set_content(dat)
@@ -302,7 +294,7 @@
 			seed.verb_pickup()
 			seed = null
 			update_genes()
-			update_icon(UPDATE_OVERLAYS)
+			update_icon()
 		else
 			var/obj/item/I = usr.get_active_hand()
 			if(istype(I, /obj/item/seeds))
@@ -310,7 +302,7 @@
 					return
 				insert_seed(I)
 				to_chat(usr, "<span class='notice'>You add [I] to the machine.</span>")
-		update_icon(UPDATE_OVERLAYS)
+		update_icon()
 	else if(href_list["eject_disk"] && !operation)
 		if(disk)
 			disk.forceMove(loc)
@@ -377,7 +369,7 @@
 								gene.value = max(gene.value, min_wchance)
 						disk.update_name()
 						QDEL_NULL(seed)
-						update_icon(UPDATE_OVERLAYS)
+						update_icon()
 				if("replace")
 					if(disk && disk.gene && istype(disk.gene, G.type) && istype(G, /datum/plant_gene/core))
 						seed.genes -= G
@@ -399,16 +391,6 @@
 	else if(href_list["abort"])
 		operation = ""
 		target = null
-	else if(href_list["set_v"])
-		if(!seed)
-			return
-		seed.variant_prompt(usr, src)
-	else if(href_list["del_v"])
-		if(!seed)
-			return
-		seed.variant = null
-		seed.apply_variant_name()
-		to_chat(usr, "<span class='notice'>You remove the [seed.plantname]'s variant designation.</span>")
 
 	interact(usr)
 
@@ -418,7 +400,7 @@
 	S.forceMove(src)
 	seed = S
 	update_genes()
-	update_icon(UPDATE_OVERLAYS)
+	update_icon()
 
 /obj/machinery/plantgenes/proc/update_genes()
 	core_genes = list()
@@ -478,8 +460,7 @@
 	if(istype(W, /obj/item/pen))
 		rename_interactive(user, W)
 
-/obj/item/disk/plantgene/update_name()
-	. = ..()
+/obj/item/disk/plantgene/proc/update_name()
 	if(gene)
 		name = "[gene.get_name()] (Plant Data Disk)"
 	else
@@ -501,6 +482,7 @@
 	name = "plant data disks box"
 	icon_state = "disk_kit"
 
-/obj/item/storage/box/disks_plantgene/populate_contents()
+/obj/item/storage/box/disks_plantgene/New()
+	..()
 	for(var/i in 1 to 7)
 		new /obj/item/disk/plantgene(src)

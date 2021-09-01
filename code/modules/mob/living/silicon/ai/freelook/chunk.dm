@@ -12,9 +12,9 @@
 	var/list/cameras = list()
 	var/list/turfs = list()
 	var/list/seenby = list()
-	var/visible = FALSE
-	var/changed = FALSE
-	var/updating = FALSE
+	var/visible = 0
+	var/changed = 0
+	var/updating = 0
 	var/x = 0
 	var/y = 0
 	var/z = 0
@@ -57,12 +57,12 @@
 /datum/camerachunk/proc/hasChanged(update_now = 0)
 	if(visible || update_now)
 		if(!updating)
-			updating = TRUE
+			updating = 1
 			spawn(UPDATE_BUFFER) // Batch large changes, such as many doors opening or closing at once
 				update()
-				updating = FALSE
+				updating = 0
 	else
-		changed = TRUE
+		changed = 1
 
 // The actual updating. It gathers the visible turfs from cameras and puts them into the appropiate lists.
 

@@ -65,8 +65,8 @@ SUBSYSTEM_DEF(shuttle)
 
 	return ..()
 
-/datum/controller/subsystem/shuttle/get_stat_details()
-	return "M:[length(mobile)] S:[length(stationary)] T:[length(transit)]"
+/datum/controller/subsystem/shuttle/stat_entry(msg)
+	..("M:[mobile.len] S:[stationary.len] T:[transit.len]")
 
 /datum/controller/subsystem/shuttle/proc/initial_load()
 	for(var/obj/docking_port/D in world)
@@ -174,6 +174,8 @@ SUBSYSTEM_DEF(shuttle)
 	if(emergency.mode != SHUTTLE_CALL)
 		return
 	if(!emergency.canRecall)
+		return
+	if(SSticker.mode.name == "meteor")
 		return
 	if(seclevel2num(get_security_level()) >= SEC_LEVEL_RED)
 		if(emergency.timeLeft(1) < emergencyCallTime * 0.25)

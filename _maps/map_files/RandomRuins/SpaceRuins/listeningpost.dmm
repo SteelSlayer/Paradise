@@ -2,38 +2,44 @@
 "a" = (
 /turf/template_noop,
 /area/template_noop)
+"b" = (
+/turf/simulated/mineral,
+/area/ruin/powered)
 "c" = (
 /turf/simulated/mineral,
-/area/ruin/space/powered)
+/area/ruin/unpowered)
 "d" = (
 /turf/simulated/floor/plating/asteroid/airless,
-/area/ruin/space/powered)
+/area/ruin/unpowered)
+"e" = (
+/turf/simulated/floor/plating/asteroid/airless,
+/area/ruin/powered)
 "f" = (
 /turf/simulated/wall/r_wall,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "g" = (
 /turf/simulated/floor/plating,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "h" = (
 /obj/machinery/power/smes/magical{
 	desc = "A high-capacity superconducting magnetic energy storage (SMES) unit.";
 	name = "power storage unit"
 	},
 /turf/simulated/floor/plating,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "i" = (
 /obj/machinery/door/airlock,
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "j" = (
 /turf/simulated/wall,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "k" = (
 /obj/structure/table,
 /obj/item/paper/monitorkey,
 /obj/item/clothing/glasses/regular,
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "l" = (
 /obj/structure/table,
 /obj/item/radio/intercom/pirate{
@@ -43,24 +49,24 @@
 	dir = 1
 	},
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "m" = (
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "n" = (
 /obj/machinery/door/airlock/external,
 /turf/simulated/floor/plating,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "o" = (
 /obj/machinery/light/small{
 	dir = 1
 	},
 /turf/simulated/floor/plating,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "p" = (
 /obj/machinery/computer/message_monitor,
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "q" = (
 /obj/structure/chair{
 	dir = 4
@@ -70,7 +76,7 @@
 	environment_smash = 0
 	},
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "r" = (
 /obj/structure/table,
 /obj/item/paper{
@@ -79,50 +85,50 @@
 	},
 /obj/item/pen,
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "s" = (
 /obj/structure/table,
 /obj/item/radio/intercom/pirate{
 	name = "listening post intercom"
 	},
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "t" = (
 /obj/structure/rack,
 /obj/item/tank/jetpack/carbondioxide,
 /obj/item/tank/internals/air,
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "u" = (
 /obj/machinery/tcomms/relay/ruskie{
 	network_id = "LISTENINGOUTPOST-RELAY"
 	},
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "w" = (
 /obj/machinery/light/small,
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "x" = (
 /obj/structure/rack,
 /obj/item/clothing/suit/space/syndicate,
 /obj/item/clothing/mask/gas,
 /obj/item/clothing/head/helmet/space/syndicate,
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "z" = (
 /obj/structure/disposalpipe/segment{
 	dir = 4;
 	icon_state = "pipe-c"
 	},
 /turf/simulated/mineral,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "A" = (
 /obj/structure/disposalpipe/segment{
 	dir = 4
 	},
 /turf/simulated/mineral,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "B" = (
 /obj/structure/disposaloutlet{
 	dir = 4
@@ -131,40 +137,40 @@
 	dir = 8
 	},
 /turf/simulated/floor/plating/airless,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "C" = (
 /obj/structure/bed,
 /obj/item/bedsheet/brown,
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "D" = (
 /obj/structure/table,
 /obj/item/flashlight/lamp/green,
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "E" = (
 /obj/machinery/light/small{
 	dir = 1
 	},
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "F" = (
 /obj/machinery/vending/snack,
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "G" = (
 /obj/structure/disposalpipe/segment,
 /turf/simulated/mineral,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "H" = (
 /obj/machinery/vending/cola,
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "I" = (
 /obj/structure/closet,
 /obj/item/clothing/gloves/boxing,
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "J" = (
 /obj/structure/filingcabinet,
 /obj/item/paper{
@@ -200,7 +206,7 @@
 	name = "receipt"
 	},
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "K" = (
 /obj/structure/table,
 /obj/item/paper{
@@ -208,33 +214,33 @@
 	name = "mission briefing"
 	},
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "L" = (
 /obj/machinery/disposal,
 /obj/structure/disposalpipe/trunk{
 	dir = 4
 	},
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "M" = (
 /obj/structure/disposalpipe/segment{
 	dir = 4
 	},
 /turf/simulated/wall/r_wall,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "N" = (
 /obj/structure/disposalpipe/segment{
 	dir = 8;
 	icon_state = "pipe-c"
 	},
 /turf/simulated/mineral,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "O" = (
 /obj/machinery/door/airlock{
 	name = "Toilet"
 	},
 /turf/simulated/floor/plasteel,
-/area/ruin/space/powered)
+/area/ruin/powered)
 "P" = (
 /obj/machinery/light/small{
 	dir = 8
@@ -242,7 +248,7 @@
 /turf/simulated/floor/plasteel{
 	icon_state = "freezerfloor"
 	},
-/area/ruin/space/powered)
+/area/ruin/powered)
 "Q" = (
 /obj/machinery/shower{
 	dir = 8
@@ -250,12 +256,12 @@
 /turf/simulated/floor/plasteel{
 	icon_state = "freezerfloor"
 	},
-/area/ruin/space/powered)
+/area/ruin/powered)
 "R" = (
 /turf/simulated/floor/plasteel{
 	icon_state = "freezerfloor"
 	},
-/area/ruin/space/powered)
+/area/ruin/powered)
 "S" = (
 /obj/structure/toilet{
 	dir = 8
@@ -263,11 +269,11 @@
 /turf/simulated/floor/plasteel{
 	icon_state = "freezerfloor"
 	},
-/area/ruin/space/powered)
+/area/ruin/powered)
 "Y" = (
 /obj/item/gps/ruin,
 /turf/simulated/wall/r_wall,
-/area/ruin/space/powered)
+/area/ruin/powered)
 
 (1,1,1) = {"
 a
@@ -355,7 +361,7 @@ a
 "}
 (3,1,1) = {"
 a
-c
+b
 a
 a
 a
@@ -389,7 +395,7 @@ a
 c
 c
 a
-c
+b
 a
 a
 a
@@ -397,10 +403,10 @@ a
 "}
 (4,1,1) = {"
 a
-c
-c
-c
-c
+b
+b
+b
+b
 a
 a
 a
@@ -426,24 +432,24 @@ a
 a
 a
 a
+b
 c
-c
-c
-c
+b
+b
 a
 c
-c
-c
+b
+b
 a
 c
 "}
 (5,1,1) = {"
 a
 a
-c
-c
-c
-c
+b
+b
+b
+b
 a
 a
 a
@@ -469,24 +475,24 @@ a
 a
 a
 a
-c
-c
+b
+b
 a
 a
-c
-c
-c
-c
+b
+b
+b
+b
 a
 "}
 (6,1,1) = {"
 a
 a
-c
-c
-c
-c
-c
+b
+b
+b
+b
+b
 a
 a
 a
@@ -494,7 +500,7 @@ a
 a
 c
 c
-c
+b
 d
 d
 d
@@ -511,12 +517,12 @@ c
 a
 a
 a
-c
+b
 c
 a
-c
-c
-c
+b
+b
+b
 a
 c
 a
@@ -524,11 +530,11 @@ a
 (7,1,1) = {"
 a
 a
-c
-c
-c
-c
-c
+b
+b
+b
+b
+b
 a
 a
 a
@@ -543,7 +549,7 @@ d
 d
 c
 c
-c
+b
 d
 d
 c
@@ -554,10 +560,10 @@ c
 a
 a
 a
-c
-c
-c
-c
+b
+b
+b
+b
 a
 a
 a
@@ -567,11 +573,11 @@ a
 a
 a
 a
-c
-c
-c
-c
-c
+b
+b
+b
+b
+b
 a
 a
 d
@@ -597,8 +603,8 @@ a
 a
 a
 a
-c
-c
+b
+b
 a
 a
 a
@@ -610,20 +616,20 @@ a
 a
 a
 a
-c
+b
 a
 a
-c
+b
 a
 c
 d
-d
+e
 d
 d
 d
 d
 c
-c
+b
 c
 d
 d
@@ -659,10 +665,13 @@ a
 a
 c
 d
+e
 d
 d
 d
-d
+c
+c
+b
 c
 c
 c
@@ -671,11 +680,8 @@ c
 c
 c
 c
-c
-c
-c
-c
-c
+b
+b
 c
 c
 a
@@ -699,11 +705,13 @@ a
 a
 a
 c
-c
-c
+b
+b
 d
 d
 c
+b
+b
 c
 c
 c
@@ -714,10 +722,8 @@ c
 c
 c
 c
-c
-c
-c
-c
+b
+b
 c
 c
 c
@@ -741,6 +747,8 @@ a
 a
 a
 c
+b
+b
 c
 c
 c
@@ -750,14 +758,12 @@ c
 c
 c
 c
+b
+b
 c
 c
-c
-c
-c
-c
-c
-c
+b
+b
 c
 c
 c
@@ -794,18 +800,18 @@ c
 c
 c
 c
+b
+b
+c
+c
+b
+b
 c
 c
 c
 c
 c
-c
-c
-c
-c
-c
-c
-c
+b
 a
 a
 a
@@ -827,12 +833,12 @@ c
 c
 c
 c
-c
-c
-c
-c
-c
-c
+b
+b
+b
+b
+b
+b
 c
 c
 f
@@ -840,15 +846,15 @@ f
 f
 f
 f
+b
+b
+b
 c
 c
 c
 c
-c
-c
-c
-c
-c
+b
+b
 a
 a
 a
@@ -870,21 +876,21 @@ c
 c
 c
 c
-c
-c
-c
-c
-c
-c
+b
+b
+b
+b
+b
+b
 c
 f
 C
 m
 I
 f
-c
-c
-c
+b
+b
+b
 c
 c
 c
@@ -912,9 +918,9 @@ c
 c
 c
 c
-c
-c
-c
+b
+b
+b
 f
 f
 f
@@ -924,9 +930,9 @@ D
 m
 J
 f
-c
-c
-c
+b
+b
+b
 c
 c
 c
@@ -954,8 +960,8 @@ c
 c
 c
 c
-c
-c
+b
+b
 f
 f
 p
@@ -966,9 +972,9 @@ j
 i
 j
 f
-c
-c
-c
+b
+b
+b
 c
 c
 c
@@ -996,8 +1002,8 @@ c
 c
 c
 c
-c
-c
+b
+b
 f
 k
 q
@@ -1175,10 +1181,10 @@ f
 f
 f
 M
-c
-c
-c
-c
+b
+b
+b
+b
 c
 d
 d
@@ -1206,21 +1212,21 @@ a
 a
 c
 c
-c
-c
+b
+b
 f
 o
 g
 f
-c
-c
-c
-c
+b
+b
+b
+b
 A
-c
-c
-c
-c
+b
+b
+b
+b
 c
 d
 d
@@ -1240,29 +1246,29 @@ a
 a
 a
 a
-c
-c
-c
+b
+b
+b
 a
 a
 a
 c
 c
-c
-c
+b
+b
 f
 g
 g
 f
-c
+b
 z
 G
 G
 N
-c
-c
-c
-c
+b
+b
+b
+b
 d
 d
 d
@@ -1283,28 +1289,28 @@ a
 a
 a
 a
-c
-c
+b
+b
 a
 a
 a
 a
-c
-c
-c
+b
+b
+b
 f
 n
 n
 f
-c
+b
 A
-c
-c
-c
-c
-c
-c
-c
+b
+b
+b
+b
+b
+b
+b
 d
 d
 a
@@ -1325,25 +1331,25 @@ a
 a
 c
 a
-c
-c
-c
+b
+b
+b
+a
+a
+a
+b
+b
+b
 a
 a
 a
 c
-c
-c
-a
-a
-a
-c
-c
+b
 A
-c
-c
-c
-c
+b
+b
+b
+b
 c
 c
 c
@@ -1368,21 +1374,21 @@ a
 a
 a
 a
-c
-c
+b
+b
 a
 a
 a
 a
-c
-c
+b
+b
 a
 a
 a
 c
 c
 B
-c
+b
 c
 c
 c
@@ -1417,14 +1423,14 @@ a
 a
 a
 a
-c
-c
+b
+b
 a
 a
-c
+b
 c
 a
-c
+b
 c
 c
 a
@@ -1460,7 +1466,7 @@ a
 a
 a
 a
-c
+b
 a
 a
 a
@@ -1581,7 +1587,7 @@ a
 a
 a
 a
-c
+b
 a
 a
 a
@@ -1622,8 +1628,8 @@ c
 c
 a
 a
-c
-c
+b
+b
 a
 a
 a
@@ -1664,9 +1670,9 @@ c
 c
 a
 a
-c
-c
-c
+b
+b
+b
 a
 a
 a
@@ -1708,8 +1714,8 @@ a
 a
 a
 c
-c
-c
+b
+b
 a
 a
 a
@@ -1750,8 +1756,8 @@ a
 a
 a
 a
-c
-c
+b
+b
 a
 a
 a
@@ -1793,7 +1799,7 @@ a
 a
 a
 a
-c
+b
 a
 a
 a

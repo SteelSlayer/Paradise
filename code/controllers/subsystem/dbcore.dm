@@ -24,8 +24,8 @@ SUBSYSTEM_DEF(dbcore)
 
 	offline_implications = "The server will no longer check for undeleted SQL Queries. No immediate action is needed."
 
-/datum/controller/subsystem/dbcore/get_stat_details()
-	return "A: [length(active_queries)]"
+/datum/controller/subsystem/dbcore/stat_entry()
+	..("A: [length(active_queries)]")
 
 // This is in Initialize() so that its actually seen in chat
 /datum/controller/subsystem/dbcore/Initialize()
@@ -160,8 +160,8 @@ SUBSYSTEM_DEF(dbcore)
 	if(!IsConnected())
 		return
 	var/datum/db_query/query_round_initialize = SSdbcore.NewQuery(
-		"INSERT INTO round (initialize_datetime, server_ip, server_port, server_id) VALUES (Now(), INET_ATON(:internet_address), :port, :server_id)",
-		list("internet_address" = world.internet_address || "0", "port" = "[world.port]", "server_id" = GLOB.configuration.system.instance_id)
+		"INSERT INTO round (initialize_datetime, server_ip, server_port) VALUES (Now(), INET_ATON(:internet_address), :port)",
+		list("internet_address" = world.internet_address || "0", "port" = "[world.port]")
 	)
 	query_round_initialize.Execute(async = FALSE)
 	GLOB.round_id = "[query_round_initialize.last_insert_id]"

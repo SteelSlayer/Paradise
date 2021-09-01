@@ -2,10 +2,10 @@
 	name = "waterfall effect"
 	icon = 'icons/effects/effects.dmi'
 	icon_state = "extinguish"
-	opacity = FALSE
+	opacity = 0
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
-	density = FALSE
-	anchored = TRUE
+	density = 0
+	anchored = 1
 	invisibility = 101
 
 	var/water_frequency = 15
@@ -86,11 +86,6 @@
 	barefootstep = FOOTSTEP_WATER
 	clawfootstep = FOOTSTEP_WATER
 	heavyfootstep = FOOTSTEP_WATER
-	smoothing_groups = list(SMOOTH_GROUP_BEACH_WATER)
-
-/turf/simulated/floor/beach/away/water/Initialize(mapload)
-	. = ..()
-	RegisterSignal(src, COMSIG_ATOM_INITIALIZED_ON, .proc/InitializedOn)
 
 /turf/simulated/floor/beach/away/water/Entered(atom/movable/AM, atom/OldLoc)
 	. = ..()
@@ -106,7 +101,7 @@
 	if(ismob(AM))
 		linkedcontroller.mobinpool -= AM
 
-/turf/simulated/floor/beach/away/water/proc/InitializedOn(atom/A)
+/turf/simulated/floor/beach/away/water/InitializedOn(atom/A)
 	if(!linkedcontroller)
 		return
 	if(istype(A, /obj/effect/decal/cleanable)) // Better a typecheck than looping through thousands of turfs everyday
@@ -125,11 +120,13 @@
 /turf/simulated/floor/beach/away/water/drop
 	name = "Water"
 	icon = 'icons/turf/floors/seadrop.dmi'
-	icon_state = "seadrop-0"
-	base_icon_state = "seadrop"
+	icon_state = "seadrop"
 	water_overlay_image = null
-	smoothing_flags = SMOOTH_BITMASK
-	canSmoothWith = list(SMOOTH_GROUP_BEACH_WATER)
+	smooth = SMOOTH_TRUE
+	canSmoothWith = list(
+	/turf/simulated/floor/beach/away/water/drop, /turf/simulated/floor/beach/away/water/drop/dense,
+		/turf/simulated/floor/beach/away/water, /turf/simulated/floor/beach/away/water/dense,
+		/turf/simulated/floor/beach/away/water/edge_drop)
 	var/obj/effect/beach_drop_overlay/water_overlay
 	baseturf = /turf/simulated/floor/beach/away/water/drop
 
@@ -144,11 +141,13 @@
 /obj/effect/beach_drop_overlay
 	name = "Water"
 	icon = 'icons/turf/floors/seadrop-o.dmi'
-	base_icon_state = "seadrop-o"
 	layer = MOB_LAYER + 0.1
-	smoothing_flags = SMOOTH_BITMASK
-	canSmoothWith = list(SMOOTH_GROUP_BEACH_WATER)
-	anchored = TRUE
+	smooth = SMOOTH_TRUE
+	anchored = 1
+	canSmoothWith = list(
+		/turf/simulated/floor/beach/away/water/drop, /turf/simulated/floor/beach/away/water/drop/dense,
+		/turf/simulated/floor/beach/away/water, /turf/simulated/floor/beach/away/water/dense,
+		/turf/simulated/floor/beach/away/water/edge_drop)
 
 /turf/simulated/floor/beach/away/water/drop/dense
 	density = TRUE
@@ -156,7 +155,6 @@
 
 /turf/simulated/floor/beach/away/water/deep
 	name = "Deep Water"
-	smoothing_groups = list()
 	icon_state = "seadeep"
 	water_overlay_image = "water_deep"
 	baseturf = /turf/simulated/floor/beach/away/water/deep

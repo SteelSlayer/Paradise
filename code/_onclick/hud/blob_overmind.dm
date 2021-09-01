@@ -6,7 +6,6 @@
 	icon = 'icons/mob/blob.dmi'
 
 /obj/screen/blob/MouseEntered(location,control,params)
-	. = ..()
 	openToolTip(usr,src,params,title = name,content = desc, theme = "blob")
 
 /obj/screen/blob/MouseExited()
@@ -41,7 +40,7 @@
 	if(hud && hud.mymob && isovermind(hud.mymob))
 		name = initial(name)
 		desc = initial(desc)
-	return ..()
+	..()
 
 /obj/screen/blob/JumpToCore/Click()
 	if(isovermind(usr))
@@ -107,7 +106,7 @@
 	if(hud && hud.mymob && isovermind(hud.mymob))
 		name = initial(name)
 		desc = initial(desc)
-	return ..()
+	..()
 
 /obj/screen/blob/ReadaptChemical/Click()
 	if(isovermind(usr))

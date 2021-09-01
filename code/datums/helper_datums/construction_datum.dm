@@ -6,7 +6,6 @@
 	var/list/steps
 	var/atom/holder
 	var/result
-	var/index
 	var/list/steps_desc
 	var/taskpath = null // Path of job objective completed.
 
@@ -80,7 +79,7 @@
 	return 0
 
 
-/datum/construction/proc/spawn_result(mob/user, result_name)
+/datum/construction/proc/spawn_result(mob/user as mob)
 	if(result)
 		if(taskpath)
 			var/datum/job_objective/task = user.mind.findJobTask(taskpath)
@@ -129,6 +128,7 @@
 			return TRUE
 
 /datum/construction/reversible
+	var/index
 
 /datum/construction/reversible/New(atom)
 	..()
@@ -168,6 +168,7 @@
 #define state_prev "prev"
 
 /datum/construction/reversible2
+	var/index
 	var/base_icon = "durand"
 
 /datum/construction/reversible2/New(atom)

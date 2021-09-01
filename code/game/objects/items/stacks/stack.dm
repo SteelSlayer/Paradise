@@ -187,9 +187,7 @@
 
 		var/datum/stack_recipe/R = recipes_list[text2num(href_list["make"])]
 		var/multiplier = text2num(href_list["multiplier"])
-		if(!multiplier || multiplier <= 0 || multiplier > 50 || !IS_INT(multiplier)) // Href exploit checks
-			if(multiplier) // It existed but they tried to fuck with it
-				message_admins("[key_name_admin(usr)] just attempted to href exploit sheet crafting with an invalid multiplier. Ban highly advised.")
+		if(!multiplier || multiplier <= 0 || multiplier > 50) // Href exploit checks
 			multiplier = 1
 
 		if(get_amount() < R.req_amount * multiplier)
@@ -210,15 +208,12 @@
 		if(R.on_floor && !istype(get_turf(src), /turf/simulated))
 			to_chat(usr, "<span class='warning'>\The [R.title] must be constructed on the floor!</span>")
 			return FALSE
-		if(R.on_floor_or_lattice && !(istype(get_turf(src), /turf/simulated) || locate(/obj/structure/lattice) in get_turf(src)))
-			to_chat(usr, "<span class='warning'>\The [R.title] must be constructed on the floor or lattice!</span>")
-			return FALSE
 
-		if(R.cult_structure)
+		if(R.no_cult_structure)
 			if(usr.holy_check())
 				return
 			if(!is_level_reachable(usr.z))
-				to_chat(usr, "<span class='warning'>\The energies of this place interfere with the metal shaping!</span>")
+				to_chat(usr, "<span class='warning'>The energies of this place interfere with the metal shaping!</span>")
 				return
 			if(locate(/obj/structure/cult) in get_turf(src))
 				to_chat(usr, "<span class='warning'>There is a structure here!</span>")
@@ -227,11 +222,7 @@
 		if(R.time)
 			to_chat(usr, "<span class='notice'>Building [R.title]...</span>")
 			if(!do_after(usr, R.time, target = loc))
-				return FALSE
-
-		if(R.cult_structure && locate(/obj/structure/cult) in get_turf(src)) //Check again after do_after to prevent queuing construction exploit.
-			to_chat(usr, "<span class='warning'>There is a structure here!</span>")
-			return FALSE
+				return 0
 
 		if(get_amount() < R.req_amount * multiplier)
 			return

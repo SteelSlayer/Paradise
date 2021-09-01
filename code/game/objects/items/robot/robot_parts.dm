@@ -6,7 +6,7 @@
 	flags = CONDUCT
 	slot_flags = SLOT_BELT
 	var/list/part = null
-	var/sabotaged = FALSE //Emagging limbs can have repercussions when installed as prosthetics.
+	var/sabotaged = 0 //Emagging limbs can have repercussions when installed as prosthetics.
 	var/model_info = "Unbranded"
 	dir = SOUTH
 
@@ -22,8 +22,6 @@
 				icon = R.icon
 	else
 		name = "robot [initial(name)]"
-
-	AddComponent(/datum/component/surgery_initiator/limb, forced_surgery = /datum/surgery/attach_robotic_limb)
 
 /obj/item/robot_parts/attack_self(mob/user)
 	var/choice = input(user, "Select the company appearance for this limb.", "Limb Company Selection") as null|anything in GLOB.selectable_robolimbs
@@ -104,7 +102,7 @@
 
 /obj/item/robot_parts/robot_suit/New()
 	..()
-	update_icon(UPDATE_OVERLAYS)
+	updateicon()
 
 /obj/item/robot_parts/robot_suit/Destroy()
 	QDEL_NULL(l_arm)
@@ -119,20 +117,20 @@
 /obj/item/robot_parts/robot_suit/attack_self(mob/user)
 	return
 
-/obj/item/robot_parts/robot_suit/update_overlays()
-	. = ..()
+/obj/item/robot_parts/robot_suit/proc/updateicon()
+	overlays.Cut()
 	if(l_arm)
-		. += "l_arm+o"
+		overlays += "l_arm+o"
 	if(r_arm)
-		. += "r_arm+o"
+		overlays += "r_arm+o"
 	if(chest)
-		. += "chest+o"
+		overlays += "chest+o"
 	if(l_leg)
-		. += "l_leg+o"
+		overlays += "l_leg+o"
 	if(r_leg)
-		. += "r_leg+o"
+		overlays += "r_leg+o"
 	if(head)
-		. += "head+o"
+		overlays += "head+o"
 
 /obj/item/robot_parts/robot_suit/proc/check_completion()
 	if(l_arm && r_arm)
@@ -160,7 +158,7 @@
 		user.drop_item()
 		W.forceMove(src)
 		l_leg = W
-		update_icon(UPDATE_OVERLAYS)
+		updateicon()
 
 	if(istype(W, /obj/item/robot_parts/r_leg))
 		if(r_leg)
@@ -168,7 +166,7 @@
 		user.drop_item()
 		W.forceMove(src)
 		r_leg = W
-		update_icon(UPDATE_OVERLAYS)
+		updateicon()
 
 	if(istype(W, /obj/item/robot_parts/l_arm))
 		if(l_arm)
@@ -176,7 +174,7 @@
 		user.drop_item()
 		W.forceMove(src)
 		l_arm = W
-		update_icon(UPDATE_OVERLAYS)
+		updateicon()
 
 	if(istype(W, /obj/item/robot_parts/r_arm))
 		if(r_arm)
@@ -184,7 +182,7 @@
 		user.drop_item()
 		W.forceMove(src)
 		r_arm = W
-		update_icon(UPDATE_OVERLAYS)
+		updateicon()
 
 	if(istype(W, /obj/item/robot_parts/chest))
 		var/obj/item/robot_parts/chest/CH = W
@@ -194,7 +192,7 @@
 			user.drop_item()
 			W.forceMove(src)
 			chest = W
-			update_icon(UPDATE_OVERLAYS)
+			updateicon()
 		else if(!CH.wired)
 			to_chat(user, "<span class='notice'>You need to attach wires to it first!</span>")
 		else
@@ -208,7 +206,7 @@
 			user.drop_item()
 			W.forceMove(src)
 			head = W
-			update_icon(UPDATE_OVERLAYS)
+			updateicon()
 		else
 			to_chat(user, "<span class='notice'>You need to attach a flash to it first!</span>")
 
@@ -258,11 +256,15 @@
 
 
 			var/datum/ai_laws/laws_to_give
+			if(M.syndiemmi)
+				aisync = FALSE
+				lawsync = FALSE
+				laws_to_give = new /datum/ai_laws/syndicate_override
 
 			if(!aisync)
 				lawsync = FALSE
 
-			var/mob/living/silicon/robot/O = new /mob/living/silicon/robot(get_turf(loc), unfinished = 1, ai_to_sync_to = forced_ai)
+			var/mob/living/silicon/robot/O = new(get_turf(src), forced_ai)
 			if(!O)
 				return
 
@@ -276,36 +278,34 @@
 			//Transfer debug settings to new mob
 			O.custom_name = created_name
 			O.rename_character(O.real_name, O.get_default_name())
-			O.locked = panel_locked
+			if(!panel_locked)
+				O.cover_flags &= ~LOCKED
 
 			if(laws_to_give)
 				O.laws = laws_to_give
 			else if(!lawsync)
-				O.lawupdate = FALSE
+				O.lawupdate = 0
 				O.make_laws()
 
 			M.brainmob.mind.transfer_to(O)
 
-			if(O.mind && O.mind.special_role && !M.syndiemmi)
+			if(O.mind && O.mind.special_role)
 				O.mind.store_memory("As a cyborg, you must obey your silicon laws and master AI above all else. Your objectives will consider you to be dead.")
 				to_chat(O, "<span class='userdanger'>You have been robotized!</span>")
 				to_chat(O, "<span class='danger'>You must obey your silicon laws and master AI above all else. Your objectives will consider you to be dead.</span>")
 
 			O.job = "Cyborg"
 
-			var/datum/robot_component/cell_component = O.components["power cell"]
-			cell_component.install(chest.cell)
+			O.cell = chest.cell
 			chest.cell.forceMove(O)
 			chest.cell = null
-
 			M.forceMove(O) //Should fix cybros run time erroring when blown up. It got deleted before, along with the frame.
+			// Since we "magically" installed a cell, we also have to update the correct component.
+			if(O.cell)
+				var/datum/robot_component/cell_component = O.components["power cell"]
+				cell_component.wrapped = O.cell
+				cell_component.installed = 1
 			O.mmi = W
-			if(O.mmi.syndiemmi)
-				O.syndiemmi_override()
-				to_chat(O, "<span class='warning'>ALERT: Foreign hardware detected.</span>")
-				to_chat(O, "<span class='warning'>ERRORERRORERROR</span>")
-				to_chat(O, "<span class='boldwarning'>Obey these laws:</span>")
-				O.laws.show_laws(O)
 			O.Namepick()
 
 			SSblackbox.record_feedback("amount", "cyborg_birth", 1)
@@ -314,7 +314,8 @@
 			O.robot_suit = src
 
 			if(!locomotion)
-				O.lockcharge = 1
+				O.locked_down = TRUE
+				O.update_canmove()
 				to_chat(O, "<span class='warning'>Error: Servo motors unresponsive.</span>")
 
 		else
@@ -337,9 +338,10 @@
 			popup.open()
 
 /obj/item/robot_parts/robot_suit/Topic(href, href_list)
-	var/mob/living/living_user = usr
-	if(HAS_TRAIT(living_user, TRAIT_HANDS_BLOCKED) || living_user.stat || !Adjacent(living_user))
+	if(usr.lying || usr.stat || usr.stunned || !Adjacent(usr))
 		return
+
+	var/mob/living/living_user = usr
 	var/obj/item/item_in_hand = living_user.get_active_hand()
 	if(!istype(item_in_hand, /obj/item/multitool))
 		to_chat(living_user, "<span class='warning'>You need a multitool!</span>")
@@ -425,4 +427,4 @@
 		to_chat(user, "<span class='warning'>[src] is already sabotaged!</span>")
 	else
 		to_chat(user, "<span class='warning'>You slide the emag into the dataport on [src] and short out the safeties.</span>")
-		sabotaged = TRUE
+		sabotaged = 1
