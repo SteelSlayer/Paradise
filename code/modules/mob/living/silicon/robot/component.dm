@@ -1,90 +1,123 @@
-// TODO: remove the robot.mmi and robot.cell variables and completely rely on the robot component system
-
-/datum/robot_component
-	var/name = "Component"
-	var/installed = 0
-	var/powered = 1
-	var/toggled = 1
-	var/brute_damage = 0
-	var/electronics_damage = 0
-	var/max_damage = 30
-	var/component_disabled = 0
+/**
+ * # Robot Component
+ *
+ * These are essentially the cyborg equivalent of humanoid organs.
+ */
+/obj/item/robot_component
+	name = "robot component"
+	icon = 'icons/obj/robot_component.dmi'
+	icon_state = "working"
+	// The component will turn into a "broken" part at this threshold.
+	integrity_failure = 30
+	// The component will be deleted at this threshold.
+	max_integrity = 60
+	/// Is the component powered?
+	var/powered = TRUE
+	/// Is the component toggled on or off?
+	var/toggled = TRUE
+	/// How much brute damage the component has sustained.
+	var/brute_damage = NONE
+	/// How much burn damage the component has sustained.
+	var/burn_damage = NONE
+	/// Is the component disabled?
+	var/disabled = FALSE
+	/// The cyborg this component is installed in.
 	var/mob/living/silicon/robot/owner
-	var/external_type = null // The actual device object that has to be installed for this.
-	var/obj/item/wrapped = null // The wrapped device(e.g. radio), only set if external_type isn't null
 
-/datum/robot_component/New(mob/living/silicon/robot/R)
-	owner = R
+/obj/item/robot_component/Initialize(mapload)
+	. = ..()
+	if(!isrobot(loc))
+		return
+	owner = loc
+	install()
 
-/datum/robot_component/proc/install()
+/**
+ * Installs the component into a cyborg, and adjusts their health taking into account the damage of the component.
+ */
+/obj/item/robot_component/proc/install()
 	go_online()
 	owner.updatehealth("component '[src]' installed")
 
-/datum/robot_component/proc/uninstall()
+/**
+ * Uninstalls the component from a cyborg, and adjusts their health taking into account the damage of the component.
+ */
+/obj/item/robot_component/proc/uninstall()
 	go_offline()
 	owner.updatehealth("component '[src]' removed")
 
-/datum/robot_component/proc/destroy()
-	if(wrapped)
-		qdel(wrapped)
-
-
-	wrapped = new/obj/item/broken_device
-
-	// The thing itself isn't there anymore, but some fried remains are.
-	installed = -1
+/obj/item/robot_component/obj_break(damage_flag)
 	uninstall()
+	name = "broken + [name]"
+	// TODO: change color to dark grey to make it look broken.
+	// color = grey
+	return ..()
 
-/datum/robot_component/proc/take_damage(brute, electronics, sharp, updating_health = TRUE)
-	if(installed != 1)
+/**
+ * Returns true if the component installed into a cyborg.
+ */
+/obj/item/robot_component/proc/is_installed()
+	return isrobot(loc)
+
+/**
+ * Returns true if the component is broken.
+ */
+/obj/item/robot_component/proc/is_broken()
+	return obj_integrity <= integrity_failure
+
+/obj/item/robot_component/take_damage(damage_amount, damage_type, damage_flag, sound_effect = FALSE, attack_dir, armour_penetration = 0)
+	if(is_broken() && is_installed())
 		return
 
-	if(owner && updating_health)
+	..()
+	if(!QDELETED(src))
+		return
+	if(damage_type == BRUTE)
+		brute_damage += damage_amount
+	else if(damage_type == BURN)
+		burn_damage += damage_amount
+	if(owner)
 		owner.updatehealth("component '[src]' take damage")
+		SStgui.update_uis(owner.self_diagnosis)
 
-	brute_damage += brute
-	electronics_damage += electronics
-
-	if(brute_damage + electronics_damage >= max_damage)
-		destroy()
-
-	SStgui.update_uis(owner.self_diagnosis)
-
-/datum/robot_component/proc/heal_damage(brute, electronics, updating_health = TRUE)
-	if(installed != 1)
-		// If it's not installed, can't repair it.
-		return 0
-
-	if(owner && updating_health)
-		owner.updatehealth("component '[src]' heal damage")
+/**
+ * Heals the component's brute/burn damage.
+ */
+/obj/item/robot_component/proc/heal_damage(brute, burn, updating_health = TRUE)
+	// If it's not installed, can't repair it.
+	if(!is_installed())
+		return
 
 	brute_damage = max(0, brute_damage - brute)
-	electronics_damage = max(0, electronics_damage - electronics)
+	burn_damage = max(0, burn_damage - burn)
 
-	SStgui.update_uis(owner.self_diagnosis)
+	if(owner)
+		owner.updatehealth("component '[src]' heal damage")
+		SStgui.update_uis(owner.self_diagnosis)
 
-/datum/robot_component/proc/is_powered()
-	return (installed == 1) && (brute_damage + electronics_damage < max_damage) && (powered)
+/**
+ * Checks if the component is powered.
+ */
+/obj/item/robot_component/proc/is_powered()
+	return !is_broken() && powered
 
-/datum/robot_component/proc/consume_power()
-	if(toggled == 0)
-		powered = 0
-		return
-	powered = 1
+/**
+ * Disables the component permenantly until `enable()` is called.
+ */
+/obj/item/robot_component/proc/disable()
+	disabled = TRUE
+	go_offline()
 
-	SStgui.update_uis(owner.self_diagnosis)
+/**
+ * Enables the component from a disabled state.
+ */
+/obj/item/robot_component/proc/enable()
+	disabled = FALSE
+	go_online()
 
-/datum/robot_component/proc/disable()
-	if(!component_disabled)
-		go_offline()
-	component_disabled++
-
-/datum/robot_component/proc/enable()
-	component_disabled--
-	if(!component_disabled)
-		go_online()
-
-/datum/robot_component/proc/toggle()
+/**
+ * Manually toggles the component on or off.
+ */
+/obj/item/robot_component/proc/toggle()
 	toggled = !toggled
 	if(toggled)
 		go_online()
@@ -93,131 +126,121 @@
 
 	SStgui.update_uis(owner.self_diagnosis)
 
-/datum/robot_component/proc/go_online()
+/**
+ * Called when the component is enabled. Base proc.
+ */
+/obj/item/robot_component/proc/go_online()
 	return
 
-/datum/robot_component/proc/go_offline()
+/**
+ * Called when the component is disabled. Base proc.
+ */
+/obj/item/robot_component/proc/go_offline()
 	return
 
-/datum/robot_component/armour
-	name = "armour plating"
-	external_type = /obj/item/robot_parts/robot_component/armour
-	max_damage = 100
+/obj/item/robot_component/binary_communication_device
+	name = "binary communication device"
+	icon_state = "binary_translator"
 
-/datum/robot_component/actuator
+/obj/item/robot_component/actuator
 	name = "actuator"
-	external_type = /obj/item/robot_parts/robot_component/actuator
-	max_damage = 50
+	icon_state = "actuator"
+	integrity_failure = 50
+	max_integrity = 100
 
-/datum/robot_component/cell
+/obj/item/robot_component/armor
+	name = "armour plating"
+	icon_state = "armor_plating"
+	integrity_failure = 100
+	max_integrity = 200
+
+/obj/item/robot_component/camera
+	name = "camera"
+	icon_state = "camera"
+	integrity_failure = 40
+	max_integrity = 80
+
+/obj/item/robot_component/diagnosis_unit
+	name = "diagnosis unit"
+	icon_state = "diagnosis_unit"
+
+/obj/item/robot_component/cell
 	name = "power cell"
-	max_damage = 50
+	integrity_failure = 50
+	max_integrity = 100
 
-/datum/robot_component/cell/New(mob/living/silicon/robot/R)
-	. = ..()
-	// sets `external_type` to the borg's currently installed cell type
-	if(owner.cell)
-		var/obj/item/stock_parts/cell/C = owner.cell
-		external_type = C.type
-
-/datum/robot_component/cell/is_powered()
+/obj/item/robot_component/cell/is_powered()
 	return ..() && owner.cell
 
-/datum/robot_component/cell/destroy()
-	..()
-	owner.cell = null
+/obj/item/robot_component/cell/Destroy()
+	owner.cell = null // TODO: possibly needs to be qdel_null
+	return ..()
 
-/datum/robot_component/radio
+/obj/item/robot_component/radio
 	name = "radio"
-	external_type = /obj/item/robot_parts/robot_component/radio
-	max_damage = 40
+	integrity_failure = 40
+	max_integrity = 80
 
-/datum/robot_component/binary_communication
-	name = "binary communication device"
-	external_type = /obj/item/robot_parts/robot_component/binary_communication_device
-	max_damage = 30
-
-/datum/robot_component/camera
-	name = "camera"
-	external_type = /obj/item/robot_parts/robot_component/camera
-	max_damage = 40
-
-/datum/robot_component/camera/go_online()
+/obj/item/robot_component/camera/go_online()
 	owner.update_blind_effects()
 	owner.update_sight()
 
-/datum/robot_component/camera/go_offline()
+/obj/item/robot_component/camera/go_offline()
 	owner.update_blind_effects()
 	owner.update_sight()
-
-/datum/robot_component/diagnosis_unit
-	name = "self-diagnosis unit"
-	external_type = /obj/item/robot_parts/robot_component/diagnosis_unit
-	max_damage = 30
-
-/mob/living/silicon/robot/proc/initialize_components()
-	// This only initializes the components, it doesn't set them to installed.
-
-	components["actuator"] = new/datum/robot_component/actuator(src)
-	components["radio"] = new/datum/robot_component/radio(src)
-	components["power cell"] = new/datum/robot_component/cell(src)
-	components["diagnosis unit"] = new/datum/robot_component/diagnosis_unit(src)
-	components["camera"] = new/datum/robot_component/camera(src)
-	components["comms"] = new/datum/robot_component/binary_communication(src)
-	components["armour"] = new/datum/robot_component/armour(src)
-
-/mob/living/silicon/robot/proc/is_component_functioning(module_name)
-	var/datum/robot_component/C = components[module_name]
-	return C && C.installed == 1 && C.toggled && C.is_powered() && !C.component_disabled
-
-/mob/living/silicon/robot/proc/disable_component(module_name, duration)
-	var/datum/robot_component/D = get_component(module_name)
-	D.disable()
-	spawn(duration)
-		D.enable()
-
-// Returns component by it's string name
-/mob/living/silicon/robot/proc/get_component(component_name)
-	var/datum/robot_component/C = components[component_name]
-	return C
 
 /obj/item/broken_device
 	name = "broken component"
 	icon = 'icons/obj/robot_component.dmi'
 	icon_state = "broken"
 
-/obj/item/robot_parts/robot_component
-	icon = 'icons/obj/robot_component.dmi'
-	icon_state = "working"
-	var/brute = 0
-	var/burn = 0
+/**
+ * Creates and installs all components for a cyborg.
+ */
+/mob/living/silicon/robot/proc/initialize_components()
+	components["radio"] = new /obj/item/robot_component/radio(src)
+	components["diagnosis unit"] = new /obj/item/robot_component/diagnosis_unit(src)
+	components["camera"] = new /obj/item/robot_component/camera(src)
+	components["comms"] = new /obj/item/robot_component/binary_communication_device(src)
+	components["armor"] = new /obj/item/robot_component/armor(src)
+	/*
+	 * Due to load order issues, keep the actuator and power cell at the bottom of this list.
+	 * Otherwise the cyborg can become blind, possibly among other things.
+	 */
+	components["actuator"] = new /obj/item/robot_component/actuator(src)
+	components["power cell"] = new /obj/item/robot_component/cell(src)
 
+/**
+ * Checks if the given component is functioning.
+ *
+ * Arguments:
+ * * component_name - A string name of a component ("armor", "actuator", etc.)
+ */
+/mob/living/silicon/robot/proc/is_component_functioning(component_name)
+	var/obj/item/robot_component/C = components[component_name]
+	return C && !C.is_broken() && C.is_powered() && C.toggled && !C.disabled
 
-/obj/item/robot_parts/robot_component/binary_communication_device
-	name = "binary communication device"
-	icon_state = "binary_translator"
+/**
+ * Disables the given component.
+ *
+ * Arguments:
+ * * component_name - A string name of a component ("armor", "actuator", etc.)
+ * * duration - The amount of time to disable the component for
+ */
+/mob/living/silicon/robot/proc/disable_component(component_name, duration)
+	var/obj/item/robot_component/C = get_component(component_name)
+	C.disable()
+	addtimer(CALLBACK(C, /obj/item/robot_component/proc/enable), duration)
 
-/obj/item/robot_parts/robot_component/actuator
-	name = "actuator"
-	icon_state = "actuator"
-
-/obj/item/robot_parts/robot_component/armour
-	name = "armour plating"
-	icon_state = "armor_plating"
-
-/obj/item/robot_parts/robot_component/camera
-	name = "camera"
-	icon_state = "camera"
-
-
-
-/obj/item/robot_parts/robot_component/diagnosis_unit
-	name = "diagnosis unit"
-	icon_state = "diagnosis_unit"
-
-/obj/item/robot_parts/robot_component/radio
-	name = "radio"
-	icon_state = "radio"
+/**
+ * Returns a component, given a string name.
+ *
+ * Arguments:
+ * * component_name
+ */
+/mob/living/silicon/robot/proc/get_component(component_name)
+	var/obj/item/robot_component/C = components[component_name]
+	return C
 
 //
 //Robotic Component Analyzer, basically a health analyzer for robots
@@ -279,16 +302,16 @@
 				to_chat(user, "<span class='notice'>\t Components are OK.</span>")
 			else
 				if(LAZYLEN(damaged))
-					for(var/datum/robot_component/org in damaged)
+					for(var/obj/item/robot_component/org in damaged)
 						user.show_message(text("<span class='notice'>\t []: [][] - [] - [] - []</span>",	\
 						capitalize(org.name),					\
-						(org.installed == -1)	?	"<font color='red'><b>DESTROYED</b></font> "							:"",\
-						(org.electronics_damage > 0)	?	"<font color='#FFA500'>[org.electronics_damage]</font>"	:0,	\
+						(org.is_installed())	?	"<font color='red'><b>DESTROYED</b></font> "							:"",\
+						(org.burn_damage > 0)	?	"<font color='#FFA500'>[org.burn_damage]</font>"	:0,	\
 						(org.brute_damage > 0)	?	"<font color='red'>[org.brute_damage]</font>"							:0,		\
 						(org.toggled)	?	"Toggled ON"	:	"<font color='red'>Toggled OFF</font>",\
 						(org.powered)	?	"Power ON"		:	"<font color='red'>Power OFF</font>"),1)
 				if(LAZYLEN(missing))
-					for(var/datum/robot_component/org in missing)
+					for(var/obj/item/robot_component/org in missing)
 						user.show_message("<span class='warning'>\t [capitalize(org.name)]: MISSING</span>")
 
 			if(H.emagged && prob(5))

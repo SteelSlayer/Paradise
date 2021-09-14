@@ -210,7 +210,7 @@
 			var/obj/item/radio/borg/BR = R
 			if(istype(BR) && BR.myborg)
 				var/mob/living/silicon/robot/borg = BR.myborg
-				var/datum/robot_component/CO = borg.get_component("radio")
+				var/obj/item/robot_component/CO = borg.get_component("radio")
 				if(!CO)
 					continue //No radio component (Shouldn't happen)
 				if(!borg.is_component_functioning("radio"))

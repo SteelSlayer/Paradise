@@ -73,9 +73,12 @@
 	mmi = null
 
 	//We need to screw with their HP a bit. They have around one fifth as much HP as a full borg.
-	for(var/V in components) if(V != "power cell")
-		var/datum/robot_component/C = components[V]
-		C.max_damage = 10
+	for(var/comp in components)
+		if(comp == "power cell")
+			continue
+		var/obj/item/robot_component/C = components[comp]
+		C.integrity_failure = 10
+		C.max_integrity = 20
 
 	verbs -= /mob/living/silicon/robot/verb/Namepick
 	module = new /obj/item/robot_module/drone(src)

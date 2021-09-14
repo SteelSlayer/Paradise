@@ -116,7 +116,8 @@ GLOBAL_LIST_INIT(robot_verbs_default, list(
 /mob/living/silicon/robot/get_cell()
 	return cell
 
-/mob/living/silicon/robot/New(loc, syndie = FALSE, unfinished = FALSE, alien = FALSE, connect_to_AI = TRUE, mob/living/silicon/ai/ai_to_sync_to = null)
+/mob/living/silicon/robot/Initialize(mapload, syndie = FALSE, unfinished = FALSE, alien = FALSE, connect_to_AI = TRUE, mob/living/silicon/ai/ai_to_sync_to = null)
+	. = ..()
 	spark_system = new /datum/effect_system/spark_spread()
 	spark_system.set_up(5, 0, src)
 	spark_system.attach(src)
@@ -155,23 +156,7 @@ GLOBAL_LIST_INIT(robot_verbs_default, list(
 		mmi.icon_state = "boris"
 
 	initialize_components()
-	//if(!unfinished)
-	// Create all the robot parts.
-	for(var/V in components) if(V != "power cell")
-		var/datum/robot_component/C = components[V]
-		C.installed = 1
-		C.wrapped = new C.external_type
-
-	..()
-
 	add_robot_verbs()
-
-	if(cell)
-		var/datum/robot_component/cell_component = components["power cell"]
-		cell_component.wrapped = cell
-		cell_component.installed = 1
-		cell_component.install()
-
 	diag_hud_set_borgcell()
 	scanner = new(src)
 	scanner.Grant(src)
@@ -501,19 +486,20 @@ GLOBAL_LIST_INIT(robot_verbs_default, list(
 	set desc = "Toggle a component, conserving power."
 
 	var/list/installed_components = list()
-	for(var/V in components)
-		if(V == "power cell") continue
-		var/datum/robot_component/C = components[V]
-		if(C.installed)
-			installed_components += V
+	for(var/comp in components)
+		if(comp == "power cell")
+			continue
+		var/obj/item/robot_component/C = components[comp]
+		if(C)
+			installed_components += comp
 
 	var/toggle = input(src, "Which component do you want to toggle?", "Toggle Component") as null|anything in installed_components
 	if(!toggle)
 		return
 
-	var/datum/robot_component/C = components[toggle]
+	var/obj/item/robot_component/C = components[toggle]
 	C.toggle()
-	to_chat(src, "<span class='warning'>You [C.toggled ? "enable" : "disable"] [C.name].</span>")
+	to_chat(src, "<span class='warning'>You [C.toggled ? "enable" : "disable"] [C].</span>")
 
 /mob/living/silicon/robot/proc/sensor_mode()
 	set name = "Set Sensor Augmentation"
@@ -669,24 +655,16 @@ GLOBAL_LIST_INIT(robot_verbs_default, list(
 
 /mob/living/silicon/robot/attackby(obj/item/W, mob/user, params)
 	// Check if the user is trying to insert another component like a radio, actuator, armor etc.
-	if(istype(W, /obj/item/robot_parts/robot_component) && opened)
-		for(var/V in components)
-			var/datum/robot_component/C = components[V]
-			if(!C.installed && istype(W, C.external_type))
-				C.installed = 1
-				C.wrapped = W
-				C.install()
-				user.drop_item()
-				W.loc = null
-
-				var/obj/item/robot_parts/robot_component/WC = W
-				if(istype(WC))
-					C.brute_damage = WC.brute
-					C.electronics_damage = WC.burn
-
-				to_chat(usr, "<span class='notice'>You install [W].</span>")
-
-				return
+	if(istype(W, /obj/item/robot_component) && opened)
+		for(var/comp in components)
+			var/obj/item/robot_component/C = components[comp]
+			if(!C)
+				continue
+			C.install()
+			user.drop_item()
+			C.forceMove(src)
+			to_chat(usr, "<span class='notice'>You install [C].</span>")
+			return
 
 	if(istype(W, /obj/item/stack/cable_coil) && user.a_intent == INTENT_HELP && (wiresexposed || istype(src, /mob/living/silicon/robot/drone)))
 		user.changeNext_move(CLICK_CD_MELEE)
@@ -704,24 +682,19 @@ GLOBAL_LIST_INIT(robot_verbs_default, list(
 		user.visible_message("<span class='alert'>\The [user] fixes some of the burnt wires on \the [src] with \the [coil].</span>")
 
 	else if(istype(W, /obj/item/stock_parts/cell) && opened)	// trying to put a cell inside
-		var/datum/robot_component/cell/C = components["power cell"]
+		var/obj/item/robot_component/cell/C = components["power cell"]
 		if(wiresexposed)
 			to_chat(user, "Close the panel first.")
 		else if(cell)
 			to_chat(user, "There is a power cell already installed.")
 		else
 			user.drop_item()
-			W.loc = src
+			W.forceMove(src)
 			cell = W
-			to_chat(user, "You insert the power cell.")
-
-			C.installed = 1
-			C.wrapped = W
+			to_chat(user, "<span class='notice'>You insert the power cell.</span>")
 			C.install()
-			C.external_type = W.type // Update the cell component's `external_type` to the path of new cell
-			//This will mean that removing and replacing a power cell will repair the mount, but I don't care at this point. ~Z
 			C.brute_damage = 0
-			C.electronics_damage = 0
+			C.burn_damage = 0
 			module?.update_cells()
 			diag_hud_set_borgcell()
 
@@ -847,12 +820,12 @@ GLOBAL_LIST_INIT(robot_verbs_default, list(
 		return
 	// Okay we're not removing the cell or an MMI, but maybe something else?
 	var/list/removable_components = list()
-	for(var/V in components)
-		if(V == "power cell")
+	for(var/comp in components)
+		if(comp == "power cell")
 			continue
-		var/datum/robot_component/C = components[V]
-		if(C.installed == 1 || C.installed == -1)
-			removable_components += V
+		var/obj/item/robot_component/C = components[comp]
+		if(C)
+			removable_components += comp
 	if(module)
 		removable_components += module.custom_removals
 	var/remove = input(user, "Which component do you want to pry out?", "Remove Component") as null|anything in removable_components
@@ -862,18 +835,10 @@ GLOBAL_LIST_INIT(robot_verbs_default, list(
 		return
 	if(!I.use_tool(src, user, 0, volume = I.tool_volume))
 		return
-	var/datum/robot_component/C = components[remove]
-	var/obj/item/robot_parts/robot_component/thing = C.wrapped
-	to_chat(user, "You remove \the [thing].")
-	if(istype(thing))
-		thing.brute = C.brute_damage
-		thing.burn = C.electronics_damage
-
-	thing.loc = loc
-	var/was_installed = C.installed
-	C.installed = 0
-	if(was_installed == 1)
-		C.uninstall()
+	var/obj/item/robot_component/C = components[remove]
+	to_chat(user, "<span class='notice'>You remove [C].</span>")
+	C.forceMove(loc)
+	C.uninstall()
 
 
 
@@ -1444,18 +1409,14 @@ GLOBAL_LIST_INIT(robot_verbs_default, list(
 
 /mob/living/silicon/robot/rejuvenate()
 	..()
-	var/brute = 1000
-	var/burn = 1000
-	var/list/datum/robot_component/borked_parts = get_damaged_components(TRUE, TRUE, TRUE, TRUE)
-	for(var/datum/robot_component/borked_part in borked_parts)
-		brute = borked_part.brute_damage
-		burn = borked_part.electronics_damage
-		borked_part.installed = 1
-		borked_part.wrapped = new borked_part.external_type
-		if(ispath(borked_part.external_type, /obj/item/stock_parts/cell)) // is the broken part a cell?
-			cell = new borked_part.external_type // borgs that have their cell destroyed have their `cell` var set to null. we need create a new cell for them based on their old cell type.
-		borked_part.heal_damage(brute,burn)
-		borked_part.install()
+	var/list/damaged_components = get_damaged_components(TRUE, TRUE, TRUE, TRUE)
+	for(var/comp in damaged_components)
+		var/obj/item/robot_component/C = comp
+		C.enable()
+		C.go_online()
+		C.obj_integrity = C.max_integrity
+		C.brute_damage = 0
+		C.burn_damage = 0
 
 /mob/living/silicon/robot/proc/check_sprite(spritename)
 	. = FALSE

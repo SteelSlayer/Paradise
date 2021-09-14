@@ -17,13 +17,13 @@
 /datum/ui_module/robot_self_diagnosis/ui_data(mob/user)
 	var/list/data = list()
 	for(var/c in owner.components)
-		var/datum/robot_component/C = owner.components[c]
+		var/obj/item/robot_component/C = owner.components[c]
 		data["component_data"] += list(list(
 			"name" = C.name,
-			"installed" = C.installed,
+			"installed" = C.is_installed(),
 			"brute_damage" = C.brute_damage,
-			"electronic_damage" = C.electronics_damage,
-			"max_damage" = C.max_damage,
+			"burn_damage" = C.burn_damage,
+			"max_damage" = C.integrity_failure,
 			"powered" = C.is_powered(),
 			"status" = C.toggled
 		))
