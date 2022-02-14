@@ -6,6 +6,24 @@
 	required_blood = 30
 	action_icon_state = "vampire_claws"
 
+// Loc will be a mind if new'd from `/datum/antagonist/vampire/proc/force_add_ability(path)`
+/obj/effect/proc_holder/spell/vampire/self/vamp_claws/New(loc)
+	. = ..()
+	if(!istype(loc, /datum/mind))
+		return
+	var/datum/mind/M = loc
+	RegisterSignal(M.current, list(COMSIG_MOB_ITEM_EQUIPPED, COMSIG_MOB_ITEM_DROPPED), .proc/on_user_item_pickup_or_drop)
+
+/**
+ * Updates the availability of the spell button after the user picks up or drops an item.
+ *
+ * Needed because this spell is only available when the user does not have a NODROP item in their hand.
+ */
+/obj/effect/proc_holder/spell/vampire/self/vamp_claws/proc/on_user_item_pickup_or_drop(datum/source)
+	SIGNAL_HANDLER
+
+	updateButtonIcon()
+
 /obj/effect/proc_holder/spell/vampire/self/vamp_claws/cast(mob/user)
 	if(user.l_hand || user.r_hand)
 		to_chat(user, "<span class='notice'>You drop what was in your hands as large blades spring from your fingers!</span>")
