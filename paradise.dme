@@ -363,6 +363,7 @@
 #include "code\datums\components\squeak.dm"
 #include "code\datums\components\surgery_initiator.dm"
 #include "code\datums\components\swarming.dm"
+#include "code\datums\components\turret_field.dm"
 #include "code\datums\diseases\_disease.dm"
 #include "code\datums\diseases\_MobProcs.dm"
 #include "code\datums\diseases\anxiety.dm"

@@ -84,6 +84,10 @@
 
 	setup()
 
+/obj/machinery/porta_turret/ComponentInitialize()
+	. = ..()
+	AddComponent(/datum/component/proximity_monitor/advanced/turret_field, 7, TRUE)
+
 /obj/machinery/porta_turret/Destroy()
 	QDEL_NULL(spark_system)
 	return ..()
@@ -364,10 +368,16 @@ GLOBAL_LIST_EMPTY(turret_icons)
 		wrenching = TRUE
 		if(do_after(user, 50 * I.toolspeed, target = src))
 			//This code handles moving the turret around. After all, it's a portable turret!
-			playsound(loc, I.usesound, 100, 1)
-			anchored = !anchored
-			update_icon(UPDATE_ICON_STATE)
-			to_chat(user, "<span class='notice'>You [anchored ? "" : "un"]secure the exterior bolts on the turret.</span>")
+			if(!anchored)
+				playsound(loc, I.usesound, 100, 1)
+				set_anchored(TRUE)
+				update_icon()
+				to_chat(user, "<span class='notice'>You secure the exterior bolts on the turret.</span>")
+			else if(anchored)
+				playsound(loc, I.usesound, 100, 1)
+				set_anchored(FALSE)
+				to_chat(user, "<span class='notice'>You unsecure the exterior bolts on the turret.</span>")
+				update_icon()
 		wrenching = FALSE
 
 	else if(istype(I, /obj/item/card/id) || istype(I, /obj/item/pda))

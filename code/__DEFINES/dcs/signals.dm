@@ -298,6 +298,8 @@
 #define COMSIG_MOVABLE_DISPOSING "movable_disposing"
 ///called when the movable is removed from a disposal holder object: /obj/structure/disposalpipe/proc/expel(): (obj/structure/disposalholder/H, turf/T, direction)
 #define COMSIG_MOVABLE_EXIT_DISPOSALS "movable_exit_disposals"
+///from base of atom/movable/proc/set_anchored(): (anchor_value)
+#define COMSIG_MOVABLE_SET_ANCHORED "movable_set_anchored"
 
 // /datum/mind signals
 

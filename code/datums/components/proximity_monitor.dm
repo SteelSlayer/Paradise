@@ -62,6 +62,9 @@
 		UnregisterSignal(hasprox_receiver, list(COMSIG_MOVABLE_MOVED, COMSIG_MOVABLE_DISPOSING, COMSIG_MOVABLE_EXIT_DISPOSALS))
 	clear_nested_locs()
 
+/datum/component/proximity_monitor/proc/handle_proximity(atom/movable/AM)
+	hasprox_receiver.HasProximity(AM)
+
 /**
  * Called when the `hasprox_receiver` moves.
  *
@@ -451,7 +454,7 @@
 	set waitfor = FALSE
 	. = ..()
 	if(active && AM != monitor.hasprox_receiver && !(AM in monitor.nested_receiver_locs))
-		monitor.hasprox_receiver.HasProximity(AM)
+		monitor.handle_proximity(AM)
 
 /**
  * # Advanced Proximity Checker
@@ -481,7 +484,7 @@
 	name = "inner field"
 
 /obj/effect/abstract/proximity_checker/advanced/inner_field/Destroy()
-	advanced_monitor.field_checkers -= src
+	LAZYREMOVE(advanced_monitor.field_checkers, src)
 	return ..()
 
 /obj/effect/abstract/proximity_checker/advanced/inner_field/Crossed(atom/movable/AM, oldloc)
@@ -505,7 +508,7 @@
 	name = "edge field"
 
 /obj/effect/abstract/proximity_checker/advanced/edge_field/Destroy()
-	advanced_monitor.edge_checkers -= src
+	LAZYREMOVE(advanced_monitor.edge_checkers, src)
 	return ..()
 
 /obj/effect/abstract/proximity_checker/advanced/edge_field/Crossed(atom/movable/AM, oldloc)

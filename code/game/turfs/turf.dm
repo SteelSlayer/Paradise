@@ -257,6 +257,8 @@
 
 	obscured = old_obscured
 
+	SEND_SIGNAL(src, COMSIG_TURF_CHANGE)
+
 	return W
 
 /turf/proc/BeforeChange()

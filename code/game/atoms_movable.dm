@@ -622,3 +622,8 @@
 /// called when a mob gets shoved into an items turf. false means the mob will be shoved backwards normally, true means the mob will not be moved by the disarm proc.
 /atom/movable/proc/shove_impact(mob/living/target, mob/living/attacker)
 	return FALSE
+
+/atom/movable/proc/set_anchored(anchor_value)
+	SHOULD_CALL_PARENT(TRUE)
+	anchored = anchor_value
+	SEND_SIGNAL(src, COMSIG_MOVABLE_SET_ANCHORED, anchor_value)
