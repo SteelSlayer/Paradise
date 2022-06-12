@@ -40,6 +40,7 @@
 	if(ranged_ability)
 		ranged_ability.remove_ranged_ability(src)
 	remove_from_all_data_huds()
+	QDEL_NULL(middle_click_override)
 	GLOB.mob_living_list -= src
 	if(LAZYLEN(status_effects))
 		for(var/s in status_effects)

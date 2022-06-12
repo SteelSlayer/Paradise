@@ -244,8 +244,8 @@
 
 // See click_override.dm
 /mob/living/MiddleClickOn(atom/A)
-	if(middleClickOverride)
-		middleClickOverride.onClick(A, src)
+	if(middle_click_override)
+		middle_click_override.onClick(A, src)
 	else
 		..()
 
@@ -327,8 +327,8 @@
 
 // See click_override.dm
 /mob/living/AltClickOn(atom/A)
-	if(middleClickOverride)
-		middleClickOverride.onClick(A, src)
+	if(middle_click_override)
+		middle_click_override.onClick(A, src)
 	else
 		..()
 

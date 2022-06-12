@@ -41,14 +41,19 @@
 	var/list/attack_names = list("dragon", "eagle", "mantis", "tiger", "spider", "monkey", "snake", "crane", "xeno") // Fluff attack texts, used later in attack message generation.
 	var/has_choke_hold = 0 	// Are we current choking a bitch?
 	var/has_focus = 1		//Can we user our special moves?
+	var/middle_click_override/ninja_martial_art/mclick_override = new
+
+/datum/martial_art/ninja_martial_art/remove(mob/living/carbon/human/H)
+	..()
+	QDEL_NULL(mclick_override)
 
 /datum/martial_art/ninja_martial_art/teach(mob/living/carbon/human/H, make_temporary=0)
 	..()
-	H.middleClickOverride = new /datum/middleClickOverride/ninja_martial_art()
-		to_chat(H, "You have been taught the ways of the <i>Creeping Widow</i>.<br>\)
-			Your strikes on harm intent will deal more damage.<br>Using middle mouse button on a nearby person while on harm intent will send them flying backwards.<br>\
-			Your grabs will instantly be aggressive while you are using this style.<br>Using middle mouse button while on harm intent and behind a person will put them in a silencing choke hold.<br>\
-			Using middle mouse button on a nearby person while on disarm intent will wrench their wrist, causing them to drop what they are holding.</span>"
+	mclick_override.set_override(H, src)
+	to_chat(H, "You have been taught the ways of the <i>Creeping Widow</i>.<br>\)
+		Your strikes on harm intent will deal more damage.<br>Using middle mouse button on a nearby person while on harm intent will send them flying backwards.<br>\
+		Your grabs will instantly be aggressive while you are using this style.<br>Using middle mouse button while on harm intent and behind a person will put them in a silencing choke hold.<br>\
+		Using middle mouse button on a nearby person while on disarm intent will wrench their wrist, causing them to drop what they are holding.</span>"
 
 /datum/martial_art/ninja_martial_art/proc/wrist_wrench(mob/living/carbon/human/A, mob/living/carbon/human/D)
 	if(!D.stat && !D.weakened)
@@ -153,9 +158,9 @@
 
 // Ninja middle click override, required for the special moves to function and handled in grant_ninja_martial_art
 
-/datum/middleClickOverride/ninja_martial_art
+/datum/middle_click_override/ninja_martial_art
 
-/datum/middleClickOverride/ninja_martial_art/onClick(atom/A, mob/living/carbon/human/user)
+/datum/middle_click_override/ninja_martial_art/onClick(atom/A, mob/living/carbon/human/user)
 	if(!istype(user.martial_art, /datum/martial_art/ninja_martial_art))
 		user.pointed(A) // If they don't have the required martial art just point at the target.
 

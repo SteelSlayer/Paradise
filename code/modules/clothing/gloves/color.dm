@@ -12,8 +12,7 @@
 	resistance_flags = NONE
 
 /obj/item/clothing/gloves/color/yellow/power
-	var/old_mclick_override
-	var/datum/middleClickOverride/power_gloves/mclick_override = new /datum/middleClickOverride/power_gloves
+	var/datum/middle_click_override/power_gloves/mclick_override = new
 	var/last_shocked = 0
 	var/shock_delay = 40
 	var/unlimited_power = FALSE // Does this really need explanation?
@@ -22,13 +21,12 @@
 	return "These are a pair of power gloves, and can be used to fire bolts of electricity while standing over powered power cables."
 
 /obj/item/clothing/gloves/color/yellow/power/equipped(mob/user, slot)
+	..()
 	if(!ishuman(user))
 		return
 	var/mob/living/carbon/human/H = user
 	if(slot == slot_gloves)
-		if(H.middleClickOverride)
-			old_mclick_override = H.middleClickOverride
-		H.middleClickOverride = mclick_override
+		mclick_override.assign_override(H)
 		if(!unlimited_power)
 			to_chat(H, "<span class='notice'>You feel electricity begin to build up in [src].</span>")
 		else
@@ -39,12 +37,8 @@
 	if(!ishuman(user))
 		return
 	var/mob/living/carbon/human/H = user
-	if(H.get_item_by_slot(slot_gloves) == src && H.middleClickOverride == mclick_override)
-		if(old_mclick_override)
-			H.middleClickOverride = old_mclick_override
-			old_mclick_override = null
-		else
-			H.middleClickOverride = null
+	if(H.get_item_by_slot(slot_gloves) == src)
+		mclick_override.unassign_override(H)
 
 /obj/item/clothing/gloves/color/yellow/power/unlimited
 	name = "UNLIMITED POWER gloves"

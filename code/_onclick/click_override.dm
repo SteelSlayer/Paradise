@@ -1,50 +1,96 @@
 /*
- Click Overrides
-
- These are overrides for a living mob's middle and alt clicks.
- If the mob in question has their middleClickOverride var set to one of these datums, when they middle or alt click the onClick proc for the datum their clickOverride var is
- set equal to will be called.
- See click.dm 251 and 196.
-
- If you have any questions, contact me on the Paradise forums.
- - DaveTheHeacrab
+ * # Middle Click Override
+ *
+ * These are overrides for a living mob's middle and alt clicks.
+ * If the mob in question has their `middle_click_override` var set to one of these datums, when they middle or alt click, the [onClick][/datum/middle_click_override/proc/onClick] proc for this datum is called.
+ * See `click.dm`, lines 251 and 196.
+ *
+ * NOTE:
+ * If you're making a subtype of override, ALWAYS make [/datum/middle_click_override/proc/set_override] and [/datum/middle_click_override/proc/unset_override] are called.
+ * This is needed so that middle click overrides don't completely cancel eachother out. Once the user's current override is finished, we can revert to their old override using these procs.
  */
+/datum/middle_click_override
+	/// The UID of the mob using the click override
+	var/user_UID
+	/// The UID of any middle click override that the user may have set currently.
+	var/old_override_UID
 
-/datum/middleClickOverride/
+/datum/middle_click_override/New(mob/user)
+	user_UID = user?.UID() // If you want to give a user here, you can. Otherwise, it will be given when `set_override()` is called.
 
-/datum/middleClickOverride/proc/onClick(atom/A, mob/living/user)
-	user.middleClickOverride = null
-	return 1
-	/* Note, when making a new click override it is ABSOLUTELY VITAL that you set the source's clickOverride to null at some point if you don't want them to be stuck with it forever.
-	Calling the super will do this for you automatically, but if you want a click override to NOT clear itself after the first click, you must do it at some other point in the code*/
+/datum/middle_click_override/Destroy(force, ...)
+	var/mob/living/user = locateUID(user_UID)
+	if(user.middle_click_override == src)
+		unassign_override(user)
+	return ..()
 
-/obj/item/badminBook/
+/*
+ * Note, when making a new click override it is ABSOLUTELY VITAL that you set the source's `middle_click_override` to `null` at some point if you don't want them to be stuck with it forever.
+ */
+/datum/middle_click_override/proc/onClick(atom/A, mob/living/user)
+	unassign_override(user)
+
+/**
+ * Sets the user's `middle_click_override` to the src override. Store their old override UID if they have one.
+ *
+ * Arguments:
+ * * mob/living/user - the user of the src middle click override
+ * * replace_override - TRUE if this should replace whatever the user currently has set as their middle click override
+ */
+/datum/middle_click_override/proc/assign_override(mob/living/user, replace_override = TRUE)
+	SHOULD_CALL_PARENT(TRUE)
+	if(isnull(user_UID))
+		user_UID = user.UID()
+	if(!replace_override && user.middle_click_override)
+		return FALSE
+	old_override_UID = user.middle_click_override?.UID()
+	user.middle_click_override = src
+	return TRUE
+
+/**
+ * Sets the user's `middle_click_override` to their old override, if they had one, or null if they did not.
+ *
+ * Arguments:
+ * * mob/living/user - the user of the src middle click override
+ */
+/datum/middle_click_override/proc/unassign_override(mob/living/user)
+	SHOULD_CALL_PARENT(TRUE)
+	if(!user || user.middle_click_override != src)
+		// Either no user was passed, OR the src datum is not in use right now, so do nothing.
+		return FALSE
+	user.middle_click_override = locateUID(old_override_UID) // Will be null if we have no `old_override_UID`.
+	return TRUE
+
+/obj/item/badminBook
 	name = "old book"
 	desc = "An old, leather bound tome."
 	icon = 'icons/obj/library.dmi'
 	icon_state = "book"
-	var/datum/middleClickOverride/clickBehavior = new /datum/middleClickOverride/badminClicker
+	var/datum/middle_click_override/badminClicker/click_behavior = new
 
-/obj/item/badminBook/attack_self(mob/living/user as mob)
-	if(user.middleClickOverride)
+/obj/item/badminBook/Destroy()
+	QDEL_NULL(click_behavior)
+	return ..()
+
+/obj/item/badminBook/attack_self(mob/living/user)
+	if(click_behavior.assign_override(user, FALSE))
+		to_chat(user, "<span class='notice'>You draw a bit of power from [src], you can use <b>middle click</b> or <b>alt click</b> to release the power!</span>")
+	else
 		to_chat(user, "<span class='warning'>You try to draw power from [src], but you cannot hold the power at this time!</span>")
-		return
-	user.middleClickOverride = clickBehavior
-	to_chat(user, "<span class='notice'>You draw a bit of power from [src], you can use <b>middle click</b> or <b>alt click</b> to release the power!</span>")
 
-/datum/middleClickOverride/badminClicker
+/datum/middle_click_override/badminClicker
 	var/summon_path = /obj/item/reagent_containers/food/snacks/cookie
 
-/datum/middleClickOverride/badminClicker/onClick(atom/A, mob/living/user)
+/datum/middle_click_override/badminClicker/onClick(atom/A, mob/living/user)
 	var/atom/movable/newObject = new summon_path
 	newObject.loc = get_turf(A)
 	to_chat(user, "<span class='notice'>You release the power you had stored up, summoning \a [newObject.name]! </span>")
 	usr.loc.visible_message("<span class='notice'>[user] waves [user.p_their()] hand and summons \a [newObject.name]</span>")
 	..()
 
-/datum/middleClickOverride/power_gloves
+/datum/middle_click_override/power_gloves
 
-/datum/middleClickOverride/power_gloves/onClick(atom/A, mob/living/carbon/human/user)
+/datum/middle_click_override/power_gloves/onClick(atom/A, mob/living/carbon/human/user)
 	if(A == user || user.a_intent == INTENT_HELP || user.a_intent == INTENT_GRAB)
 		return
 	if(user.incapacitated())
@@ -99,12 +145,12 @@
  * Middle click override which accepts a callback as an arugment in the `New()` proc.
  * When the living mob that has this datum middle-clicks or alt-clicks on something, the callback will be invoked.
  */
-/datum/middleClickOverride/callback_invoker
+/datum/middle_click_override/callback_invoker
 	var/datum/callback/callback
 
-/datum/middleClickOverride/callback_invoker/New(datum/callback/_callback)
+/datum/middle_click_override/callback_invoker/New(mob/living/user, datum/callback/_callback)
 	. = ..()
 	callback = _callback
 
-/datum/middleClickOverride/callback_invoker/onClick(atom/A, mob/living/user)
+/datum/middle_click_override/callback_invoker/onClick(atom/A, mob/living/user)
 	callback.Invoke(user, A)
