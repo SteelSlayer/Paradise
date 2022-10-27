@@ -332,9 +332,6 @@
 		if(player.mind && (player.mind.assigned_role in GLOB.security_positions))
 			. |= player.mind
 
-/datum/game_mode/proc/check_antagonists_topic(href, href_list[])
-	return 0
-
 /datum/game_mode/New()
 	newscaster_announcements = pick(GLOB.newscaster_standard_feeds)
 

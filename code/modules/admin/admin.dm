@@ -179,30 +179,30 @@ GLOBAL_VAR_INIT(nologevent, 0)
 			if(issmall(M))
 				body += "<B>Monkeyized</B> | "
 			else
-				body += "<A href='?_src_=holder;monkeyone=[M.UID()]'>Monkeyize</A> | "
+				body += "<A href='?_src_=holder;make_monkey=[M.UID()]'>Monkeyize</A> | "
 
 			//Corgi
 			if(iscorgi(M))
 				body += "<B>Corgized</B> | "
 			else
-				body += "<A href='?_src_=holder;corgione=[M.UID()]'>Corgize</A> | "
+				body += "<A href='?_src_=holder;make_corgi=[M.UID()]'>Corgize</A> | "
 
 			//AI / Cyborg
 			if(isAI(M))
 				body += "<B>Is an AI</B> "
 			else if(ishuman(M))
-				body += {"<A href='?_src_=holder;makeai=[M.UID()]'>Make AI</A> |
-					<A href='?_src_=holder;makerobot=[M.UID()]'>Make Robot</A> |
-					<A href='?_src_=holder;makealien=[M.UID()]'>Make Alien</A> |
-					<A href='?_src_=holder;makeslime=[M.UID()]'>Make Slime</A> |
-					<A href='?_src_=holder;makesuper=[M.UID()]'>Make Superhero</A>
+				body += {"<A href='?_src_=holder;make_ai=[M.UID()]'>Make AI</A> |
+					<A href='?_src_=holder;make_robot=[M.UID()]'>Make Robot</A> |
+					<A href='?_src_=holder;make_alien=[M.UID()]'>Make Alien</A> |
+					<A href='?_src_=holder;make_slime=[M.UID()]'>Make Slime</A> |
+					<A href='?_src_=holder;make_super=[M.UID()]'>Make Superhero</A>
 				"}
 
 			//Simple Animals
 			if(isanimal(M))
-				body += "<A href='?_src_=holder;makeanimal=[M.UID()]'>Re-Animalize</A> | "
+				body += "<A href='?_src_=holder;make_animal=[M.UID()]'>Re-Animalize</A> | "
 			else
-				body += "<A href='?_src_=holder;makeanimal=[M.UID()]'>Animalize</A> | "
+				body += "<A href='?_src_=holder;make_animal=[M.UID()]'>Animalize</A> | "
 
 			if(isobserver(M))
 				body += "<A href='?_src_=holder;incarn_ghost=[M.UID()]'>Re-incarnate</a> | "

@@ -1,14 +1,19 @@
 /datum/admins/Topic(href, href_list)
 	..()
 
-	if(usr.client != src.owner || !check_rights(0))
+	if(usr.client != owner || !check_rights(0))
 		log_admin("[key_name(usr)] tried to use the admin panel without authorization.")
 		message_admins("[key_name_admin(usr)] has attempted to override the admin panel!")
 		return
 
-	if(SSticker.mode && SSticker.mode.check_antagonists_topic(href, href_list))
-		check_antagonists()
-		return
+	/// href_list[2] is the command key.
+	var/datum/admin_command/command = GLOB.admin_commands[href_list[2]]
+	if(command)
+		if(command.in_progress)
+			command = new command.type
+		command.in_progress = TRUE
+		if(command.try_execute(src, usr, href, href_list))
+			return
 
 	if(href_list["rejectadminhelp"])
 		if(!check_rights(R_ADMIN|R_MOD))
@@ -1029,60 +1034,6 @@
 		Game() // updates the main game menu
 		.(href, list("f_secret"=1))
 
-	else if(href_list["monkeyone"])
-		if(!check_rights(R_SPAWN))	return
-
-		var/mob/living/carbon/human/H = locateUID(href_list["monkeyone"])
-		if(!istype(H))
-			to_chat(usr, "<span class='warning'>This can only be used on instances of type /mob/living/carbon/human</span>")
-			return
-		if(alert(usr, "Confirm make monkey?",, "Yes", "No") != "Yes")
-			return
-
-		log_admin("[key_name(usr)] attempting to monkeyize [key_name(H)]")
-		message_admins("<span class='notice'>[key_name_admin(usr)] attempting to monkeyize [key_name_admin(H)]</span>", 1)
-		H.monkeyize()
-
-
-	else if(href_list["corgione"])
-		if(!check_rights(R_SPAWN))	return
-
-		var/mob/living/carbon/human/H = locateUID(href_list["corgione"])
-		if(!istype(H))
-			to_chat(usr, "<span class='warning'>This can only be used on instances of type /mob/living/carbon/human</span>")
-			return
-
-		if(alert(usr, "Confirm make corgi?",, "Yes", "No") != "Yes")
-			return
-
-		log_admin("[key_name(usr)] attempting to corgize [key_name(H)]")
-		message_admins("<span class='notice'>[key_name_admin(usr)] attempting to corgize [key_name_admin(H)]</span>", 1)
-		H.corgize()
-
-	else if(href_list["makePAI"])
-		if(!check_rights(R_SPAWN))	return
-
-		var/mob/living/carbon/human/H = locateUID(href_list["makePAI"])
-		if(!istype(H))
-			to_chat(usr, "<span class='warning'>This can only be used on instances of type /mob/living/carbon/human</span>")
-			return
-		if(alert(usr, "Confirm make pai?",, "Yes", "No") != "Yes")
-			return
-
-		var/painame = "Default"
-		var/name = ""
-		if(alert(usr, "Do you want to set their name or let them choose their own name?", "Name Choice", "Set Name", "Let them choose") == "Set Name")
-			name = sanitize(copytext(input(usr, "Enter a name for the new pAI. Default name is [painame].", "pAI Name", painame),1,MAX_NAME_LEN))
-		else
-			name = sanitize(copytext(input(H, "An admin wants to make you into a pAI. Choose a name. Default is [painame].", "pAI Name", painame),1,MAX_NAME_LEN))
-
-		if(!name)
-			name = painame
-
-		log_admin("[key_name(usr)] attempting to pAIze [key_name(H)]")
-		message_admins("<span class='notice'>[key_name_admin(usr)] attempting to pAIze [key_name_admin(H)]</span>", 1)
-		H.paize(name)
-
 	else if(href_list["forcespeech"])
 		if(!check_rights(R_SERVER|R_EVENT))	return
 
@@ -1468,83 +1419,6 @@
 		L.revive()
 		message_admins("<span class='warning'>Admin [key_name_admin(usr)] healed / revived [key_name_admin(L)]!</span>", 1)
 		log_admin("[key_name(usr)] healed / revived [key_name(L)]")
-
-	else if(href_list["makeai"])
-		if(!check_rights(R_SPAWN))	return
-
-		var/mob/living/carbon/human/H = locateUID(href_list["makeai"])
-		if(!istype(H))
-			to_chat(usr, "<span class='warning'>This can only be used on instances of type /mob/living/carbon/human</span>")
-			return
-
-		if(alert(usr, "Confirm make ai?",, "Yes", "No") != "Yes")
-			return
-
-		message_admins("<span class='warning'>Admin [key_name_admin(usr)] AIized [key_name_admin(H)]!</span>", 1)
-		log_admin("[key_name(usr)] AIized [key_name(H)]")
-		var/mob/living/silicon/ai/ai_character = H.AIize()
-		ai_character.moveToAILandmark()
-
-	else if(href_list["makealien"])
-		if(!check_rights(R_SPAWN))	return
-
-		var/mob/living/carbon/human/H = locateUID(href_list["makealien"])
-		if(!istype(H))
-			to_chat(usr, "<span class='warning'>This can only be used on instances of type /mob/living/carbon/human</span>")
-			return
-		if(alert(usr, "Confirm make alien?",, "Yes", "No") != "Yes")
-			return
-
-		usr.client.cmd_admin_alienize(H)
-
-	else if(href_list["makeslime"])
-		if(!check_rights(R_SPAWN))	return
-
-		var/mob/living/carbon/human/H = locateUID(href_list["makeslime"])
-		if(!istype(H))
-			to_chat(usr, "<span class='warning'>This can only be used on instances of type /mob/living/carbon/human</span>")
-			return
-		if(alert(usr, "Confirm make slime?",, "Yes", "No") != "Yes")
-			return
-
-		usr.client.cmd_admin_slimeize(H)
-
-	else if(href_list["makesuper"])
-		if(!check_rights(R_SPAWN))	return
-
-		var/mob/living/carbon/human/H = locateUID(href_list["makesuper"])
-		if(!istype(H))
-			to_chat(usr, "<span class='warning'>This can only be used on instances of type /mob/living/carbon/human</span>")
-			return
-
-		if(alert(usr, "Confirm make superhero?",, "Yes", "No") != "Yes")
-			return
-
-		usr.client.cmd_admin_super(H)
-
-	else if(href_list["makerobot"])
-		if(!check_rights(R_SPAWN))	return
-
-		var/mob/living/carbon/human/H = locateUID(href_list["makerobot"])
-		if(!istype(H))
-			to_chat(usr, "<span class='warning'>This can only be used on instances of type /mob/living/carbon/human</span>")
-			return
-		if(alert(usr, "Confirm make robot?",, "Yes", "No") != "Yes")
-			return
-
-		usr.client.cmd_admin_robotize(H)
-
-	else if(href_list["makeanimal"])
-		if(!check_rights(R_SPAWN))	return
-
-		var/mob/M = locateUID(href_list["makeanimal"])
-		if(isnewplayer(M))
-			to_chat(usr, "<span class='warning'>This cannot be used on instances of type /mob/new_player</span>")
-			return
-		if(alert(usr, "Confirm make animal?",, "Yes", "No") != "Yes")
-			return
-
-		usr.client.cmd_admin_animalize(M)
 
 	else if(href_list["incarn_ghost"])
 		if(!check_rights(R_SPAWN))

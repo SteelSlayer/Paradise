@@ -38,6 +38,10 @@
 	for(var/path in (subtypesof(/datum/surgery)))
 		GLOB.surgeries_list += new path()
 
+	for(var/path in subtypesof(/datum/admin_command))
+		var/datum/admin_command/command = new path
+		GLOB.admin_commands[command.href_key] = command
+
 	init_datum_subtypes(/datum/job, GLOB.joblist, list(/datum/job/ai, /datum/job/cyborg), "title")
 	init_datum_subtypes(/datum/superheroes, GLOB.all_superheroes, null, "name")
 	init_datum_subtypes(/datum/language, GLOB.all_languages, null, "name")
