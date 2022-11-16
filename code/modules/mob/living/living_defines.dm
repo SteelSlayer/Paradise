@@ -85,9 +85,6 @@
 	/// Used for keeping track of previous sleeping value with admin freeze.
 	var/admin_prev_sleeping = 0
 
-	/// the type of holder that will be created when a mob gets scooped up
-	var/holder_type
-
 	var/datum/language/default_language
 
 	var/datum/middleClickOverride/middleClickOverride = null

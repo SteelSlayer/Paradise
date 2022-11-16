@@ -45,8 +45,6 @@
 		/obj/item/stack/tile
 	)
 
-	holder_type = /obj/item/holder/drone
-//	var/sprite[0]
 
 
 /mob/living/silicon/robot/drone/New()
@@ -98,6 +96,8 @@
 	flavor_text = "It's a tiny little repair drone. The casing is stamped with an NT logo and the subscript: 'Nanotrasen Recursive Repair Systems: Fixing Tomorrow's Problem, Today!'"
 	scanner.Grant(src)
 	update_icons()
+
+	AddElement(/datum/element/scoopable, /obj/item/holder/drone)
 
 /mob/living/silicon/robot/drone/init(alien = FALSE, mob/living/silicon/ai/ai_to_sync_to = null)
 	laws = new /datum/ai_laws/drone()
@@ -228,7 +228,6 @@
 	density = TRUE
 	pass_flags = 0
 	icon_state = "repairbot-emagged"
-	holder_type = /obj/item/holder/drone/emagged
 	update_icons()
 	connected_ai = null
 	clear_supplied_laws()

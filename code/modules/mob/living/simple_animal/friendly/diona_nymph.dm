@@ -5,7 +5,7 @@
 //Mob defines.
 /mob/living/simple_animal/diona
 	name = "diona nymph"
-	icon = 'icons/mob/monkey.dmi'
+	desc = "It's a tiny plant critter."
 	icon_state = "nymph"
 	icon_living = "nymph"
 	icon_dead = "nymph_dead"
@@ -39,7 +39,6 @@
 	turns_per_move = 4
 
 	var/list/donors = list()
-	holder_type = /obj/item/holder/diona
 	can_collar = TRUE
 
 	a_intent = INTENT_HELP
@@ -89,6 +88,8 @@
 	evolve_action.Grant(src)
 	steal_blood_action.Grant(src)
 
+	AddElement(/datum/element/scoopable)
+
 /mob/living/simple_animal/diona/UnarmedAttack(atom/A)
 	if(isdiona(A) && (src in A.contents)) //can't attack your gestalt
 		visible_message("[src] wiggles around a bit.")
@@ -100,7 +101,7 @@
 		..()
 
 /mob/living/simple_animal/diona/attack_hand(mob/living/carbon/human/M)
-	//Let people pick the little buggers up.
+	// Allows nymphs to merge with fully grown diona.
 	if(M.a_intent == INTENT_HELP)
 		if(isdiona(M))
 			to_chat(M, "You feel your being twine with that of [src] as it merges with your biomass.")
@@ -109,10 +110,7 @@
 			forceMove(M)
 		else if(isrobot(M))
 			M.visible_message("<span class='notice'>[M] playfully boops [src] on the head!</span>", "<span class='notice'>You playfully boop [src] on the head!</span>")
-		else
-			get_scooped(M)
-	else
-		..()
+	..()
 
 /mob/living/simple_animal/diona/proc/merge()
 	if(stat != CONSCIOUS)

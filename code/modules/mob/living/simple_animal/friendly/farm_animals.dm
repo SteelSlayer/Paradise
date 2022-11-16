@@ -271,9 +271,8 @@ GLOBAL_VAR_INIT(chicken_count, 0)
 	var/icon_prefix = "chicken"
 	pass_flags = PASSTABLE | PASSMOB
 	mob_size = MOB_SIZE_SMALL
-	holder_type = /obj/item/holder/chicken
-	can_hide = TRUE
-	can_collar = TRUE
+	can_hide = 1
+	can_collar = 1
 	var/list/feedMessages = list("It clucks happily.","It clucks happily.")
 	var/list/layMessage = EGG_LAYING_MESSAGES
 	var/list/validColors = list("brown","black","white")
@@ -290,6 +289,8 @@ GLOBAL_VAR_INIT(chicken_count, 0)
 	pixel_x = rand(-6, 6)
 	pixel_y = rand(0, 10)
 	GLOB.chicken_count += 1
+
+	AddElement(/datum/element/scoopable)
 
 /mob/living/simple_animal/chicken/death(gibbed)
 	// Only execute the below if we successfully died
@@ -312,10 +313,6 @@ GLOBAL_VAR_INIT(chicken_count, 0)
 	else
 		..()
 
-/mob/living/simple_animal/chicken/attack_hand(mob/living/carbon/human/M)
-	if(M.a_intent == INTENT_HELP)
-		get_scooped(M, TRUE)
-	..()
 
 /mob/living/simple_animal/chicken/Life(seconds, times_fired)
 	. = ..()

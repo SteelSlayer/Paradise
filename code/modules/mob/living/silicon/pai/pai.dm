@@ -7,7 +7,6 @@
 	mob_size = MOB_SIZE_TINY
 	pass_flags = PASSTABLE
 	density = FALSE
-	holder_type = /obj/item/holder/pai
 
 	var/ram = 100	// Used as currency to purchase different abilities
 	var/userDNA		// The DNA string of our assigned user
@@ -117,6 +116,8 @@
 			installed_software[PSD.id] = PSD
 
 	active_software = installed_software["mainmenu"] // Default us to the main menu
+
+	AddElement(/datum/element/scoopable, /obj/item/holder/pai)
 
 /mob/living/silicon/pai/can_unbuckle()
 	return FALSE
@@ -468,54 +469,17 @@
 /mob/living/silicon/pai/binarycheck()
 	return 0
 
-// Handle being picked up.
-
-
-/mob/living/silicon/pai/get_scooped(mob/living/carbon/grabber)
-	var/obj/item/holder/H = ..()
-	if(!istype(H))
-		return
-	if(stat == DEAD)
-		H.icon = 'icons/mob/pai.dmi'
-		H.icon_state = "[chassis]_dead"
-		return
-	if(resting)
-		icon_state = "[chassis]"
-		resting = FALSE
-		REMOVE_TRAIT(src, TRAIT_IMMOBILIZED, LYING_DOWN_TRAIT)
-	if(custom_sprite)
-		H.icon = 'icons/mob/custom_synthetic/custom-synthetic.dmi'
-		H.icon_override = 'icons/mob/custom_synthetic/custom_head.dmi'
-		H.lefthand_file = 'icons/mob/custom_synthetic/custom_lefthand.dmi'
-		H.righthand_file = 'icons/mob/custom_synthetic/custom_righthand.dmi'
-		H.icon_state = "[icon_state]"
-		H.item_state = "[icon_state]_hand"
-	else
-		H.icon_state = "pai-[icon_state]"
-		H.item_state = "pai-[icon_state]"
-	grabber.put_in_active_hand(H)//for some reason unless i call this it dosen't work
-	grabber.update_inv_l_hand()
-	grabber.update_inv_r_hand()
-
-	return H
-
 /mob/living/silicon/pai/MouseDrop(atom/over_object)
-	var/mob/living/carbon/human/H = over_object //changed to human to avoid stupid issues like xenos holding pAIs.
-	if(!istype(H) || !Adjacent(H))  return ..()
-	if(usr == src)
-		switch(alert(H, "[src] wants you to pick [p_them()] up. Do it?",,"Yes","No"))
-			if("Yes")
-				if(Adjacent(H))
-					get_scooped(H)
-				else
-					to_chat(src, "<span class='warning'>You need to stay in reaching distance to be picked up.</span>")
-			if("No")
-				to_chat(src, "<span class='warning'>[H] decided not to pick you up.</span>")
-	else
-		if(Adjacent(H))
-			get_scooped(H)
-		else
-			return ..()
+	var/mob/living/carbon/human/H = over_object // Change to human to avoid stupid issues like xenos holding pAIs.
+	if(!istype(H) || !Adjacent(H) || usr != src)
+		return ..()
+
+	switch(alert(H, "[src] wants you to pick [p_them()] up. Do it?",,"Yes","No"))
+		if("Yes")
+			new /obj/item/holder/pai(get_turf(H), src, H)
+		if("No")
+			to_chat(src, "<span class='warning'>[H] decided not to pick you up.</span>")
+	return ..()
 
 /mob/living/silicon/pai/on_forcemove(atom/newloc)
 	if(card)

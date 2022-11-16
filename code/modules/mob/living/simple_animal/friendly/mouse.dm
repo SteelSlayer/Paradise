@@ -33,7 +33,6 @@
 	universal_speak = FALSE
 	can_hide = TRUE
 	pass_door_while_hidden = TRUE
-	holder_type = /obj/item/holder/mouse
 	can_collar = TRUE
 	gold_core_spawnable = FRIENDLY_SPAWN
 	var/chew_probability = 1
@@ -41,6 +40,7 @@
 /mob/living/simple_animal/mouse/Initialize(mapload)
 	. = ..()
 	AddComponent(/datum/component/squeak, list('sound/creatures/mousesqueak.ogg' = 1), 100, extrarange = SHORT_RANGE_SOUND_EXTRARANGE) //as quiet as a mouse or whatever
+	AddElement(/datum/element/scoopable)
 
 /mob/living/simple_animal/mouse/handle_automated_action()
 	if(prob(chew_probability) && isturf(loc))
@@ -85,11 +85,6 @@
 /mob/living/simple_animal/mouse/update_desc()
 	. = ..()
 	desc = "It's a small [mouse_color] rodent, often seen hiding in maintenance areas and making a nuisance of itself."
-
-/mob/living/simple_animal/mouse/attack_hand(mob/living/carbon/human/M as mob)
-	if(M.a_intent == INTENT_HELP)
-		get_scooped(M, TRUE)
-	..()
 
 /mob/living/simple_animal/mouse/start_pulling(atom/movable/AM, state, force = pull_force, show_message = FALSE)//Prevents mouse from pulling things
 	if(istype(AM, /obj/item/reagent_containers/food/snacks/cheesewedge))
@@ -203,8 +198,8 @@
 	if(!gibbed)
 		gib()
 
-/mob/living/simple_animal/mouse/blobinfected/get_scooped(mob/living/carbon/grabber)
-	to_chat(grabber, "<span class='warning'>You try to pick up [src], but they slip out of your grasp!</span>")
+/mob/living/simple_animal/mouse/blobinfected/attack_hand(mob/living/carbon/human/H)
+	to_chat(H, "<span class='warning'>You try to pick up [src], but they slip out of your grasp!</span>")
 	to_chat(src, "<span class='warning'>[src] tries to pick you up, but you wriggle free of their grasp!</span>")
 
 /mob/living/simple_animal/mouse/decompile_act(obj/item/matter_decompiler/C, mob/user)
