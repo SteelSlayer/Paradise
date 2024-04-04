@@ -37,6 +37,8 @@ GLOBAL_LIST_EMPTY(antagonists)
 	var/clown_removal_text = "You are clumsy again."
 	/// The url page name for this antagonist, appended to the end of the wiki url in the form of: [GLOB.configuration.url.wiki_url]/index.php/[wiki_page_name]
 	var/wiki_page_name
+	/// If set to true, the antag will not be added to the living antag list.
+	var/count_against_dynamic_roll_chance = TRUE
 
 /datum/antagonist/New()
 	GLOB.antagonists += src

@@ -68,6 +68,8 @@ SUBSYSTEM_DEF(ticker)
 	var/datum/scoreboard/score = null
 	/// List of ckeys who had antag rolling issues flagged
 	var/list/flagged_antag_rollers = list()
+	/// Num of ready players, used for pregame stats on the statpanel, and calculations in gamemodes.
+	var/total_players_ready = 0
 
 /datum/controller/subsystem/ticker/Initialize()
 	login_music = pick(\
@@ -220,7 +222,7 @@ SUBSYSTEM_DEF(ticker)
 				// A lot of DB tracking stuff needs doing, so we may as well async it
 				flagged_antag_rollers |= P.ckey
 
-			P.ready = FALSE
+			P.set_ready(FALSE)
 
 	//Configure mode and assign player to special mode stuff
 	mode.pre_pre_setup()

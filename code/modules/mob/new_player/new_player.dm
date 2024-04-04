@@ -1,8 +1,9 @@
 /mob/new_player
 	var/ready = FALSE
 	var/spawning = FALSE	//Referenced when you want to delete the new_player later on in the code.
+
+	// TODO: maybe replace with length(GLOB.new_player_list)
 	var/totalPlayers = 0		 //Player counts for the Lobby tab
-	var/totalPlayersReady = 0
 	universal_speak = TRUE
 
 	invisibility = 101
@@ -108,15 +109,12 @@
 		if(SSticker.current_state == GAME_STATE_PREGAME)
 			stat("Players:", "[totalPlayers]")
 			if(check_rights(R_ADMIN, 0, src))
-				stat("Players Ready:", "[totalPlayersReady]")
+				stat("Players Ready:", "[SSticker.total_players_ready]")
 			totalPlayers = 0
-			totalPlayersReady = 0
 			for(var/mob/new_player/player in GLOB.player_list)
 				if(check_rights(R_ADMIN, 0, src))
 					stat("[player.key]", (player.ready)?("(Playing)"):(null))
 				totalPlayers++
-				if(player.ready)
-					totalPlayersReady++
 
 
 /mob/new_player/Topic(href, href_list[])
@@ -158,10 +156,10 @@
 			return FALSE
 		if(!ready && !client.prefs.active_character.check_any_job() && (client.prefs.active_character.alternate_option == RETURN_TO_LOBBY))
 			to_chat(usr, "<span class='danger'>You have no jobs enabled, along with return to lobby if job is unavailable. This makes you ineligible for any round start role, please update your job preferences.</span>")
-			ready = FALSE
+			set_ready(FALSE)
 			return FALSE
 
-		ready = !ready
+		set_ready(!ready)
 		new_player_panel_proc()
 
 	if(href_list["skip_antag"])
@@ -612,3 +610,38 @@
 // No hearing announcements
 /mob/new_player/can_hear()
 	return 0
+
+/mob/new_player/proc/set_ready(ready_value)
+	if(ready_value)
+		ready = TRUE
+		SSticker.total_players_ready++
+	else
+		ready = FALSE
+		SSticker.total_players_ready--
+
+/// TODO: POSSIBLY A TEMP PROC. we may have others that accomplish this
+
+/**
+ * Used to make sure that a player has a valid job preference setup, used to knock players out of eligibility for anything if their prefs don't make sense.
+ * A "valid job preference setup" in this situation means at least having one job set to low, or not having "return to lobby" enabled
+ * Prevents "antag rolling" by setting antag prefs on, all jobs to never, and "return to lobby if preferences not available"
+ * Doing so would previously allow you to roll for antag, then send you back to lobby if you didn't get an antag role
+ * This also does some admin notification and logging as well, as well as some extra logic to make sure things don't go wrong
+ */
+/mob/new_player/proc/check_preferences()
+	if(!client)
+		return FALSE //Not sure how this would get run without the mob having a client, but let's just be safe.
+	if(client.prefs.active_character.alternate_option == RETURN_TO_LOBBY)
+		return TRUE
+	// If they have antags enabled, they're potentially doing this on purpose instead of by accident. Notify admins if so.
+	var/has_antags = FALSE
+	if(length(client.prefs.be_special) > 0)
+		has_antags = TRUE
+	if(!client.prefs.active_character.check_any_job())
+		to_chat(src, "<span class='danger'>You have no jobs enabled, along with return to lobby if job is unavailable. This makes you ineligible for any round start role, please update your job preferences.</span>")
+		set_ready(FALSE)
+		if(has_antags)
+			log_admin("[src.ckey] has no jobs enabled, return to lobby if job is unavailable enabled and [length(client.prefs.be_special)] antag preferences enabled. The player has been forcefully returned to the lobby.")
+			message_admins("[src.ckey] has no jobs enabled, return to lobby if job is unavailable enabled and [length(client.prefs.be_special)] antag preferences enabled. This is an old antag rolling technique. The player has been asked to update their job preferences and has been forcefully returned to the lobby.")
+		return FALSE //This is the only case someone should actually be completely blocked from antag rolling as well
+	return TRUE

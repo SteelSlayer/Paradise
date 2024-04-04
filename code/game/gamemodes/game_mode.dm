@@ -512,6 +512,18 @@
 	antaghud.leave_hud(mob_mind.current)
 	set_antag_hud(mob_mind.current, null)
 
+/// Mode specific admin panel.
+/datum/game_mode/proc/admin_panel()
+	return
+
+/// Set the round result.
+/datum/game_mode/proc/set_round_result()
+	SSticker.mode_result = "undefined"
+
+///Handles late-join antag assignments
+/datum/game_mode/proc/make_antag_chance(mob/living/carbon/human/character)
+	return
+
 #undef NUKE_INTACT
 #undef NUKE_CORE_MISSING
 #undef NUKE_MISSING
