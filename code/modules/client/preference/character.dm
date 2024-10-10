@@ -1640,6 +1640,25 @@
 
 	return 0
 
+/**
+ * Returns true if the given job datum's flags are somewhere in their job preferences
+ *
+ * Arguments:
+ * datum/job/job - the job to compare against our preferences
+ */
+/// TODO: test this shit, I don't even know if it works
+/datum/character_save/proc/is_job_in_jobprefs(datum/job/job)
+	var/support_jobs = job_support_high | job_support_med | job_support_low
+	var/medsci_jobs = job_medsci_high | job_medsci_med | job_medsci_low
+	var/engsec_jobs = job_engsec_high | job_engsec_med | job_engsec_low
+	if(job.department_flag == JOBCAT_SUPPORT && (job.flag & support_jobs))
+		return TRUE
+	if(job.department_flag == JOBCAT_MEDSCI && (job.flag & medsci_jobs))
+		return TRUE
+	if(job.department_flag == JOBCAT_ENGSEC && (job.flag & engsec_jobs))
+		return TRUE
+	return FALSE
+
 /datum/character_save/proc/ShowDisabilityState(mob/user, flag, label)
 	return "<li><b>[label]:</b> <a href='byond://?_src_=prefs;task=input;preference=disabilities;disability=[flag]'>[disabilities & flag ? "Yes" : "No"]</a></li>"
 

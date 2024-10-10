@@ -657,3 +657,15 @@
 		traitor.special_role = SPECIAL_ROLE_TRAITOR
 		traitor.restricted_roles = restricted_jobs
 		traitor.add_antag_datum(/datum/antagonist/traitor) // They immediately get a new objective
+
+/// Mode specific admin panel.
+/datum/game_mode/proc/admin_panel()
+	return
+
+/// Set the round result.
+/datum/game_mode/proc/set_round_result()
+	SSticker.mode_result = "undefined"
+
+///Handles late-join antag assignments
+/datum/game_mode/proc/make_antag_chance(mob/living/carbon/human/character)
+	return

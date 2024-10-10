@@ -1,9 +1,6 @@
 // To remove a rev (from brainwashing or w/e), call SSticker.mode.remove_revolutionary(_THE_PLAYERS_MIND_),
 // this will also check they're not a head, so it can just be called freely
 
-#define REV_VICTORY 1
-#define STATION_VICTORY 2
-
 /datum/game_mode/revolution
 	name = "revolution"
 	config_tag = "revolution"
@@ -81,7 +78,7 @@
 //////////////////////////////////////
 /datum/game_mode/revolution/check_win()
 	if(rev_team.check_rev_victory())
-		finished = REV_VICTORY
+		finished = REVOLUTION_VICTORY
 	else if(rev_team.check_heads_victory())
 		finished = STATION_VICTORY
 
@@ -132,7 +129,7 @@
 //Announces the end of the game with all relavent information stated//
 //////////////////////////////////////////////////////////////////////
 /datum/game_mode/revolution/declare_completion()
-	if(finished == REV_VICTORY)
+	if(finished == REVOLUTION_VICTORY)
 		SSticker.mode_result = "revolution win - heads killed"
 		to_chat(world, "<span class='redtext'>The heads of staff were killed or exiled! The revolutionaries win!</span>")
 	else if(finished == STATION_VICTORY)
@@ -261,6 +258,3 @@
 
 /proc/is_any_revolutionary(mob/living/M)
 	return istype(M) && M?.mind?.has_antag_datum(/datum/antagonist/rev)
-
-#undef REV_VICTORY
-#undef STATION_VICTORY

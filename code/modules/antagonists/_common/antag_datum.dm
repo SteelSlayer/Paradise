@@ -63,6 +63,8 @@ GLOBAL_LIST_EMPTY(antagonists)
 
 	/// Do we have delayed objective giving?
 	var/delayed_objectives = FALSE
+	/// If set to true, the antag will not be added to the living antag list.
+	var/count_against_dynamic_roll_chance = TRUE
 
 /datum/antagonist/New()
 	GLOB.antagonists += src

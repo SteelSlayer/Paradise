@@ -1,5 +1,5 @@
 /mob/new_player/Logout()
-	ready = FALSE
+	set_ready(FALSE)
 	..()
 	GLOB.new_player_mobs -= src
 	if(!spawning)//Here so that if they are spawning and log out, the other procs can play out and they will have a mob to come back to.

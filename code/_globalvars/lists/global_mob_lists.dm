@@ -29,6 +29,21 @@ GLOBAL_LIST_EMPTY(bots_list) 					//List of all bots(beepsky, medibots,etc)
 GLOBAL_LIST_EMPTY(roundstart_observer_keys)	//List of ckeys who ghosted before the game began.
 GLOBAL_LIST_EMPTY(antag_hud_users) 			// ckeys of users who have enabled ahud at some point during the game
 
+/// THIS IS NEW SHIT FOR DYNAMIC
+/// A list of all /mob/new_player
+GLOBAL_LIST_EMPTY(new_player_list)
+/// A list of all alive mobs with clients.
+GLOBAL_LIST_EMPTY(alive_player_list)
+/// A list of all dead mobs with clients. Does not include observers.
+GLOBAL_LIST_EMPTY(dead_player_list)
+/// A list of all alive antags with clients.
+GLOBAL_LIST_EMPTY(current_living_antags)
+/// A list of all observers with clients that joined as observers.
+GLOBAL_LIST_EMPTY(current_observers_list)
+////
+
+GLOBAL_LIST_EMPTY(med_hud_users)
+GLOBAL_LIST_EMPTY(sec_hud_users)
 GLOBAL_LIST_EMPTY(surgeries_list)
 GLOBAL_LIST_EMPTY(hear_radio_list)			//Mobs that hear the radio even if there's no client
 

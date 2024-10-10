@@ -14,12 +14,11 @@ SUBSYSTEM_DEF(jobs)
 	var/list/id_change_records = list() // List of all job transfer records
 	var/probability_of_antag_role_restriction = 100 // Dict probability of a job rolling an antagonist role
 	var/id_change_counter = 1
-	//Players who need jobs
+	/// Players who need jobs
 	var/list/unassigned = list()
-	//Debug info
+	/// Debug info
 	var/list/job_debug = list()
-
-	///list of station departments and their associated roles and economy payments
+	/// List of station departments and their associated roles and economy payments
 	var/list/station_departments = list()
 	/// Do we spawn everyone at shuttle due to late arivals?
 	var/late_arrivals_spawning = FALSE
@@ -27,6 +26,8 @@ SUBSYSTEM_DEF(jobs)
 	var/drunken_spawning = FALSE
 	/// A list of minds that have failed to roll antagonist. Cleared when job selection finishes.
 	var/list/failed_head_antag_roll = list()
+	/// TODO
+	var/list/dynamic_forced_occupations
 
 /datum/controller/subsystem/jobs/Initialize()
 	if(!length(occupations))
@@ -438,7 +439,7 @@ SUBSYSTEM_DEF(jobs)
 			Debug("AC2 Assistant located, Player: [player]")
 			AssignRole(player, "Assistant")
 		else if(player.client.prefs.active_character.alternate_option == RETURN_TO_LOBBY)
-			player.ready = FALSE
+			player.set_ready(FALSE)
 			unassigned -= player
 
 	log_debug("Dividing Occupations took [stop_watch(watch)]s")

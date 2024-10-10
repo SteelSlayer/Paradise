@@ -42,17 +42,6 @@ RESTRICT_TYPE(/datum/antagonist/traitor)
 		component.delete_if_from_source(src)
 
 /datum/antagonist/traitor/Destroy(force, ...)
-	// Remove all associated malf AI abilities.
-	if(isAI(owner.current))
-		var/mob/living/silicon/ai/A = owner.current
-		A.clear_zeroth_law()
-		var/obj/item/radio/headset/heads/ai_integrated/radio = A.get_radio()
-		radio.channels.Remove("Syndicate")  // De-traitored AIs can still state laws over the syndicate channel without this
-		A.laws.sorted_laws = A.laws.inherent_laws.Copy() // AI's 'notify laws' button will still state a law 0 because sorted_laws contains it
-		A.show_laws()
-		A.remove_malf_abilities()
-		QDEL_NULL(A.malf_picker)
-
 	// Leave the mindslave hud.
 	if(owner.som)
 		var/datum/mindslaves/slaved = owner.som
@@ -191,11 +180,6 @@ RESTRICT_TYPE(/datum/antagonist/traitor)
 		antag_memory += "<b>Organization</b>: [organization.name]<br>"
 	if(give_codewords)
 		messages.Add(give_codewords())
-	if(isAI(owner.current))
-		add_law_zero()
-		owner.current.playsound_local(get_turf(owner.current), 'sound/ambience/antag/malf.ogg', 100, FALSE, pressure_affected = FALSE, use_reverb = FALSE)
-		var/mob/living/silicon/ai/A = owner.current
-		A.show_laws()
 	else
 		if(give_uplink)
 			give_uplink()
@@ -226,22 +210,9 @@ RESTRICT_TYPE(/datum/antagonist/traitor)
 	return messages
 
 /**
- * Gives traitor AIs, and their connected cyborgs, a law 0. Additionally gives the AI their choose modules action button.
- */
-/datum/antagonist/traitor/proc/add_law_zero()
-	var/mob/living/silicon/ai/killer = owner.current
-	killer.set_zeroth_law("Accomplish your objectives at all costs.", "Accomplish your AI's objectives at all costs.")
-	killer.set_syndie_radio()
-	to_chat(killer, "Your radio has been upgraded! Use :t to speak on an encrypted channel with Syndicate Agents!")
-	killer.add_malf_picker()
-
-/**
  * Gives a traitor human their uplink, and uplink code.
  */
 /datum/antagonist/traitor/proc/give_uplink()
-	if(isAI(owner.current))
-		return FALSE
-
 	var/mob/living/carbon/human/traitor_mob = owner.current
 
 	// Try to find a PDA first. If they don't have one, try to find a radio/headset.
